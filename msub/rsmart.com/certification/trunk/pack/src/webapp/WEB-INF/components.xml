@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2011 The rSmart Group
+  ~
+  ~ The contents of this file are subject to the Mozilla Public License
+  ~ Version 1.1 (the "License"); you may not use this file except in
+  ~ compliance with the License. You may obtain a copy of the License at
+  ~ http://www.mozilla.org/MPL/
+  ~
+  ~ Software distributed under the License is distributed on an "AS IS"
+  ~ basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing rights and limitations
+  ~ under the License.
+  ~
+  ~ Contributor(s): duffy
+  -->
+
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans default-lazy-init="false">
+
+    <bean id="certification.AdditionalHibernateMappings"
+          class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
+        <property name="mappingResources">
+            <list>
+                <value>com/rsmart/certification/impl/hibernate/CertificateAwardHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/CertificateDefinitionHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/DocumentTemplateHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/AbstractCriterionHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/GreaterThanScoreCriterionHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/DueDatePassedCriterionHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/FinalGradeScoreCriterionHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertAssignment.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertCategory.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradebook.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradeRecord.hbm.xml</value>
+            </list>
+        </property>
+    </bean>    
+
+    <bean id="com.rsmart.certification.api.CertificateService"
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="transactionManager">
+            <ref bean="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager"/>
+        </property>
+        <property name="target">
+            <ref bean="com.rsmart.certification.api.CertificateService.wrapped"/>
+        </property>
+        <property name="transactionAttributes">
+            <props>
+                <prop key="addAwardCriteria">PROPAGATION_REQUIRES_NEW</prop>
+                <prop key="setDocumentTemplate">PROPAGATION_REQUIRES_NEW</prop>
+                <prop key="*">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
+    </bean>
+    <bean id="com.rsmart.certification.api.DocumentTemplateService"
+          class="com.rsmart.certification.impl.DocumentTemplateServiceImpl">
+        <property name="variableResolvers">
+            <set>
+                <bean class="com.rsmart.certification.impl.AwardVariableResolver"/>
+                <bean class="com.rsmart.certification.impl.RecipientVariableResolver">
+                    <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+                </bean>
+            </set>
+        </property>
+    </bean>
+
+    <bean id="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
+          class="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
+          init-method="init">
+          <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
+        <property name="documentTemplateService"
+                  ref="com.rsmart.certification.api.DocumentTemplateService"/>
+    </bean>
+
+    <bean id="com.rsmart.certification.api.CertificateService.wrapped"
+          class="com.rsmart.certification.impl.hibernate.CertificateServiceHibernateImpl"
+          init-method="init">
+        <property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"/>
+        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
+        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+        <property name="adminUser" value="admin"/>
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+        <property name="templateDirectory" value="${sakai.home}/templates"/>
+        <property name="shortenedUrlService" ref="org.sakaiproject.shortenedurl.api.ShortenedUrlService"/>
+        <property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />        
+    </bean>
+
+    <bean id="com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
+          class="com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
+          init-method="init">
+        <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
+        <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
+        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+        <property name="resourceLoader" ref="gradebook.criteriaResourceLoader"/>
+        <property name="adminUser" value="admin"/>
+    </bean>
+
+    <bean id="gradebook.criteriaResourceLoader"
+          class="org.sakaiproject.util.ResourceLoader">
+        <property name="baseName" value="com.rsmart.certification.criteria.impl.gradebook.Messages"/>   
+    </bean>
+
+</beans>

@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<!--
+  ~ Copyright 2011 The rSmart Group
+  ~
+  ~ The contents of this file are subject to the Mozilla Public License
+  ~ Version 1.1 (the "License"); you may not use this file except in
+  ~ compliance with the License. You may obtain a copy of the License at
+  ~ http://www.mozilla.org/MPL/
+  ~
+  ~ Software distributed under the License is distributed on an "AS IS"
+  ~ basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing rights and limitations
+  ~ under the License.
+  ~
+  ~ Contributor(s): duffy
+  -->
+
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 2.0//EN"
+    "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd" >
+
+<hibernate-mapping>
+
+	<class name="com.rsmart.certification.impl.hibernate.AwardCriteriaHibernateImpl" table="certificate_award_criteria" lazy="false">
+
+		<id name="id" length="36" type="java.lang.String" column="id">
+			<generator class="uuid.hex" />
+		</id>
+
+        <many-to-one name="certificateDefinition"
+            class="com.rsmart.certification.impl.hibernate.CertificateDefinitionHibernateImpl"
+            column="defn_id" not-null="true" fetch="join" lazy="false" unique-key="unq_criteria"
+            cascade="all"/>
+        
+        <set name="criteria" lazy="false" inverse="true" cascade="save-update,delete">
+            <key column="award_criteria_id"/>
+            <one-to-many class="com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl"/>
+        </set>
+
+        <property name="effectiveDate" column="effective_date" type="timestamp" not-null="true"/>
+        <property name="obsoleteDate" column="obsolete_date" type="timestamp"/>
+        <property name="revision" column="revision" type="int"/>
+        
+
+   </class>
+
+</hibernate-mapping>

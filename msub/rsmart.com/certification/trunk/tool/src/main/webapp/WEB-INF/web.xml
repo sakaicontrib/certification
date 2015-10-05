@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!--
+  ~ Copyright 2011 The rSmart Group
+  ~
+  ~ The contents of this file are subject to the Mozilla Public License
+  ~ Version 1.1 (the "License"); you may not use this file except in
+  ~ compliance with the License. You may obtain a copy of the License at
+  ~ http://www.mozilla.org/MPL/
+  ~
+  ~ Software distributed under the License is distributed on an "AS IS"
+  ~ basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
+  ~ License for the specific language governing rights and limitations
+  ~ under the License.
+  ~
+  ~ Contributor(s): duffy
+  -->
+
+<!-- Changed spec level to 2.4 - PAFH 8/21/2006 -->
+<web-app id="WebApp_9a" version="2.4" xmlns="http://java.sun.com/xml/ns/j2ee"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_4.xsd">
+
+   <display-name>certification-tool</display-name>
+
+    <filter>
+        <filter-name>sakai.request</filter-name>
+        <filter-class>org.sakaiproject.util.RequestFilter</filter-class>
+        <init-param>
+            <param-name>upload.enabled</param-name>
+            <param-value>false</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>sakai.request</filter-name>
+        <servlet-name>springmvc</servlet-name>
+        <dispatcher>REQUEST</dispatcher>
+        <dispatcher>FORWARD</dispatcher>
+        <dispatcher>INCLUDE</dispatcher>
+    </filter-mapping>
+
+   <filter-mapping>
+       <filter-name>sakai.request</filter-name>
+       <servlet-name>com.rsmart.certification</servlet-name>
+       <dispatcher>REQUEST</dispatcher>
+       <dispatcher>FORWARD</dispatcher>
+       <dispatcher>INCLUDE</dispatcher>
+   </filter-mapping>
+
+   <servlet>
+      <servlet-name>springmvc</servlet-name>
+      <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+      <load-on-startup>1</load-on-startup>
+   </servlet>
+
+   <servlet>
+      <servlet-name>com.rsmart.certification</servlet-name>
+      <servlet-class>com.rsmart.certification.impl.springframework.SpringTool</servlet-class>
+
+      <!-- this specifies the initial page that will be returned when a user clicks on the tool from the left hand side of the page. -->
+      <!-- since this app uses spring mvc and not jsf, we do not need to specify the path init-param value.  This is because in the  -->
+      <!-- spring mvc configuration file, /WEB-INF/spring_mvc-servlet.xml, we declare a view resolver which tells spring where the   -->
+      <!-- jsp pages are loaded via the "prefix" property.                                                                           -->
+      <init-param>
+         <param-name>default_page</param-name>
+         <param-value>list</param-value>
+      </init-param>
+      <init-param>
+         <param-name>path</param-name>
+         <param-value></param-value>
+      </init-param>
+      <init-param>
+         <param-name>request_extension</param-name>
+         <param-value>.form</param-value>
+      </init-param>
+      <load-on-startup>2</load-on-startup>
+   </servlet>
+
+   <listener>
+        <listener-class>org.sakaiproject.util.ContextLoaderListener</listener-class>
+    </listener>
+
+    <listener>
+        <listener-class>org.sakaiproject.util.ToolListener</listener-class>
+    </listener>
+
+    <servlet-mapping>
+      <servlet-name>springmvc</servlet-name>
+      <url-pattern>*.form</url-pattern>
+   </servlet-mapping>
+   
+</web-app>
