@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" 
+	"http://www.springframework.org/dtd/spring-beans.dtd">
+
+<beans>
+   <bean id="com.rsmart.certification.mock.MockUserDirectoryService"
+          class="com.rsmart.certification.mock.MockUserDirectoryService"/>
+   <bean id="com.rsmart.certification.api.DocumentTemplateService"
+       class="com.rsmart.certification.mock.MockDocumentTemplateService">
+   </bean>
+   <bean id="com.rsmart.certification.mock.MockDocumentTemplateRenderEngine"
+         class="com.rsmart.certification.mock.MockDocumentTemplateRenderEngine"
+         init-method="init">
+       <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+   </bean>
+   <bean id="com.rsmart.certification.api.CertificateService"
+         class="com.rsmart.certification.mock.MockCertificateService">
+        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="userDirectoryService" ref="com.rsmart.certification.mock.MockUserDirectoryService"/>
+   </bean>
+   <bean id="com.rsmart.certification.mock.criteria.MockCriteriaFactory"
+         class="com.rsmart.certification.mock.criteria.MockCriteriaFactory"
+         init-method="init">
+       <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
+   </bean>
+</beans>
