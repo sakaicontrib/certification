@@ -109,4 +109,15 @@
         <property name="baseName" value="com.rsmart.certification.criteria.impl.gradebook.Messages"/>   
     </bean>
 
+    <bean id="com.rsmart.certification.api.util.PortalParamManager"
+          class="com.rsmart.certification.impl.util.PortalParamManagerImpl">
+        <property name="parameters">
+            <list>
+                <value>pid</value>
+                <value>panelId</value>
+            </list>
+        </property>
+
+    </bean>
+
 </beans>
