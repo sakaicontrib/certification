@@ -1,5 +1,4 @@
 /**********************************************************************************
- * $URL: https://source.sakaiproject.org/svn/msub/rsmart.com/metaobj/trunk/metaobj-impl/api-impl/src/java/org/sakaiproject/metaobj/shared/mgt/impl/PortalParamManagerImpl.java $
  * $Id: PortalParamManagerImpl.java 314667 2014-10-20 22:24:11Z bbiltimier@anisakai.com $
  ***********************************************************************************
  *
