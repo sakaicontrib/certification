@@ -18,7 +18,7 @@ package com.rsmart.certification.tool.tag;
 import com.rsmart.certification.tool.tag.AbstractLocalizableTag;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.metaobj.utils.mvc.intf.ListScroll;
+import com.rsmart.certification.impl.tag.ListScroll;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
