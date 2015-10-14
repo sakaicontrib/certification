@@ -1,5 +1,5 @@
 /**********************************************************************************
- * $URL: https://source.sakaiproject.org/svn/msub/rsmart.com/metaobj/trunk/metaobj-util/tool-lib/src/java/org/sakaiproject/metaobj/utils/mvc/intf/ListScroll.java $
+ * $URL:
  * $Id: ListScroll.java 314667 2014-10-20 22:24:11Z bbiltimier@anisakai.com $
  ***********************************************************************************
  *
