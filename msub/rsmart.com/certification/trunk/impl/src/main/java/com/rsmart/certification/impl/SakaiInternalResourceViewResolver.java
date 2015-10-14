@@ -17,7 +17,7 @@ package com.rsmart.certification.impl;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.metaobj.shared.control.RedirectView;
+import com.rsmart.certification.impl.control.RedirectView;
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
