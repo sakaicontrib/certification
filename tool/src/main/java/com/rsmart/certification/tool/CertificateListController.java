@@ -64,9 +64,9 @@ public class CertificateListController
         String siteId = getToolManager().getCurrentPlacement().getContext();
         String portalurl = ServerConfigurationService.getPortalUrl();
         //SAKAI 10
-        String redirectPrefix = portalurl + "/tool/" + placementId;
+        // String redirectPrefix = portalurl + "/tool/" + placementId;
         //This one is for SAKAI 11
-        //String redirectPrefix = portalurl + "/site/" + siteId + "/tool/" + placementId;
+        String redirectPrefix = portalurl + "/site/" + siteId + "/tool/" + placementId;
         String redirectString = "redirect:" + redirectPrefix + "/" + redirectTo;
         return redirectString;
 	}

@@ -20,7 +20,7 @@
   <parent>
     <artifactId>certification-base</artifactId>
     <groupId>com.rsmart</groupId>
-    <version>10.4</version>
+    <version>11-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Certification Impl</name>
@@ -100,12 +100,12 @@
       <groupId>commons-logging</groupId>
       <artifactId>commons-logging</artifactId>
     </dependency>
-    <dependency>
+    <!--<dependency>
       <groupId>com.rsmart</groupId>
       <artifactId>rsmart-util-testing</artifactId>
       <version>${sakai.version}</version>
       <scope>test</scope>
-    </dependency>
+    </dependency>-->
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
