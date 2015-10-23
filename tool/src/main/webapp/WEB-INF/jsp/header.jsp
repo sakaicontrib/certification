@@ -7,11 +7,9 @@
       <title><%= (String)request.getAttribute("_title")%></title>
       <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
       <meta http-equiv="Content-Style-Type" content="text/css" />
-      <link href="/osp-common-tool/css/eport.css" type="text/css" rel="stylesheet" media="all" />
       <link href="<c:out value="${sakai_skin_base}" />" type="text/css" rel="stylesheet" media="all" />
       <link href="<c:out value="${sakai_skin}" />" type="text/css" rel="stylesheet" media="all" />
       <script type="text/javascript" language="JavaScript" src="/library/js/headscripts.js"></script>
-      <script type="text/javascript" language="JavaScript" src="/osp-common-tool/js/eport.js"></script>
       <script type="text/javascript" src="/library/js/jquery/1.4.2/jquery-1.4.2.min.js"></script>
       <%
           String panelId = request.getParameter("panel");

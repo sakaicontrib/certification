@@ -111,8 +111,8 @@
 		$(".alertMessage").hide();
 		var error = false;
 		var errHtml = "";
-		
-		if(!$("input:text").val()) {
+
+		if(!$("form#createCertFormTwo input:text").val()) {
 			errHtml = errHtml + "<spring:message code="form.error.fieldValue"/>" + "</br>" ;
 			error = true;
 		}

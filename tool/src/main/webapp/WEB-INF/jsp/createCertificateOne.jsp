@@ -44,7 +44,6 @@
 		</table>
 		</div>
 		<div style="margin:5px">
-			<input id="back" type="button" disabled="disabled" value="<spring:message code="form.submit.back" />" />&nbsp;
 			<input id="save" type="button" value="<spring:message code="form.submit.saveProgress"/>"/>&nbsp;
 			<input id="next" type="button" value="<spring:message code="form.submit.next"/>"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 			<input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
