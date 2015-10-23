@@ -20,7 +20,7 @@
   <parent>
     <artifactId>certification-base</artifactId>
     <groupId>com.rsmart</groupId>
-    <version>10.4</version>
+    <version>11-SNAPSHOT</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Certification Tool</name>
@@ -70,11 +70,6 @@
       <artifactId>spring-web</artifactId>
       <version>${sakai.spring.version}</version>
       <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>${sakai.spring.groupId}</groupId>
-      <artifactId>spring-webmvc</artifactId>
-      <version>${sakai.spring.version}</version>
     </dependency>
     <dependency>
       <groupId>org.codehaus.jackson</groupId>
