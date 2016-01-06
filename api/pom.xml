@@ -20,7 +20,7 @@
   <parent>
     <artifactId>certification-base</artifactId>
     <groupId>com.rsmart</groupId>
-    <version>10.4</version>
+    <version>10.6</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
   <name>Certification API</name>
