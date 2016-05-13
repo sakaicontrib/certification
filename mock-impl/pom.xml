@@ -4,7 +4,7 @@
     <parent>
       <artifactId>certification-base</artifactId>
       <groupId>com.rsmart</groupId>
-      <version>10.6</version>
+      <version>10.7</version>
       <relativePath>../pom.xml</relativePath>
     </parent>
     <name>Mock Certification Service Impl</name>
