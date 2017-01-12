@@ -4,6 +4,7 @@ import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateRenderEngine;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
+import com.rsmart.certification.api.CertificateService;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -24,6 +25,8 @@ public class MockDocumentTemplateRenderEngine
     private DocumentTemplateService
         documentTemplateService = null;
 
+    private CertificateService certificateService = null;
+
     public void setDocumentTemplateService(DocumentTemplateService dts)
     {
         this.documentTemplateService = (DocumentTemplateService)dts;
@@ -32,6 +35,16 @@ public class MockDocumentTemplateRenderEngine
     public DocumentTemplateService getDocumentTemplateService()
     {
         return documentTemplateService;
+    }
+
+    public CertificateService getCertificateService()
+    {
+        return certificateService;
+    }
+
+    public void setCertificateService(CertificateService certificateService)
+    {
+        this.certificateService = certificateService;
     }
 
     public void init()
@@ -46,8 +59,7 @@ public class MockDocumentTemplateRenderEngine
     public Set<String> getTemplateFields(DocumentTemplate template)
         throws TemplateReadException
     {
-        InputStream
-            is = template.getTemplateFileInputStream();
+        InputStream is = certificateService.getTemplateFileInputStream(template.getResourceId());
         HashSet<String>
             variables = new HashSet<String>();
 
@@ -73,8 +85,7 @@ public class MockDocumentTemplateRenderEngine
                 {
                     int
                         lBracket = bis.read();
-                    StringBuffer
-                        variable = new StringBuffer();
+                    StringBuilder variable = new StringBuilder();
 
                     if ('{' == lBracket)
                     {
@@ -103,8 +114,7 @@ public class MockDocumentTemplateRenderEngine
     public InputStream render(DocumentTemplate template, Map<String, String> bindings)
         throws TemplateReadException
     {
-        InputStream
-            is = template.getTemplateFileInputStream();
+        InputStream is = certificateService.getTemplateFileInputStream(template.getResourceId());
 
         byte
             data[] = null;
@@ -142,8 +152,7 @@ public class MockDocumentTemplateRenderEngine
 
     protected byte[] populateFields (InputStream is, Map<String, String> bindings)
             throws IOException, TemplateReadException {
-        StringBuffer
-            output = new StringBuffer();
+        StringBuilder output = new StringBuilder();
         BufferedInputStream
             bis = null;
         int
@@ -164,8 +173,7 @@ public class MockDocumentTemplateRenderEngine
             {
                 int
                     lBracket = bis.read();
-                StringBuffer
-                    variable = new StringBuffer();
+                StringBuilder variable = new StringBuilder();
 
                 if ('{' == lBracket)
                 {
@@ -203,14 +211,12 @@ public class MockDocumentTemplateRenderEngine
     public InputStream renderPreview(DocumentTemplate template, Map<String, String> bindings)
         throws TemplateReadException
     {
-        InputStream
-            is = template.getTemplateFileInputStream();
+        InputStream is = certificateService.getTemplateFileInputStream(template.getResourceId());
 
         byte
             data[] = null;
 
-        StringBuffer
-            previewOutput = new StringBuffer();
+        StringBuilder previewOutput = new StringBuilder();
 
         previewOutput.append("<html><body><p><b>This is what will be printed:</b></p><code>");
         
