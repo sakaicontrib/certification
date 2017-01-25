@@ -30,6 +30,17 @@
 				<td>${certificateToolState.certificateDefinition.description}</td>
 			</form:label>
 		</tr>
+		<c:if test="${not empty certificateToolState.certificateDefinition.expiryOffset}">
+			<tr>
+				<form:label path="certificateDefinition.expiryOffset">
+					<td><h6><spring:message code="form.label.expiryOffset1" /></h6></td>
+					<td>
+						${certificateToolState.certificateDefinition.expiryOffset}&nbsp;
+						<h6 style="display: inline;"><spring:message code="form.label.expiryOffset2" /></h6>
+					</td>
+				</form:label>
+			</tr>
+		</c:if>
 		<tr>
 		<form:label path="certificateDefinition.documentTemplate">
 			<td><h6><spring:message code="form.label.templatefile" /></h6></td>

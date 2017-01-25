@@ -21,7 +21,8 @@ public class BaseCertificateDefinition
         name,
         description,
         siteId,
-    	shortUrl;
+        shortUrl,
+        expiryOffset;
     protected Date
         createDate;
     protected CertificateDefinitionStatus
@@ -126,5 +127,15 @@ public class BaseCertificateDefinition
 
     public void setAwardCriteria(Set<Criterion> awardCriteria) {
         this.awardCriteria = awardCriteria;
+    }
+
+    public String getExpiryOffset()
+    {
+        return expiryOffset;
+    }
+    
+    public void setExpiryOffset( String expiryOffset )
+    {
+        this.expiryOffset = expiryOffset;
     }
 }

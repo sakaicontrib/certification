@@ -62,6 +62,7 @@
                 <bean class="com.rsmart.certification.impl.RecipientVariableResolver">
                     <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
                 </bean>
+                <bean class="com.rsmart.certification.impl.ExpiryOffsetVariableResolver" />
             </set>
         </property>
     </bean>
