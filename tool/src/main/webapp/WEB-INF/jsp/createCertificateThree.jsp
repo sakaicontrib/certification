@@ -58,7 +58,7 @@
 <script type="text/javascript">
 
     var currentTemplateVariables = new Array();
-    var noValuesMessage = "<spring:message code='form.text.novalues'/>";
+    var noValuesMessage = "<spring:message code='form.text.emptyGradebook'/>";
     var mergeCreteriaItemCreteriaTemplate;
 
 	$(document).ready(function() {
@@ -262,8 +262,6 @@
         if (undefined == selectElement)
         {
             selectElement = '<p>' + noValuesMessage + '</p>';
-
-            selectElement = selectElement.replace('{0}', varLabel);
 
             return selectElement;
         }

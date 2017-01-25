@@ -499,7 +499,7 @@ public class GradebookCriteriaFactory
                 ibe.setBindingKey(variable.getVariableKey());
                 ibe.setBindingValue(value);
 
-                ibe.setLocalizedMessage(rl.getFormattedMessage("value.invalid",
+                ibe.setLocalizedMessage(rl.getFormattedMessage("value.emptyGradebook",
                                                                  new String[]
                                                                      {value}
                                                               )
@@ -572,8 +572,16 @@ public class GradebookCriteriaFactory
                 ibe.setBindingKey("score");
                 ibe.setBindingValue(scoreStr);
 
-                ibe.setLocalizedMessage (rl.getFormattedMessage("value.toohigh",
-                                                                new Object[] {scoreStr}));
+                if (assn.getPoints()==0)
+                {
+                    ibe.setLocalizedMessage (rl.getFormattedMessage("value.emptyGradebook",
+                            new Object[] {scoreStr}));
+                }
+                else
+                {
+                    ibe.setLocalizedMessage (rl.getFormattedMessage("value.toohigh",
+                                                                   new Object[] {scoreStr}));
+                }
 
                 throw ibe;
             }
