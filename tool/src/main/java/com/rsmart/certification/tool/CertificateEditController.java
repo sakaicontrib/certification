@@ -172,53 +172,6 @@ public class CertificateEditController
             certificateToolState.setSubmitValue(null);
             return createCertHandlerSecond(certificateToolState, result, request, status);
         }
-        else if("save".equals(certificateToolState.getSubmitValue()) && !result.hasErrors())
-    	{
-
-    		try
-    		{
-    			certificateDefinitionValidator.validateFirst(certificateToolState, result);
-    			if(!result.hasErrors())
-    			{
-				    certificateToolState = persistFirstFormData(certificateToolState);
-    				certificateToolState.setNewDefinition(false);
-				    model.put(STATUS_MESSAGE_KEY, SUCCESS);
-			    }
-    			else
-    			{
-            		model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-            		model.put(ERROR_MESSAGE, INVALID_TEMPLATE);
-    			}
-			}
-            catch (IdUsedException iue)
-            {
-                logger.warn("CertificateEditController.createCertHandlerFirst.save", iue);
-
-                model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-                model.put(ERROR_MESSAGE, DUPLICATE_NAME_ERR);
-            }
-    		catch (Exception e)
-    		{
-    			logger.warn("CertificateEditController.createCertHandlerFirst.save", e);
-    			CertificateDefinition certificateDefinition = certificateToolState.getCertificateDefinition();
-                if(certificateToolState.isNewDefinition() && certificateDefinition.getId() != null)
-                {
-	                try
-	                {
-	                    getCertificateService().deleteCertificateDefinition(certificateDefinition.getId());
-	                }
-	                catch(Exception e2)
-	                {
-    			        logger.warn("", e);
-	                }
-                }
-    			model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-				model.put(ERROR_MESSAGE, TEMPLATE_PROCESSING_ERR);
-			}
-
-    		model.put(MOD_ATTR, certificateToolState);
-    		return new ModelAndView("createCertificateOne", model);
-    	}
     	else
     	{
 
@@ -347,45 +300,6 @@ public class CertificateEditController
 		{
 			return new ModelAndView("createCertificateTwo",STATUS_MESSAGE_KEY,FORM_ERR);
 		}
-    	else if("save".equals(certificateToolState.getSubmitValue()))
-    	{
-    		try
-    		{
-	    		certificateDefinitionValidator.validateSecond(certificateToolState, result);
-	    		if(!result.hasErrors())
-	    		{
-	    		CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-		    		getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
-		    		model.put(STATUS_MESSAGE_KEY, SUCCESS);
-	    		}
-	    		else
-	    		{
-	    			model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-	    			model.put(ERROR_MESSAGE, PREDEFINED_VAR_EXCEPTION);
-	    			model.put(MOD_ATTR, certificateToolState);
-	        		return new ModelAndView("createCertificateTwo", model);
-	    		}
-    		}
-    		catch(Exception e)
-    		{
-    			logger.warn("CertificateEditController.createCertHandlerSecond.save", e);
-    			model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-    		}
-    		/*
-		 	get DocumentTemplate from certificateDefinition
-		 	put into model:
-		 		1) template fields for certificateDefinition:
-		 			DocTemplateSvc.getTemplateFields(DocTemplate)
-		 		2) predefined variables:
-		 			CertSvc.getPredefinedTemplateVariables(...)
-		 */
-    		/*
-    		   Add any fields that have been set in the CertDef.
-    		   		CertDefn.getFieldValues()
-    		 */
-    		model.put(MOD_ATTR, certificateToolState);
-    		return new ModelAndView("createCertificateTwo", model);
-    	}
     	else if("next".equals(certificateToolState.getSubmitValue()))
     	{
     		try
@@ -511,24 +425,6 @@ public class CertificateEditController
         {
         	viewName="createCertificateThree";
         }
-    	else if("save".equals(subVal))
-    	{
-    		/*
-    		 	save criteria using:
-    		 		CertificateSvc.setCriteria(Set<Criterion>)
-    		 */
-    		certificateDefinitionValidator.validateThird(certificateToolState, result);
-    		viewName="createCertificateThree";
-			if(!result.hasErrors())
-			{
-				model.put(STATUS_MESSAGE_KEY, SUCCESS);
-			}
-			else
-			{
-				model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-				model.put(ERROR_MESSAGE, CRITERION_EXCEPTION);
-			}
-    	}
     	else if("next".equals(subVal))
     	{
     		/*

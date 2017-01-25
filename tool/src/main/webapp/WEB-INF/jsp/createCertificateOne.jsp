@@ -51,7 +51,6 @@
 		</table>
 		</div>
 		<div style="margin:5px">
-			<input id="save" type="button" value="<spring:message code="form.submit.saveProgress"/>"/>&nbsp;
 			<input id="next" type="button" value="<spring:message code="form.submit.next"/>"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 			<input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
 			<form:hidden path="submitValue" />
@@ -62,10 +61,6 @@
 	$(document).ready(function() {
 
 		loaded();
-		
-		$("#save").click(function() {
-			save();
-		});
 	
 		$("#next").click(function() {
 			next();
@@ -79,13 +74,6 @@
 			loaded();
 		});
 	});
-	
-	function save() {
-		if(validateForm()) {
-			$("#submitValue").val("save");
-			$("#createCertFormOne").submit();
-		}
-	}
 	
 	function cancel() {
 		$("#submitValue").val("cancel");

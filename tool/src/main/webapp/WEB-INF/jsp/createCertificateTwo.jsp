@@ -36,7 +36,6 @@
 		</div>
 		<div style="display:block; position:relative; margin:5px">
 			<input id="back" type="button" value="<spring:message code="form.submit.back" />" />&nbsp;
-			<input id="save" type="button" value="<spring:message code="form.submit.saveProgress"/>"/>&nbsp;
 			<input id="next" type="button" value="<spring:message code="form.submit.next"/>"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
 			<input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
 			<form:hidden path="submitValue" />
@@ -54,10 +53,6 @@
 		$("#back").click(function(){
 			back();
 		});
-		
-		$("#save").click(function() {
-			save();
-		});
 	
 		$("#next").click(function() {
 			next();
@@ -73,15 +68,6 @@
 	{
 		$("#submitValue").val("back");
 		$("#createCertFormTwo").submit();
-	}
-	
-	function save()
-	{
-		if(validateForm())
-		{
-			$("#submitValue").val("save");
-			$("#createCertFormTwo").submit();
-		}
 	}
 	
 	function next()
