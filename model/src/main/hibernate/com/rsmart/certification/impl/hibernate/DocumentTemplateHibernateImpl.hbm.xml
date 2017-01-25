@@ -34,7 +34,7 @@
         <one-to-one name="certificateDefinition"
             class="com.rsmart.certification.impl.hibernate.CertificateDefinitionHibernateImpl" constrained="true"/>
         <property name="outputMimeType" type="java.lang.String" column="mimeType" length="255"/>
-        <property name="resourceId" type="java.lang.String" column="resourceId" length="4096"/>
+        <property name="resourceId" type="text" column="resourceId" length="4096"/>
 
    </class>
 
