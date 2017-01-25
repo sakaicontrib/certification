@@ -54,7 +54,14 @@ public class BaseCertificateDefinition
     }
 
     public void setDescription(String description) {
-        this.description = description.trim();
+        if (description!=null)
+        {
+            this.description = description.trim();
+        }
+        else
+        {
+            description = null;
+        }
     }
 
     public DocumentTemplate getDocumentTemplate() {
