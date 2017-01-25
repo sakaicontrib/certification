@@ -66,7 +66,7 @@ public class CertificateEditController
 		CertificateToolState certificateToolState = CertificateToolState.getState();
 		if(certId != null)
 		{
-			CertificateDefinition certificateDefinition = certificateService.getCertificateDefinition(certId);
+			CertificateDefinition certificateDefinition = getCertificateService().getCertificateDefinition(certId);
 			certificateToolState.setCertificateDefinition(certificateDefinition);
 			certificateToolState.setTemplateFields(certificateDefinition.getFieldValues());
 			certificateToolState.setNewDefinition(false);
@@ -151,7 +151,7 @@ public class CertificateEditController
                 {
 	                try
 	                {
-	                  certificateService.deleteCertificateDefinition(certificateDefinition.getId());
+	                  getCertificateService().deleteCertificateDefinition(certificateDefinition.getId());
 	                }
 	                catch(Exception e2)
 	                {
@@ -205,7 +205,7 @@ public class CertificateEditController
                 {
 	                try
 	                {
-	                    certificateService.deleteCertificateDefinition(certificateDefinition.getId());
+	                    getCertificateService().deleteCertificateDefinition(certificateDefinition.getId());
 	                }
 	                catch(Exception e2)
 	                {
@@ -252,7 +252,7 @@ public class CertificateEditController
 
             try
             {
-                existing = certificateService.getCertificateDefinitionByName(siteId(), certDef.getName());
+                existing = getCertificateService().getCertificateDefinitionByName(siteId(), certDef.getName());
             }
             catch (IdUnusedException iue)
             {
@@ -264,29 +264,29 @@ public class CertificateEditController
                 throw new IdUsedException (certDef.getName());
             }
             
-            certDef = certificateService.createCertificateDefinition(certDef.getName(), certDef.getDescription(), 
+            certDef = getCertificateService().createCertificateDefinition(certDef.getName(), certDef.getDescription(), 
                     siteId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream(), certDef.getExpiryOffset());
 
-    		certDef = certificateService.getCertificateDefinition(certDef.getId());
+    		certDef = getCertificateService().getCertificateDefinition(certDef.getId());
 			DocumentTemplate dt = certDef.getDocumentTemplate();
-			certificateToolState.setTemplateFields(documentTemplateService.getTemplateFields(dt));
+			certificateToolState.setTemplateFields(getDocumentTemplateService().getTemplateFields(dt));
     	}
     	else
     	{
 			//added the following line - wouldn't allow us to change the certDef name
 			//only tested with data.getSize() > 0
-			certificateService.updateCertificateDefinition(certDef);
+			getCertificateService().updateCertificateDefinition(certDef);
 			if(data.getSize() > 0)
 			{
-    			DocumentTemplate dt = certificateService.setDocumentTemplate(certDef.getId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream());
-    			certificateToolState.setTemplateFields(documentTemplateService.getTemplateFields(dt));
+    			DocumentTemplate dt = getCertificateService().setDocumentTemplate(certDef.getId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream());
+    			certificateToolState.setTemplateFields(getDocumentTemplateService().getTemplateFields(dt));
     		}
     		else
     		{
     			if(certDef.getFieldValues().isEmpty())
     			{
     				DocumentTemplate dt = certDef.getDocumentTemplate();
-    				certificateToolState.setTemplateFields(documentTemplateService.getTemplateFields(dt));
+    				certificateToolState.setTemplateFields(getDocumentTemplateService().getTemplateFields(dt));
     			}
     			else
     			{
@@ -296,7 +296,7 @@ public class CertificateEditController
     		//commented the following line - wouldn't allow us to change the template file
     		//only tested with data.getSize() > 0
     		//certificateService.updateCertificateDefinition(certDef);
-			certDef = certificateService.getCertificateDefinition(certDef.getId());
+			certDef = getCertificateService().getCertificateDefinition(certDef.getId());
 		}
 
 		certificateToolState.setCertificateDefinition(certDef);
@@ -355,7 +355,7 @@ public class CertificateEditController
 	    		if(!result.hasErrors())
 	    		{
 	    		CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-		    		certificateService.setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
+		    		getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
 		    		model.put(STATUS_MESSAGE_KEY, SUCCESS);
 	    		}
 	    		else
@@ -394,7 +394,7 @@ public class CertificateEditController
 	    		if(!result.hasErrors())
 	    		{
 	    		CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-		    		certificateService.setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
+		    		getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
 		    		model.put(STATUS_MESSAGE_KEY, SUCCESS);
 	    		}
 	    		else
@@ -438,7 +438,7 @@ public class CertificateEditController
     		 		2) predefined variables:
     		 			CertSvc.getPredefinedTemplateVariables(...)
     		 */
-            certificateToolState.setPredifinedFields(certificateService.getPredefinedTemplateVariables());
+            certificateToolState.setPredifinedFields(getCertificateService().getPredefinedTemplateVariables());
     		return new ModelAndView("createCertificateTwo",MOD_ATTR,certificateToolState);
     	}
     }
@@ -624,7 +624,7 @@ public class CertificateEditController
     		try
     		{
 	    		CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-	    		certificateService.activateCertificateDefinition(certDef.getId(), true);
+	    		getCertificateService().activateCertificateDefinition(certDef.getId(), true);
     		}
     		catch (Exception e)
     		{

@@ -334,7 +334,7 @@ public class CertificateListController
 
         try
         {
-            certAward = certificateService.getCertificateAward(certId);
+            certAward = getCertificateService().getCertificateAward(certId);
         }
         catch (IdUnusedException e)
         {
@@ -345,7 +345,7 @@ public class CertificateListController
     	{
     		if(certAward == null)
     		{
-                certificateService.awardCertificate(certId, userId());
+                getCertificateService().awardCertificate(certId, userId());
     		}
 
             return new ModelAndView(getAbsoluteUrlForRedirect("printPreview.form?certId=" + certId));

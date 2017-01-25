@@ -8,14 +8,12 @@ import com.rsmart.certification.tool.validator.CertificateDefinitionValidator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.authz.api.SecurityService;
+import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.entity.api.Entity;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import javax.annotation.Resource;
 
 /**
  * User: duffy
@@ -37,63 +35,31 @@ public class BaseCertificateController
     protected static final String CRITERION_EXCEPTION = "form.error.criterionException";
     protected static final String INVALID_TEMPLATE = "form.error.invalidTemplate";
     protected static final String SUCCESS= "form.submit.success";
-    protected SecurityService securityService;
-    protected CertificateService certificateService;
-    protected DocumentTemplateService documentTemplateService;
-    protected ToolManager toolManager;
-    protected UserDirectoryService userDirectoryService;
     protected CertificateDefinitionValidator certificateDefinitionValidator = new CertificateDefinitionValidator();
 
-    @Resource(name="org.sakaiproject.user.api.UserDirectoryService")
-	public void setUserDirectoryService(UserDirectoryService userDirectoryService)
+    public UserDirectoryService getUserDirectoryService()
     {
-		this.userDirectoryService = userDirectoryService;
-	}
-
-    public UserDirectoryService getUserDirectoryService() {
-		return userDirectoryService;
-	}
-
-
-    public ToolManager getToolManager() {
-        return toolManager;
+        return (UserDirectoryService) ComponentManager.get(UserDirectoryService.class);
     }
 
-    @Resource(name="org.sakaiproject.tool.api.ToolManager")
-    public void setToolManager(ToolManager toolManager) {
-        this.toolManager = toolManager;
+    public ToolManager getToolManager()
+    {
+        return (ToolManager) ComponentManager.get(ToolManager.class);
     }
 
-    public CertificateService getCertificateService() {
-		return certificateService;
-	}
+    public CertificateService getCertificateService()
+    {
+        return (CertificateService) ComponentManager.get(CertificateService.class);
+    }
 
-    @Resource(name="com.rsmart.certification.api.CertificateService")
-	public void setCertificateService(
-			CertificateService certificateService) {
-		this.certificateService = certificateService;
-	}
-
-	public DocumentTemplateService getDocumentTemplateService() {
-		return documentTemplateService;
-	}
-
-	@Autowired
-	public void setDocumentTemplateService(
-			DocumentTemplateService documentTemplateService) {
-		this.documentTemplateService = documentTemplateService;
-	}
-
+    public DocumentTemplateService getDocumentTemplateService()
+    {
+        return (DocumentTemplateService) ComponentManager.get(DocumentTemplateService.class);
+    }
 
     public SecurityService getSecurityService()
     {
-        return securityService;
-    }
-
-    @Resource(name="org.sakaiproject.authz.api.SecurityService")
-    public void setSecurityService(SecurityService securityService)
-    {
-        this.securityService = securityService;
+        return (SecurityService) ComponentManager.get(SecurityService.class);
     }
 
     protected String userId()
@@ -119,13 +85,13 @@ public class BaseCertificateController
             fullId = siteId,
             userId = userId();
 
-		if(securityService.isSuperUser()) {
+		if(getSecurityService().isSuperUser()) {
 			return true;
 		}
 		if(siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT)) {
 			fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
 		}
-		if(securityService.unlock(userId, ADMIN_FN, fullId)) {
+		if(getSecurityService().unlock(userId, ADMIN_FN, fullId)) {
 			return true;
 		}
 		return false;
@@ -138,13 +104,13 @@ public class BaseCertificateController
             fullId = siteId,
             userId = userId();
 
-        if(securityService.isSuperUser()) {
+        if(getSecurityService().isSuperUser()) {
             return true;
         }
         if(siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT)) {
             fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
         }
-        if(securityService.unlock(userId, ADMIN_FN, fullId)) {
+        if(getSecurityService().unlock(userId, ADMIN_FN, fullId)) {
             return true;
         }
         return false;
