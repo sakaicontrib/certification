@@ -18,13 +18,14 @@
 
 <registration>
 
-	<tool id="com.rsmart.certification"
+    <tool id="com.rsmart.certification"
           title="Certification"
           description="Provides certification for students who have met criteria established by an instructor">
 
        <category name="course" />
+       <category name="project" />
 
-	</tool>
+    </tool>
     <function name="certificate.admin"/>
 
 </registration>
