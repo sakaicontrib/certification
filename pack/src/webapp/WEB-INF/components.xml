@@ -48,7 +48,7 @@
         </property>
         <property name="transactionAttributes">
             <props>
-                <prop key="addAwardCriteria">PROPAGATION_REQUIRES_NEW</prop>
+                <prop key="addAwardCriterion">PROPAGATION_REQUIRES_NEW</prop>
                 <prop key="setDocumentTemplate">PROPAGATION_REQUIRES_NEW</prop>
                 <prop key="*">PROPAGATION_REQUIRED</prop>
             </props>
