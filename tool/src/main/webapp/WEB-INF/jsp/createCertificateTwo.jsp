@@ -33,13 +33,6 @@
 					</tbody>
 				</table>
 			</div>
-			<div id="fieldList" style="position:relative; float:left; display:block; padding:5px; margin-left:100px; max-width:30%; border:thin solid silver; background-color:#ddd;">
-				<h3><spring:message code="form.label.variables"/></h3></br>
-				<p><spring:message code="variable.description"/></p>
-				<c:forEach items="${certificateToolState.predifinedFields}" var="preDefVar">
-					${preDefVar.key}&nbsp;&#045;&nbsp;${preDefVar.value}</br>
-				</c:forEach>
-			</div>
 		</div>
 		<div style="display:block; position:relative; margin:5px">
 			<input id="back" type="button" value="<spring:message code="form.submit.back" />" />&nbsp;
