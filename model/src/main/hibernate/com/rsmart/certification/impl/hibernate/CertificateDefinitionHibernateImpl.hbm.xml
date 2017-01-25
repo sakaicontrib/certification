@@ -27,7 +27,7 @@
 			<generator class="uuid.hex" />
 		</id>
 
-        <property name="name" type="java.lang.String" column="defn_name" length="255" unique="false"/>
+        <property name="name" type="java.lang.String" column="defn_name" length="255" not-null="true"/>
         <property name="description" type="java.lang.String" column="defn_descr" length="500"/>
         <property name="createDate" type="timestamp" column="create_date" not-null="true"/>
         <property name="creatorUserId" type="java.lang.String" column="creator_id" not-null="true"/>
@@ -51,6 +51,10 @@
             <element column="value" type="string" not-null="true"/>
         </map>
 
+        <properties name="certdefunique" unique="true">
+            <property name="name"/>
+            <property name="siteId"/>
+        </properties>
 
    </class>
 
