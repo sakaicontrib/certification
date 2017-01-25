@@ -1030,9 +1030,8 @@ public class CertificateServiceHibernateImpl
                         throws HibernateException, SQLException
                     {
                         Query
-                            q = session.getNamedQuery("getCertificateDefinitionsBySite");
-
-                        q.setString(0, siteId);
+                            q = session.getNamedQuery("getCertificateDefinitionsBySite")
+                                .setString("siteId", siteId);
 
                         return q.list();
                     }

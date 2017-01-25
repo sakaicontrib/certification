@@ -55,7 +55,7 @@
 
    <query name="getCertificateDefinitionsBySite">
        from CertificateDefinitionHibernateImpl
-           where siteId = ?
+           where siteId = :siteId
    </query>
    <query name="getCertificateDefinitionsBySiteAndStatus">
        from CertificateDefinitionHibernateImpl
