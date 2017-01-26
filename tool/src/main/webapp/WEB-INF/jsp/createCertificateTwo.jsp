@@ -247,7 +247,6 @@
 
 		if (undefined === selectElement)
 		{
-			selectElement = '<p>' + noValuesMessage + '</p>';
 			return selectElement;
 		}
 
@@ -283,9 +282,15 @@
 
 					if (templateVariable.multipleChoice)
 					{
-						templateHtml += createMultipleChoiceVariable (templateVariable.variableKey,
-																	  templateVariable.variableLabel,
-																	  templateVariable.values);
+						var multChoiceVar = createMultipleChoiceVariable (templateVariable.variableKey, templateVariable.variableLabel, templateVariable.values);
+						if (undefined === multChoiceVar)
+						{
+							templateHtml += '<p>' + data.message + '</p>';
+						}
+						else
+						{
+							templateHtml += multChoiceVar;
+						}
 					}
 					else
 					{

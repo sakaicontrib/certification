@@ -46,8 +46,7 @@ import org.sakaiproject.tool.cover.SessionManager;
  */
 @Controller
 @SessionAttributes(types = CertificateToolState.class)
-public class CertificateEditController
-    extends BaseCertificateController
+public class CertificateEditController extends BaseCertificateController
 {
     private static final Log
         LOG = LogFactory.getLog(CertificateEditController.class);
@@ -551,6 +550,8 @@ public class CertificateEditController
         private List<VariableTransferObject>
             variables = new ArrayList<VariableTransferObject>();
 
+        private CriteriaTemplate template;
+
         TemplateTransferObject (CriteriaTemplate template)
         {
             id = template.getId();
@@ -560,6 +561,8 @@ public class CertificateEditController
             {
                 variables.add(new VariableTransferObject(variable));
             }
+
+             this.template = template;
         }
 
         public String getId()
@@ -575,6 +578,11 @@ public class CertificateEditController
         public List<VariableTransferObject> getTemplateVariables()
         {
             return variables;
+        }
+
+        public String getMessage()
+        {
+            return template.getMessage();
         }
     }
 

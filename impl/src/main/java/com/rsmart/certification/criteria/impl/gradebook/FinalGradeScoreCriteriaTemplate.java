@@ -21,8 +21,7 @@ import java.util.Map;
  * Date: Jul 5, 2011
  * Time: 9:26:50 AM
  */
-public class FinalGradeScoreCriteriaTemplate
-    implements CriteriaTemplate
+public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
 {
     private static Log
         LOG = LogFactory.getLog(FinalGradeScoreCriteriaTemplate.class);
@@ -203,4 +202,9 @@ public class FinalGradeScoreCriteriaTemplate
         return rl.getFormattedMessage(FinalGradeScoreCriteriaTemplate.class.getName(), vars);
     }
 
+    @Override 
+    public String getMessage()
+    {
+        return "";
+    }
 }

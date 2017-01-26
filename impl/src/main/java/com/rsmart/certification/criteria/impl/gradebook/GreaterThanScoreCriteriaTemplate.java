@@ -10,8 +10,7 @@ import org.sakaiproject.util.ResourceLoader;
  * Date: Jul 5, 2011
  * Time: 9:26:50 AM
  */
-public class GreaterThanScoreCriteriaTemplate
-    extends GradebookItemCriteriaTemplate
+public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTemplate
 {
     ScoreTemplateVariable
         scoreVariable = null;
@@ -74,4 +73,9 @@ public class GreaterThanScoreCriteriaTemplate
         return rl.getFormattedMessage(GreaterThanScoreCriteriaTemplate.class.getName(), vars);
     }
 
+    @Override
+    public String getMessage()
+    {
+        return getResourceLoader().getString("message.noitems.greaterthanscore");
+    }
 }

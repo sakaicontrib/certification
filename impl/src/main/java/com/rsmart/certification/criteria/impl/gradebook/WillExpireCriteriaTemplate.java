@@ -58,4 +58,10 @@ public class WillExpireCriteriaTemplate extends GradebookItemCriteriaTemplate
             return getResourceLoader().getFormattedMessage(WillExpireCriteriaTemplate.class.getName(), new Object[]{expiryOffset,gradebookItem});
         }
     }
+
+    @Override
+    public String getMessage()
+    {
+        return getResourceLoader().getString("message.noitems.willexpire");
+    }
 }

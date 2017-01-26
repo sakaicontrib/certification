@@ -2,7 +2,6 @@ package com.rsmart.certification.criteria.impl.gradebook;
 
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
-import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -14,8 +13,7 @@ import java.util.Date;
  * Date: Jul 18, 2011
  * Time: 9:47:57 PM
  */
-public class DueDatePassedCriteriaTemplate
-    extends GradebookItemCriteriaTemplate
+public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
 {
     private final String EXPRESSION_KEY="due.date.has.passed.criteria.expression";
 
@@ -86,5 +84,11 @@ public class DueDatePassedCriteriaTemplate
         vars[0] = gischi.getItemName();
 
         return getResourceLoader().getFormattedMessage(DueDatePassedCriteriaTemplate.class.getName(), vars);
+    }
+
+    @Override
+    public String getMessage()
+    {
+        return getResourceLoader().getString("message.noitems.duedate");
     }
 }

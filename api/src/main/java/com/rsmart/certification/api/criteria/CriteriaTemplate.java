@@ -1,8 +1,6 @@
 package com.rsmart.certification.api.criteria;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * User: duffy
@@ -24,4 +22,6 @@ public interface CriteriaTemplate
     public CriteriaTemplateVariable getTemplateVariable (int i);
 
     public CriteriaFactory getCriteriaFactory();
+
+    public String getMessage();
 }
