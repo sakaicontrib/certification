@@ -16,7 +16,10 @@
 	            <spring:message code="${errorMessage}" />
 	        </div>
 	    </c:if>
- 		<div class="listNav">
+		<div class="instruction">
+			<p><spring:message code="instructions.student"/></p>
+		</div>
+		<div class="listNav">
 			<div class="pager">
 				<span style="align:center">showing&nbsp;<c:out value="${firstElement}" />&nbsp;&#045;&nbsp;<c:out value="${lastElement}" />&nbsp;of&nbsp;${certList.nrOfElements}</span></br>
 				<c:choose>
