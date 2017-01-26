@@ -7,21 +7,21 @@
 			<a href="" id="Add"><spring:message code="form.menu.add"/></a>
 		</div>
 		<div style="position:relative; float:left; display:inline-block;">
-	 		<spring:message code="form.text.emptycertlist"/></br>
-	 	</div>
+			<spring:message code="form.text.emptycertlist"/></br>
+		</div>
 		</c:when>
 		<c:otherwise>
 			<div class="navIntraTool">
 				<a href="" id="Add"><spring:message code="form.menu.add"/></a>&nbsp;
 				<a href="" id="Edit"><spring:message code="form.menu.edit"/></a>
-                <a href="" id="Delete"><spring:message code="form.menu.delete"/></a>
+				<a href="" id="Delete"><spring:message code="form.menu.delete"/></a>
 			</div>
 			<div id="submitError" class="alertMessage" style="display:none"></div>
-            <c:if test="${errorMessage != null}" >
-                <div id="errorMessage" class="alertMessage" >
-                    <spring:message code="${errorMessage}" />
-                </div>
-            </c:if>
+			<c:if test="${errorMessage != null}" >
+				<div id="errorMessage" class="alertMessage" >
+					<spring:message code="${errorMessage}" />
+				</div>
+			</c:if>
 			<div class="instruction">
 				<p>
 					<spring:message code="instructions.admin"/>
@@ -44,7 +44,7 @@
 					<select id="pageSize">
 						<c:forEach items="${pageSizeList}" var="list">
 							<c:choose>
-							<c:when test="${list > 100}">
+							<c:when test="${list > 200}">
 								<option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
 							</c:when>
 							<c:otherwise>
@@ -68,21 +68,21 @@
 			<table id="cList" class="listHier" cellspacing="2px" width="500px" summary="Certificates">
 				<thead align="center">
 					<tr>
-	                  <th></th>
-					  <th><spring:message code="form.label.certificate"/></th>
-                      <th><spring:message code="form.label.certificate.description"/></th>
-					  <th><spring:message code="form.label.status"/></th>
-					  <th><spring:message code="form.label.created"/></th>
-					  <th><spring:message code="form.label.statusurl"/></th>
+						<th></th>
+						<th><spring:message code="form.label.certificate"/></th>
+						<th><spring:message code="form.label.certificate.description"/></th>
+						<th><spring:message code="form.label.status"/></th>
+						<th><spring:message code="form.label.created"/></th>
+						<th><spring:message code="form.label.report"/></th>
 					</tr>
 				</thead>
 				<tbody align="left">
-		        	<c:forEach var="cert" items="${certList.pageList}">
-		            <tr>
-	                    <td>
-	                        <input type="radio" name="certDefRadioButtons" value="${cert.id}"/>
-	                    </td>
-		            	<td>
+					<c:forEach var="cert" items="${certList.pageList}">
+					<tr>
+					    <td>
+					        <input type="radio" name="certDefRadioButtons" value="${cert.id}"/>
+					    </td>
+						<td>
 		                	${cert.name}
 		                </td>
                         <td>
@@ -95,7 +95,9 @@
 			            	${cert.formattedCreateDate}
 			         	</td>
 			         	<td>
-			         		<c:if test="${cert.shortUrl != null}">${cert.shortUrl}</c:if>
+							<c:if test="${cert.status == 'ACTIVE'}" >
+								<a href="" id="Report${cert.id}" certificate="${cert.id}"><spring:message code="form.label.report.cell"/></a>
+							</c:if>
 			         	</td> 
 		          	</tr>
 		       		</c:forEach>
@@ -108,42 +110,42 @@
 	
 		$(document).ready(function() {
 
-            loaded();
-			
+			loaded();
+
 			eval($("#copyStatusUrl")).click(function() {
 				
 			});
-			
+
 			$("#first").click( function() {
 				location.href="list.form?page=first";
 				return false;
 			});
-			
+
 			$("#prev").click( function() {
 				location.href="list.form?page=previous";
 				return false;
 			});
-			
+
 			$("#next").click( function() {
 				location.href="list.form?page=next";
 				return false;
 			});
-			
+
 			$("#last").click( function() {
 				location.href="list.form?page=last";
 				return false;
 			});
-			
+
 			$("#pageSize").change( function() {
 				location.href="list.form?pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
 				return false;
 			});
-			
+
 			$("#Add").click( function() {
 				location.href="first.form";
 				return false;
 			});
-			
+
 			$("#Edit").click( function() {
 				
 				if(singleChecked())
@@ -153,6 +155,18 @@
 				}
 				return false;
 			});
+
+			var anchors = document.getElementsByTagName("A");
+			for (var i = 0; i < anchors.length; i++)
+			{
+				if (anchors[i].id.indexOf('Report') === 0) 
+				{
+					$(anchors[i]).click( function() {
+						location.href="reportView.form?certId="+this.getAttribute('certificate');
+						return false;
+					});
+				}
+			}
 
             $("#Delete").click( function() {
                 if(singleChecked())
@@ -167,11 +181,11 @@
 
                 return false;
             });
-			
+
 			$(":checkbox").click( function() {
 				$(":checkbox").not(this).removeAttr("checked");
 			});
-			
+
 			function singleChecked()
 			{
 				$(".alertMessage").hide();
@@ -193,6 +207,5 @@
 				}
 			}
 		});
-		
 	</script>
 <jsp:include page="/WEB-INF/jsp/footer.jsp"/>

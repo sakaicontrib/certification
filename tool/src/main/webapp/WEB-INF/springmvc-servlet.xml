@@ -97,5 +97,4 @@
     <bean id="viewResolver" class="com.rsmart.certification.impl.SakaiInternalResourceViewResolver"
     	p:viewClass="org.springframework.web.servlet.view.JstlView" p:prefix="/WEB-INF/jsp/" p:suffix=".jsp"/>
 
-
 </beans>

@@ -27,8 +27,6 @@ import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
 
-
-
 public class GradebookVariableResolver extends AbstractVariableResolver
 {
     private static final Log LOG = LogFactory.getLog(GradebookVariableResolver.class);
@@ -266,15 +264,10 @@ public class GradebookVariableResolver extends AbstractVariableResolver
 
         final Session sakaiSession = sessionManager.getCurrentSession();
         final String contextId = contextId();
-        final String currentUserId = userId();
-        final String currentUserEid = getUserDirectoryService().getCurrentUser().getEid();
         final String adminUser = getAdminUser();
 
         try
         {
-            sakaiSession.setUserId(adminUser);
-            sakaiSession.setUserEid(adminUser);
-
             securityService.pushAdvisor(new SecurityAdvisor ()
             {
                 public SecurityAdvice isAllowed(String userId, String function, String reference)
@@ -306,9 +299,6 @@ public class GradebookVariableResolver extends AbstractVariableResolver
         finally
         {
             securityService.popAdvisor();
-
-            sakaiSession.setUserId(currentUserId);
-            sakaiSession.setUserEid(currentUserEid);
         }
     }
 }

@@ -39,6 +39,12 @@
         <version>${sakai.version}</version>
     </dependency>
     <dependency>
+      <groupId>com.rsmart</groupId>
+      <artifactId>certification-model</artifactId>
+      <version>${sakai.version}</version>
+      <scope>provided</scope>
+    </dependency>
+    <dependency>
       <groupId>org.sakaiproject.kernel</groupId>
       <artifactId>sakai-kernel-api</artifactId>
       <version>${sakai.kernel.version}</version>

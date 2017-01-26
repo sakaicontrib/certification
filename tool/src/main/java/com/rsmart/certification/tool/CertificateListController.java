@@ -35,8 +35,22 @@ import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
 import com.rsmart.certification.api.UnmetCriteriaException;
 import com.rsmart.certification.api.VariableResolutionException;
+import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.GradebookItemCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
+import java.text.DateFormat;
+import java.text.NumberFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Iterator;
+import org.sakaiproject.user.api.User;
+import org.sakaiproject.user.api.UserNotDefinedException;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
@@ -54,7 +68,7 @@ public class CertificateListController extends BaseCertificateController
 	public static final String PAGINATION_PAGE = "page";
 	public static final String PAGE_SIZE = "pageSize";
 	public static final String PAGE_NO = "pageNo";
-	public static final List<Integer> PAGE_SIZE_LIST = Arrays.asList(10,25,50,100,Integer.MAX_VALUE);
+	public static final List<Integer> PAGE_SIZE_LIST = Arrays.asList(10,25,50,100,200,Integer.MAX_VALUE);
 	
 	private String getAbsoluteUrlForRedirect(String redirectTo)
 	{
@@ -115,7 +129,7 @@ public class CertificateListController extends BaseCertificateController
 	    	}
 	    	else
 	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(4);
+	    		pageSize = PAGE_SIZE_LIST.get(3);
 	    		certList.setPageSize(pageSize);
 	    	}
 	    	if(pageNo != null)
@@ -244,7 +258,7 @@ public class CertificateListController extends BaseCertificateController
 	    	}
 	    	else
 	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(4);
+	    		pageSize = PAGE_SIZE_LIST.get(3);
 	    		certList.setPageSize(pageSize);
 	    	}
 	    	if(pageNo != null)
@@ -672,7 +686,680 @@ public class CertificateListController extends BaseCertificateController
         }
 
     }
-    
+
+    /**
+     * This method handles the report. This includes landing on the report view, handling the paging navigators, 
+     * and exporting the csv. However, returning to the certificates list is handled in jsp
+     * @param certId the certificate on which is being reported
+     * @param page the destination (next, previous, first, last)
+     * @param pageSize the page size (for the paging navigator)
+     * @param pageNo the destination (specified number)
+     * @param export true if exporting a csv
+     * @param request http request
+     * @param response http response
+     * @return the ModelAndView object for jsp
+     * @throws Exception
+     */
+    @RequestMapping("/reportView.form")
+    public ModelAndView certAdminReportHandler(@RequestParam("certId") String certId, @RequestParam(value=PAGINATION_PAGE, required=false) String page,
+            @RequestParam(value=PAGE_SIZE, required=false) Integer pageSize,
+            @RequestParam(value=PAGE_NO, required=false) Integer pageNo,
+            @RequestParam(value="export", required=false) Boolean export,
+            HttpServletRequest request, HttpServletResponse response) throws Exception
+    {
+        if (!isAdministrator())
+        {
+            //only people who have permission to add/edit certificates can see this report
+            return null;
+        }
+
+        HttpSession session = request.getSession();
+
+        /*The Report table's headers for columns that are related to the certificate definition's criteria 
+         * (other headers are already handled in jsp)*/
+        List<Object> criteriaHeaders = new ArrayList<Object>();
+
+        //holds the contents of the table, the page number, the page size, etc.
+        PagedListHolder reportList = null;
+
+        //Everything we pass to the UI
+        HashMap<String, Object> model = new HashMap<String, Object>();
+
+        //Pass the certificate definition to the UI (so it can print its name and use its id as necessary)
+        CertificateService certService = getCertificateService();
+        CertificateDefinition definition = null;
+
+        try
+        {
+            definition = certService.getCertificateDefinition(certId);
+            if (logIfNull(definition, "cannot retrieve certificate definition for certId = " + certId))
+            {
+                return null;
+            }
+        }
+        catch (IdUnusedException e)
+        {
+            //they sent an invalid certId in their http GET;
+            /*possible causes: they clicked on View Report after another user deleted the certificate definition,
+            or they attempted to do evil with a random http GET.
+            We don't care, show them nothing*/
+            return null;
+        }
+
+        model.put("cert", definition);
+
+        //for internationalization - loads Messages.properties
+        ResourceLoader messages = new ResourceLoader("com.rsmart.certification.tool.Messages");
+
+        if(page==null && export==null)
+        {
+            //It's their first time hitting the page or they changed the page size 
+            // -we'll load/refresh all the data
+
+            //Use orderedCriteria to keep track of the order of the headers so that we can populate the table accordingly
+            ArrayList<Criterion> orderedCriteria = new ArrayList<Criterion>();
+
+            //truncates decimals if it gets a whole number; shows decimals otherwise
+            NumberFormat numberFormat = NumberFormat.getNumberInstance();
+
+            //iterate through the certificate definition's criteria, and grab headers for the criteria columns accordingly
+            Iterator<Criterion> itCriterion = definition.getAwardCriteria().iterator();
+            while (itCriterion.hasNext())
+            {
+                Criterion crit = itCriterion.next();
+                if (logIfNull(crit, "definition contained null criterion. certId: " + certId))
+                {
+                    return null;
+                }
+
+                if (crit instanceof DueDatePassedCriterionHibernateImpl)
+                {
+                    DueDatePassedCriterionHibernateImpl ddpCrit = (DueDatePassedCriterionHibernateImpl) crit;
+                    //says 'Due date for <itemName>'
+                    criteriaHeaders.add(messages.getFormattedMessage("report.table.header.duedate", new Object[]{ddpCrit.getItemName()}));
+                }
+                else if (crit instanceof FinalGradeScoreCriterionHibernateImpl)
+                {
+                    FinalGradeScoreCriterionHibernateImpl fgsCrit = (FinalGradeScoreCriterionHibernateImpl) crit;
+                    //says 'Final Course Grade'
+                    criteriaHeaders.add(messages.getString("report.table.header.fcg"));
+                }
+                else if (crit instanceof GreaterThanScoreCriterionHibernateImpl)
+                {
+                    GreaterThanScoreCriterionHibernateImpl gtsCrit = (GreaterThanScoreCriterionHibernateImpl) crit;
+                    //says '<itemName>'
+                    criteriaHeaders.add(gtsCrit.getItemName());
+                }
+                else if (crit instanceof WillExpireCriterionHibernateImpl)
+                {
+                    //says 'Expires'
+                    criteriaHeaders.add(0, messages.getString("report.table.header.expire"));
+                }
+                else if (crit instanceof GradebookItemCriterionHibernateImpl)
+                {
+                    //I believe this is only used as a parent class and this code will never be reached
+                    logger.warn("certAdminReportHandler failed to find a child criterion for a GradebookItemCriterion");
+                    GradebookItemCriterionHibernateImpl giCrit = (GradebookItemCriterionHibernateImpl) crit;
+                    criteriaHeaders.add(giCrit.getItemName());
+                }
+
+                //Expiration date should immediately follow issue date
+                if (crit instanceof WillExpireCriterionHibernateImpl)
+                {
+                    //0th position immediately follows the issue date
+                    orderedCriteria.add(0, crit);
+                }
+                else
+                {
+                    //all other criteria go at the back
+                    orderedCriteria.add(crit);
+                }
+
+            }
+
+            //Prepare the Report table's contents
+            List<ReportRow> reportRows = new ArrayList<ReportRow>();
+
+            /* Iterate through the list of users who have the ability to be awarded certificates,
+             * populate each row of the table accordingly*/
+            List<String> userIds = getAwardableUserIds();
+            Iterator<String> itUser = userIds.iterator();
+            while (itUser.hasNext())
+            {
+                String userId = itUser.next();
+                try
+                {
+                    //get their user object
+                    User currentUser = getUserDirectoryService().getUser(userId);
+
+                    //The user exists, so create their row
+                    ReportRow currentRow = new ReportRow();
+
+                    //set the name
+                    String firstName = currentUser.getFirstName();
+                    String lastName = currentUser.getLastName();
+                    //do it in an appropriate format
+                    setNameFieldForReportRow(currentRow, firstName, lastName);
+
+                    currentRow.setUserId(currentUser.getEid());
+                    //TODO: This is WesternU specific
+                    String employeeNumber = (String) currentUser.getProperties().get("employeeNumber");
+                    currentRow.setEmployeeNumber(employeeNumber);
+
+                    //Get the issue date (need the CriteriaFactory to do this)
+                    //We can get the criteria factory from any criterion
+
+                    //don't be alarmed by the null checks, none of these should ever happen
+                    if (orderedCriteria.isEmpty())
+                    {
+                        logger.error("orderedCriteria is empty. certId: " + certId);
+                        return null;
+                    }
+                    Criterion tempCrit = orderedCriteria.get(0);
+                    if (logIfNull(tempCrit, "null criterion in orderedCriteria for certId: " + certId))
+                    {
+                        return null;
+                    }
+
+                    CriteriaFactory criteriaFactory = tempCrit.getCriteriaFactory();
+                    if (logIfNull(criteriaFactory, "null criteriaFactory for criterion: " + tempCrit.getId()))
+                    {
+                        return null;
+                    }
+
+                    Date issueDate = criteriaFactory.getDateIssued(userId, siteId(), definition);
+                    if (issueDate == null)
+                    {
+                        //certificate was not awarded to this user
+                        currentRow.setIssueDate(null);
+                    }
+                    else
+                    {
+                        //format the date
+                        String formatted = dateFormat.format(issueDate);
+                        currentRow.setIssueDate(formatted);
+                    }
+
+                    //Now populate the criterionCells by iterating through the criteria (in the order that they appear)
+                    List<String> criterionCells = new ArrayList<String>();
+                    Iterator<Criterion> itCriteria = orderedCriteria.iterator();
+                    while (itCriteria.hasNext())
+                    {
+                        Criterion crit = itCriteria.next();
+                        if (logIfNull(crit, "null criterion in orderedCriteria for certId: " + certId))
+                        {
+                            return null;
+                        }
+
+                        if (crit instanceof DueDatePassedCriterionHibernateImpl)
+                        {
+                            DueDatePassedCriterionHibernateImpl ddpCrit = (DueDatePassedCriterionHibernateImpl) crit;
+                            Date dueDate = ddpCrit.getDueDate();
+
+                            if (logIfNull(dueDate, "DueDatePassed Criterion without a due date" + crit.getId(), "warn"))
+                            {
+                                //place holder
+                                criterionCells.add(null);
+                            }
+                            else
+                            {
+                                //add the formatted date to the criterion cells
+                                String formatted = dateFormat.format(dueDate);
+                                criterionCells.add(formatted);
+                            }
+                        }
+                        else if (crit instanceof FinalGradeScoreCriterionHibernateImpl)
+                        {
+                            CriteriaFactory critFact = crit.getCriteriaFactory();
+                            if (logIfNull (critFact, "criterion without a factory. crit: " + crit.getId()))
+                            {
+                                return null;
+                            }
+
+                            Double score = critFact.getFinalScore(userId, siteId());
+                            if (score==null)
+                            {
+                                String incomplete = messages.getString("report.table.incomplete");
+                                criterionCells.add(incomplete);
+                            }
+                            else
+                            {
+                                String formatted = numberFormat.format(score);
+                                criterionCells.add(formatted);
+                            }
+                        }
+                        else if (crit instanceof GreaterThanScoreCriterionHibernateImpl)
+                        {
+                            GreaterThanScoreCriterionHibernateImpl gtsCrit = (GreaterThanScoreCriterionHibernateImpl) crit;
+                            CriteriaFactory critFact = gtsCrit.getCriteriaFactory();
+                            if (logIfNull (critFact, "criterion without a factory. crit: " + gtsCrit.getId()))
+                            {
+                                return null;
+                            }
+
+                            Double score = critFact.getScore(gtsCrit.getItemId(), userId, siteId());
+                            if (score == null)
+                            {
+                                String incomplete = messages.getString("report.table.incomplete");
+                                criterionCells.add(incomplete);
+                            }
+                            else
+                            {
+                                String formatted = numberFormat.format(score);
+                                criterionCells.add(formatted);
+                            }
+                        }
+                        else if (crit instanceof WillExpireCriterionHibernateImpl)
+                        {
+                            if (issueDate == null)
+                            {
+                                //user didn't achieve the certificate, so expiration can't be calculated
+
+                                //place holder
+                                criterionCells.add(null);
+                            }
+                            else
+                            {
+                                WillExpireCriterionHibernateImpl weCrit = (WillExpireCriterionHibernateImpl) crit;
+                                //get the expiry offset and add it to the issue date
+                                String strExpiryOffset = weCrit.getExpiryOffset();
+                                if (logIfNull(strExpiryOffset, "no expiry offset found for criterion: "+ weCrit.getId()))
+                                {
+                                    return null;
+                                }
+                                Integer expiryOffset = new Integer(strExpiryOffset);
+                                Calendar cal = Calendar.getInstance();
+                                cal.setTime(issueDate);
+                                cal.add(Calendar.MONTH, expiryOffset);
+                                Date expiryDate = cal.getTime();
+                                String formatted = dateFormat.format(expiryDate);
+                                criterionCells.add(formatted);
+                            }
+                        }
+                        else if (crit instanceof GradebookItemCriterionHibernateImpl)
+                        {
+                            //I believe this is only used as a parent class and this code will never be reached
+                            logger.warn("certAdminReportHandler failed to find a child criterion for a GradebookItemCriterion");
+
+                            //place holder
+                            criterionCells.add(null);
+                        }
+                    }
+                    currentRow.setCriterionCells(criterionCells);
+
+                    //show whether the certificate was awarded
+                    //certificate is awarded iff the issue date is null
+                    if (issueDate == null)
+                    {
+                        String no = messages.getString("report.table.no");
+                        currentRow.setAwarded(no);
+                    }
+                    else
+                    {
+                        String yes = messages.getString("report.table.yes");
+                        currentRow.setAwarded(yes);
+                    }
+
+                    reportRows.add(currentRow);
+                }
+                catch (UserNotDefinedException e)
+                {
+                    //ignore
+                }
+            }
+
+            //set up the paging navigator
+            //the 'if' surrounding this scope: page == null && export == null
+            //this happens when freshly arriving on this page or when changing the page size
+            reportList = new PagedListHolder(reportRows);
+
+            if(pageSize != null)
+            {
+                //they changed the page size
+                reportList.setPageSize(pageSize);
+            }
+            else
+            {
+                //fresh arival, set the default page size
+                //set default to 100
+                pageSize = PAGE_SIZE_LIST.get(3);
+                reportList.setPageSize(pageSize);
+            }
+            if(pageNo != null)
+            {
+                reportList.setPage(pageNo);
+            }
+            reportList.setSort(new SortDefinition()
+            {
+                public String getProperty() {
+                    //sort by the getName() method
+                    return "name";
+                }
+
+                public boolean isIgnoreCase() {
+                    return true;
+                }
+
+                public boolean isAscending() {
+                    return true;
+                }
+            });
+
+            reportList.resort();
+        }   // page==null && export==null
+        else if (export == null)
+        {
+            // !(page == null && export == null) && export == null -> page != null
+            // page != null -> they clicked a navigation button
+
+            //pull the headers and the report list from the http session
+            criteriaHeaders = (List<Object>) session.getAttribute("reportHeaders");
+            reportList = (PagedListHolder) session.getAttribute("reportList");
+
+            //navigate appropriately
+            if(PAGINATION_NEXT.equals(page) && !reportList.isLastPage())
+            {
+                reportList.nextPage();
+            }
+            else if(PAGINATION_LAST.equals(page))
+            {
+                reportList.setPage(reportList.getLastLinkedPage());
+            }
+            else if(PAGINATION_PREV.equals(page) && !reportList.isFirstPage())
+            {
+                reportList.previousPage();
+            }
+            else if(PAGINATION_FIRST.equals(page))
+            {
+                reportList.setPage(reportList.getFirstLinkedPage());
+            }
+        }   // export == null
+        else if (export)
+        {
+            // they clicked Export as CSV
+            //get the headers and the report list from the http session
+            criteriaHeaders = (List<Object>) session.getAttribute("reportHeaders");
+            reportList = (PagedListHolder) session.getAttribute("reportList");
+            try
+            {
+                definition = certService.getCertificateDefinition(certId);
+
+                //prepare the http response header
+                String mimeType = "text/csv";
+                response.setContentType(mimeType);
+                DateFormat filenameDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                String today = filenameDateFormat.format(new Date());
+                String report = messages.getString("report.export.fname");
+                String defName = definition.getName();
+                if (logIfNull(defName,"certificate name is null: "+ certId))
+                {
+                    return null;
+                }
+                defName = defName.replaceAll("\\s","_");
+                response.addHeader("Content-Disposition", "attachment; filename = " + defName + "_" + report + "_" + today +".csv");
+                response.setHeader("Cache-Control", "");
+                response.setHeader("Pragma", "");
+
+                //fill in the csv's header
+                StringBuilder contents = new StringBuilder();
+                appendItem(contents, messages.getString("report.table.header.name"), false);
+                appendItem(contents, messages.getString("report.table.header.userid"), false);
+                appendItem(contents, messages.getString("report.table.header.employeenum"), false);
+                appendItem(contents, messages.getString("report.table.header.issuedate"), false);
+
+                Iterator<Object> itHeaders = criteriaHeaders.iterator();
+                while (itHeaders.hasNext())
+                {
+                    appendItem(contents, (String) itHeaders.next(), false);
+                }
+
+                appendItem(contents, messages.getString("report.table.header.awarded"), true);
+
+                // gets the original list of ReportRows
+                List table = reportList.getSource();
+
+                //fill the rest of the csv
+                Iterator<Object> itTable = table.iterator();
+                while (itTable.hasNext())
+                {
+                    Object objRow = itTable.next();
+                    if (objRow instanceof ReportRow)
+                    {
+                        //represents a line in the table
+                        ReportRow row = (ReportRow) objRow;
+                        appendItem(contents, row.getName(), false);
+                        appendItem(contents, row.getUserId(), false);
+                        appendItem(contents, row.getEmployeeNumber(), false);
+                        appendItem(contents, row.getIssueDate(), false);
+
+                        Iterator<String> itCriterionCells = row.getCriterionCells().iterator();
+                        while (itCriterionCells.hasNext())
+                        {
+                            appendItem(contents, itCriterionCells.next(), false);
+                        }
+
+                        appendItem(contents, row.getAwarded(), true);
+                    }
+                    else
+                    {
+                        //???
+                        logger.warn("not a ReportRow:" + objRow);
+                    }
+                }
+
+                //send contents
+                String data = contents.toString();
+                OutputStream out = response.getOutputStream();
+                out.write(data.getBytes());
+                out.flush();
+                out.close();
+
+                //we're not updating their view
+                return null;
+            }
+            catch (IdUnusedException e)
+            {
+                //they sent an invalid certId in their http GET;
+                /*possible causes: they clicked on View Report after another user deleted the certificate definition,
+                or they attempted to do evil with a random http GET.
+                We don't care*/
+                return null;
+            }
+        }
+        else
+        {
+            //should never happen
+            logger.warn("hit reportView.form with export=false. Should never happen");
+            return null;
+        }
+
+        //push the navigator and the headers to the http session 
+        session.setAttribute("reportList", reportList);
+        session.setAttribute("reportHeaders", criteriaHeaders);
+
+        //populate the model as necessary
+        model.put("headers",criteriaHeaders);
+        model.put("reportList", reportList);
+        model.put("pageSizeList", PAGE_SIZE_LIST);
+        model.put("pageNo", reportList.getPage());
+        model.put("pageSize", reportList.getPageSize());
+        model.put("firstElement", (reportList.getFirstElementOnPage()+1));
+        model.put("lastElement", (reportList.getLastElementOnPage()+1));
+
+        //send the model to the jsp
+        ModelAndView mav = new ModelAndView("reportView", model);
+        return mav;
+    }
+
+    /**
+     * if the specified object is null, the specified message gets logged at the specified logging level
+     * @param obj
+     * @param message
+     * @param level
+     * @return
+     */
+    private boolean logIfNull(Object obj, String message, String level)
+    {
+        if (obj==null)
+        {
+            if (level == null)
+            {
+                logger.error(message);
+            }
+            else if ("warn".equals(level))
+            {
+                logger.warn(message);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * if the specified object is null, the specified message gets logged at the error logging level
+     * @param obj
+     * @param message
+     * @return
+     */
+    private boolean logIfNull(Object obj, String message)
+    {
+        return logIfNull(obj, message, null);
+    }
+
+    /**
+     * Sets the name field on the row in an appropriate format ('lastname, firstname' unless a name is missing)
+     * @param row
+     * @param firstName
+     * @param lastName
+     */
+    private void setNameFieldForReportRow(ReportRow row, String firstName, String lastName)
+    {
+        if (lastName==null)
+        {
+            lastName = "";
+        }
+
+        if (firstName==null)
+        {
+            firstName = "";
+        }
+
+        //if one name is missing, use the opposite
+        if ("".equals(lastName))
+        {
+            //use the opposite name or empty string if firstName is missing (both cases are covered here)
+            row.setName(firstName);
+        }
+        else if ("".equals(firstName))
+        {
+            row.setName(lastName);
+        }
+        else
+        {
+            //both names present
+            row.setName(lastName+", "+firstName);
+        }
+    }
+
+    /**
+     * Appends item to a StringBuilder for csv format by surrounding them in double quotes, and separating lines when appropriate
+     * @param stringBuilder the StringBuilder we are appending to
+     * @param item the item that we are appending to the csv
+     * @param eol true if this is the last item in the current line
+     */
+    private void appendItem(StringBuilder stringBuilder, String item, boolean eol)
+    {
+        stringBuilder.append('\"');
+        if (item!=null)
+        {
+            stringBuilder.append(item);
+        }
+        stringBuilder.append('\"');
+        if (!eol)
+        {
+            stringBuilder.append(',');
+        }
+        else
+        {
+            stringBuilder.append('\n');
+        }
+    }
+
+    public class ReportRow
+    {
+        String name = null;
+        String userId = null;
+        String employeeNumber = null;
+        String issueDate = null;
+        List<String> criterionCells = null;
+        String awarded = null;
+
+        public ReportRow()
+        {
+            criterionCells = new ArrayList<String>();
+        }
+
+        public void setName(String name)
+        {
+            this.name=name;
+        }
+
+        public String getName()
+        {
+            return name;
+        }
+
+        public void setUserId(String userId)
+        {
+            this.userId=userId;
+        }
+
+        public String getUserId()
+        {
+            return userId;
+        }
+
+        public void setEmployeeNumber(String employeeNumber)
+        {
+            this.employeeNumber=employeeNumber;
+        }
+
+        public String getEmployeeNumber()
+        {
+            return employeeNumber;
+        }
+
+        public void setIssueDate(String issueDate)
+        {
+            this.issueDate = issueDate;
+        }
+
+        public String getIssueDate()
+        {
+            return issueDate;
+        }
+
+        public void setCriterionCells (List<String> criterionCells)
+        {
+            this.criterionCells = criterionCells;
+        }
+
+        public List<String> getCriterionCells()
+        {
+            return criterionCells;
+        }
+
+        public void setAwarded(String awarded)
+        {
+            this.awarded = awarded;
+        }
+
+        public String getAwarded()
+        {
+            return awarded;
+        }
+    }
+
    /* @RequestMapping("/admin/list/{pageno}")
 	public ModelAndView certListHandler(@PathVariable("pageno") String pageno) 
     {

@@ -11,6 +11,7 @@ import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.IdUsedException;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,7 +36,7 @@ public interface CertificateService
     public CertificateDefinition createCertificateDefinition (CertificateDefinition cd) throws IdUsedException;
 
     public CertificateDefinition updateCertificateDefinition (CertificateDefinition cd) throws IdUnusedException;
-    
+
     public void setDocumentTemplateService (DocumentTemplateService dts);
 
     public DocumentTemplateService getDocumentTemplateService();
@@ -98,8 +99,8 @@ public interface CertificateService
      * @throws TemplateReadException
      */
     public InputStream getTemplateFileInputStream(String resourceId)
-		throws TemplateReadException;
-	
+        throws TemplateReadException;
+
     /**
      * Sets the values to be used when populating the fields for the template during rendering of the printable
      * certificate.
@@ -127,7 +128,7 @@ public interface CertificateService
 
     public CertificateDefinition getCertificateDefinitionByName (String siteId, String name)
         throws IdUnusedException;
-    
+
     public CertificateDefinition getCertificateDefinition (String id)
         throws IdUnusedException;
 
@@ -168,7 +169,8 @@ public interface CertificateService
             throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
     public void removeAwardCriterion (String certificateDefinitionId, String criterionId)
-    		throws IdUnusedException, UnmodifiableCertificateDefinitionException;
+            throws IdUnusedException, UnmodifiableCertificateDefinitionException;
+
     /**
      * This checks the current user's progress on AwardCriteria for a CertificateDefinition without the side effect
      * of actually awarding the certificate as would be the case with a call to getCertificateAward(...).
@@ -275,11 +277,13 @@ public interface CertificateService
     
     public Map<Long, Double> getCategoryWeights(final String gradebookId);
     
-	public Map<Long,Double> getAssignmentWeights(final String gradebookId);
-	
-	public Map<Long,Double> getAssignmentPoints(final String gradebookId);
-	
-	public Map<Long, Double> getCatOnlyAssignmentPoints(final String gradebookId);
-	
-	public Map<Long,Double> getAssignmentScores(final String gradebookId, final String studentId);
+    public Map<Long,Double> getAssignmentWeights(final String gradebookId);
+
+    public Map<Long,Double> getAssignmentPoints(final String gradebookId);
+
+    public Map<Long, Double> getCatOnlyAssignmentPoints(final String gradebookId);
+
+    public Map<Long,Double> getAssignmentScores(final String gradebookId, final String studentId);
+
+    public Map<Long,Date> getAssignmentDatesRecorded(final String gradebookId, final String studentId);
 }

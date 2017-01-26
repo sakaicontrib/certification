@@ -36,7 +36,7 @@
 				<select id="pageSize">
 				<c:forEach items="${pageSizeList}" var="list">
 					<c:choose>
-					<c:when test="${list > 100}">
+					<c:when test="${list > 200}">
 						<option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
 					</c:when>
 					<c:otherwise>

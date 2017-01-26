@@ -1,5 +1,6 @@
 package com.rsmart.certification.criteria.impl.gradebook;
 
+import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.CriterionCreationException;
@@ -12,7 +13,7 @@ import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedC
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
-import java.util.Calendar;
+import java.util.ArrayList;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.service.gradebook.shared.Assignment;
@@ -26,9 +27,12 @@ import org.sakaiproject.util.ResourceLoader;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.service.gradebook.shared.GradeDefinition;
 
 /**
@@ -36,9 +40,9 @@ import org.sakaiproject.service.gradebook.shared.GradeDefinition;
  * Date: Jun 23, 2011
  * Time: 11:44:38 AM
  */
-public class GradebookCriteriaFactory
-    implements CriteriaFactory
+public class GradebookCriteriaFactory implements CriteriaFactory
 {
+    protected final Log logger = LogFactory.getLog(getClass());
     private CertificateService
         certService = null;
     private GradebookService
@@ -234,56 +238,42 @@ public class GradebookCriteriaFactory
 
         final Session
             sakaiSession = sessionManager.getCurrentSession();
-        final String
-            contextId = contextId(),
-            currentUserId = userId(),
-            currentUserEid = getUserDirectoryService().getCurrentUser().getEid(),
-            adminUser = getAdminUser();
+        final String contextId = contextId();
 
         try
         {
-            sakaiSession.setUserId(adminUser);
-            sakaiSession.setUserEid(adminUser);
+            securityService.pushAdvisor(new SecurityAdvisor()
+            {
+                public SecurityAdvice isAllowed(String userId, String function, String reference)
+                {
+                    String compTo = null;
 
-            securityService.pushAdvisor
-                (
-                    new SecurityAdvisor ()
+                    if (contextId.startsWith("/site/"))
                     {
-                        public SecurityAdvice isAllowed(String userId, String function, String reference)
-                        {
-                            String
-                                compTo = null;
-
-                            if (contextId.startsWith("/site/"))
-                            {
-                                compTo = contextId;
-                            }
-                            else
-                            {
-                                compTo = "/site/" + contextId;
-                            }
-
-                            if (reference.equals(compTo) && ("gradebook.viewOwnGrades".equals(function) ||
-                                                             "gradebook.editAssignments".equals(function)))
-                            {
-                                return SecurityAdvice.ALLOWED;
-                            }
-                            else
-                            {
-                                return SecurityAdvice.PASS;
-                            }
-                        }
+                        compTo = contextId;
                     }
-                );
+                    else
+                    {
+                        compTo = "/site/" + contextId;
+                    }
+
+                    if (reference.equals(compTo) && ("gradebook.viewOwnGrades".equals(function) ||
+                                                     "gradebook.editAssignments".equals(function)))
+                    {
+                        return SecurityAdvice.ALLOWED;
+                    }
+                    else
+                    {
+                        return SecurityAdvice.PASS;
+                    }
+                }
+            });
 
             return callback.doSecureAction();
         }
         finally
         {
             securityService.popAdvisor();
-
-            sakaiSession.setUserId(currentUserId);
-            sakaiSession.setUserEid(currentUserEid);
         }
     }
 
@@ -770,5 +760,339 @@ public class GradebookCriteriaFactory
             throw new UnknownCriterionTypeException (id);
 
         return template;
+    }
+
+    public Double getScore(final Long itemId, final String userId, final String contextId)
+    {
+        final GradebookService gbs = getGradebookService();
+        try
+        {
+            return (Double) doSecureGradebookAction (new SecureGradebookActionCallback()
+            {
+                public Object doSecureAction()
+                {
+                    // pull the assignment from the gradebook to check the score
+                    Assignment
+                        assn = null;
+
+                    // actually get the assignment
+                    assn = gbs.getAssignment(contextId, itemId);
+
+                    if (assn == null)
+                    {
+                        //log it
+                        return false;
+                    }
+
+                    return gbs.getAssignmentScore (contextId, itemId, userId);
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            //log
+            return null;
+        }
+    }
+
+    public Double getFinalScore(final String userId, final String contextId)
+    {
+        try
+        {
+            final CertificateService certService = getCertificateService();
+            return (Double)doSecureGradebookAction(new SecureGradebookActionCallback()
+            {
+                public Object doSecureAction()
+                {
+                    //TODO
+                    //get gradebook for the site
+                    //check category type
+                    // if category type is CATEGORY_TYPE_WEIGHTED_CATEGORY than it is weighted category
+                    //loop through category definitions
+                    //get assignments for each category and multiply weight of category to weight of assignment to possible points
+
+                    //if category type is CATEGORY_TYPE_NO_CATEGORY it does not have category 
+                    //get all assignments and add possible points
+
+                    //if category type is CATEGORY_TYPE_ONLY_CATEGORY than loop through category definitions
+                    //get assignments for each category and add assignments possible points
+
+                    Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
+                    Map<Long,Double> assgnWeights = certService.getAssignmentWeights(contextId);
+                    Map<Long,Double> assgnScores = certService.getAssignmentScores(contextId, userId);
+                    Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
+
+                    double studentTotalScore = 0;
+
+                    int categoryType = certService.getCategoryType(contextId);
+
+                    switch(categoryType)
+                    {
+                        case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
+                        {
+                            for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
+                            {
+                                Double score = assgnScore.getValue();
+                                studentTotalScore += score == null ? 0:score;
+                            }
+                            break;
+                        }
+                        case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
+                        {
+                            for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
+                            {
+                                if(catWeights.containsKey(assgnScore.getKey()))
+                                {
+                                    Double score = assgnScore.getValue();
+                                    studentTotalScore += score == null ? 0:score;
+                                }
+                            }
+                            break;
+                        }
+                        case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
+                        {
+                            //List<CategoryDefinition> categories = gbs.getCategoryDefinitions(contextId);
+                            //Map<String, Double> categoryWeightMap = new HashMap();
+
+    //    					for(CategoryDefinition category : categories)
+    //    					{
+    //							categoryWeightMap.put(category.getName(), category.getWeight());
+    //    					}
+
+                            for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
+                            {
+                                //String catName = assign.getCategoryName();
+                                if(catWeights.containsKey(assgnScore.getKey()))
+                                {
+                                    //String strScore = gbs.getAssignmentScoreString(contextId, assign.getId(), userId);
+                                    Double score = assgnScore.getValue(),
+                                           points = assgnPoints.get(assgnScore.getKey()),
+                                           catWeight = catWeights.get(assgnScore.getKey()),
+                                           assgnWeight = assgnWeights.get(assgnScore.getKey());
+
+                                    studentTotalScore += 100* (((score == null) ? 0:score) /
+                                                         ((points == null) ? 1:points))*
+                                                         ((catWeight == null ? 1:catWeight)) *
+                                                         ((assgnWeight == null ? 1:assgnWeight));	   
+                                }
+                            }
+                            break;
+                        }
+                    }
+
+                    return studentTotalScore;
+
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    public Date getDateRecorded(final Long itemId, final String userId, final String contextId)
+    {
+        final GradebookService gbs = getGradebookService();
+
+        try
+        {
+            GradeDefinition gradeDefn = gbs.getGradeDefinitionForStudentForItem(contextId, itemId, userId);
+            return gradeDefn.getDateRecorded();
+        }
+        catch(Exception e)
+        {
+
+        }
+        return null;
+    }
+
+    public Date getFinalGradeDateRecorded(final String userId,final String contextId)
+    {
+        try
+        {
+            final CertificateService certService = getCertificateService();
+            return (Date) doSecureGradebookAction(new SecureGradebookActionCallback()
+            {
+                public Object doSecureAction()
+                {
+                    //Just following the getFinalScore code, but ignoring grades and looking at dates
+
+                    Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
+                    //should we check if the weight > 0?
+                    //Map<Long,Double> assgnWeights = certService.getAssignmentWeights(contextId);
+                    Map<Long,Date> assgnDates = certService.getAssignmentDatesRecorded(contextId, userId);
+                    //Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
+
+                    Date lastDate = null;
+
+                    int categoryType = certService.getCategoryType(contextId);
+
+                    switch(categoryType)
+                    {
+                        case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
+                        {
+                            for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet())
+                            {
+                                if (lastDate==null)
+                                {
+                                    lastDate = assgnDate.getValue();
+                                }
+                                else if (assgnDate.getValue() != null)
+                                {
+                                    if (assgnDate.getValue().after(lastDate))
+                                    {
+                                        lastDate = assgnDate.getValue();
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                        case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
+                        {
+                            for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet())
+                            {
+                                if(catWeights.containsKey(assgnDate.getKey()))
+                                {
+                                    if (lastDate==null)
+                                    {
+                                        lastDate = assgnDate.getValue();
+                                    }
+                                    else if (assgnDate.getValue() != null)
+                                    {
+                                        if (assgnDate.getValue().after(lastDate))
+                                        {
+                                            lastDate = assgnDate.getValue();
+                                        }
+                                    }
+
+                                }
+                            }
+                            break;
+                        }
+                        case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
+                        {
+                            //List<CategoryDefinition> categories = gbs.getCategoryDefinitions(contextId);
+                            //Map<String, Double> categoryWeightMap = new HashMap();
+
+    //    					for(CategoryDefinition category : categories)
+    //    					{
+    //							categoryWeightMap.put(category.getName(), category.getWeight());
+    //    					}
+
+                            for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet())
+                            {
+                                //String catName = assign.getCategoryName();
+                                if(catWeights.containsKey(assgnDate.getKey()))
+                                {
+                                    if (lastDate == null)
+                                    {
+                                        lastDate = assgnDate.getValue();
+                                    }
+                                    else if (assgnDate.getValue() != null)
+                                    {
+                                        if (assgnDate.getValue().after(lastDate))
+                                        {
+                                            lastDate = assgnDate.getValue();
+                                        }
+                                    }
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    return lastDate;
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    public Date getDateIssued(final String userId, final String contextId, CertificateDefinition certDef)
+    {
+        //TODO: If the user wasn't awarded, return null
+        final CertificateService certService = getCertificateService();
+
+        Set<Criterion> criteria = certDef.getAwardCriteria();
+
+        final GradebookService gbs = getGradebookService();
+
+        //The Date in chronoligical order will be selected
+        Date lastDate = null;
+        boolean awarded = true;
+
+        Iterator<Criterion> itCriteria = criteria.iterator();
+        while (itCriteria.hasNext())
+        {
+            Criterion crit = itCriteria.next();
+            try
+            {
+                if (!isCriterionMet(crit, userId, contextId))
+                {
+                    awarded= false;
+                }
+            }
+            catch (UnknownCriterionTypeException e)
+            {
+                return null;
+            }
+
+            if (crit instanceof DueDatePassedCriterionHibernateImpl)
+            {
+                //just use the due date
+                Date date = ((DueDatePassedCriterionHibernateImpl) crit).getDueDate();
+
+                if (lastDate == null)
+                {
+                    lastDate = date;
+                }
+                else if (date.after(lastDate))
+                {
+                    lastDate = date;
+                }
+            }
+            else if (crit instanceof FinalGradeScoreCriterionHibernateImpl)
+            {
+                //for this one, get the date that the final grade was recorded
+                Date date = getFinalGradeDateRecorded(userId, contextId);
+                if (lastDate == null)
+                {
+                    lastDate = date;
+                }
+                else if (date != null)
+                {
+                    if (date.after(lastDate))
+                    {
+                        lastDate = date;
+                    }
+                }
+            }
+            else if (crit instanceof GreaterThanScoreCriterionHibernateImpl)
+            {
+                //for this one, get the date it was recorded
+                Long itemId = ((GreaterThanScoreCriterionHibernateImpl) crit).getItemId();
+                Date date = getDateRecorded(itemId, userId, contextId);
+                if (lastDate == null)
+                {
+                    lastDate = date;
+                }
+                else if (date != null)
+                {
+                    if (date.after(lastDate))
+                    {
+                        lastDate = date;
+                    }
+                }
+            }
+        }
+
+        if (awarded)
+        {
+            return lastDate;
+        }
+        return null;
     }
 }

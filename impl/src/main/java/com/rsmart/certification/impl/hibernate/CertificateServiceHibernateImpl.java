@@ -78,9 +78,7 @@ import java.util.Set;
  * Date: Jun 30, 2011
  * Time: 9:21:59 AM
  */
-public class CertificateServiceHibernateImpl
-    extends HibernateDaoSupport
-    implements CertificateService
+public class CertificateServiceHibernateImpl extends HibernateDaoSupport implements CertificateService
 {
     private static Log
         LOG = LogFactory.getLog(CertificateServiceHibernateImpl.class);
@@ -870,53 +868,40 @@ public class CertificateServiceHibernateImpl
             sakaiSession = sessionManager.getCurrentSession();
         final String
             contextId = contextId(),
-            currentUserId = userId(),
-            currentUserEid = getUserDirectoryService().getCurrentUser().getEid(),
             adminUser = getAdminUser();
 
         try
         {
-            sakaiSession.setUserId(adminUser);
-            sakaiSession.setUserEid(adminUser);
-
-            securityService.pushAdvisor
-                (
-                    new SecurityAdvisor ()
+            securityService.pushAdvisor(new SecurityAdvisor ()
+            {
+                public SecurityAdvice isAllowed(String userId, String function, String reference)
+                {
+                    String compTo;
+                    if (contextId.startsWith("/site/"))
                     {
-                        public SecurityAdvice isAllowed(String userId, String function, String reference)
-                        {
-                            String
-                                compTo = null;
-
-                            if (contextId.startsWith("/site/"))
-                            {
-                                compTo = contextId;
-                            }
-                            else
-                            {
-                                compTo = "/site/" + contextId;
-                            }
-
-                            if (reference.equals(compTo) && ("content.read".equals(function)))
-                            {
-                                return SecurityAdvice.ALLOWED;
-                            }
-                            else
-                            {
-                                return SecurityAdvice.PASS;
-                            }
-                        }
+                        compTo = contextId;
                     }
-                );
+                    else
+                    {
+                        compTo = "/site/" + contextId;
+                    }
+
+                    if (reference.equals(compTo) && ("content.read".equals(function)))
+                    {
+                        return SecurityAdvice.ALLOWED;
+                    }
+                    else
+                    {
+                        return SecurityAdvice.PASS;
+                    }
+                }
+            });
 
             return callback.doSecureAction();
         }
         finally
         {
            securityService.popAdvisor();
-
-            sakaiSession.setUserId(currentUserId);
-            sakaiSession.setUserEid(currentUserEid);
         }
     
     }
@@ -1755,8 +1740,32 @@ public class CertificateServiceHibernateImpl
 		};
 
         return (HashMap<Long,Double>)getHibernateTemplate().execute(callback);
-
     }
 
+    public Map<Long, Date> getAssignmentDatesRecorded (final String gradebookId, final String studentId)
+    {
+        HibernateCallback callback = new HibernateCallback()
+        {
+            public Object doInHibernate(Session session)
+                throws HibernateException
+            {
+                Iterator results = session.createQuery
+                     ("select agr.gradableObject.id, agr.dateRecorded from CertAssignmentScore as agr " +
+                        "where agr.gradableObject.removed=false " +
+                        "and agr.gradableObject.gradebook.uid=:gradebookId and agr.studentId = :studentId").
+                        setParameter("gradebookId", gradebookId).setParameter("studentId", studentId).list().iterator();
 
+                HashMap<Long, Date>
+                assnDates = new HashMap<Long, Date>();
+                while(results.hasNext())
+                {
+                    Object[] row = (Object[])results.next();
+                    assnDates.put((Long)row[0],(Date)row[1]);
+                }
+                return assnDates;
+            }
+        };
+
+        return (HashMap<Long, Date>)getHibernateTemplate().execute(callback);
+    }
 }
