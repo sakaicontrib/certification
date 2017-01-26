@@ -34,6 +34,8 @@ public class FinalGradeScoreCriteriaTemplate
         gbService = null;
     ResourceLoader rl = null;
 
+    private final String EXPRESSION_KEY = "final.grade.score.criteria.expression";
+
     public FinalGradeScoreCriteriaTemplate(final GradebookCriteriaFactory factory)
     {
         this.factory = factory;
@@ -91,6 +93,11 @@ public class FinalGradeScoreCriteriaTemplate
 
     public String getExpression (Criterion criterion)
     {
+        if (criterion == null)
+        {
+            return rl.getFormattedMessage(EXPRESSION_KEY, new Object[]{});
+        }
+
         SecureGradebookActionCallback
             typeCallback = new SecureGradebookActionCallback()
             {
@@ -183,22 +190,15 @@ public class FinalGradeScoreCriteriaTemplate
 
         DecimalFormat
             df = new DecimalFormat("#0.00");
-        String
+        Object
             vars[] = new String[2];
 
         vars[0] = df.format(total);
 
-        if (criterion == null)
-        {
-            vars[1] = "&lt;" + scoreVariable.getVariableLabel() + "&gt;";
-        }
-        else
-        {
-            FinalGradeScoreCriterionHibernateImpl
-               fgschi = (FinalGradeScoreCriterionHibernateImpl)criterion;
+        FinalGradeScoreCriterionHibernateImpl
+           fgschi = (FinalGradeScoreCriterionHibernateImpl)criterion;
 
-            vars[1] = fgschi.getScore();
-        }
+        vars[1] = fgschi.getScore();
 
         return rl.getFormattedMessage(FinalGradeScoreCriteriaTemplate.class.getName(), vars);
     }

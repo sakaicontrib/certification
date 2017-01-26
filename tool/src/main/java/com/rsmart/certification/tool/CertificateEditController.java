@@ -218,7 +218,7 @@ public class CertificateEditController
             }
             
             certDef = getCertificateService().createCertificateDefinition(certDef.getName(), certDef.getDescription(), 
-                    siteId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream(), certDef.getExpiryOffset());
+                    siteId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream());
 
     		certDef = getCertificateService().getCertificateDefinition(certDef.getId());
 			DocumentTemplate dt = certDef.getDocumentTemplate();
@@ -256,126 +256,8 @@ public class CertificateEditController
 		return certificateToolState;
     }
 
-
-	@RequestMapping(value="/second.form")
+    @RequestMapping(value="/second.form")
     protected ModelAndView createCertHandlerSecond(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
-   		                                           BindingResult result, HttpServletRequest request,
-                                                   SessionStatus status)
-    throws Exception
-    {
-		Map<String, Object> model = new HashMap<String, Object>();
-
-		if (!isAdministrator())
-		{
-			CertificateToolState.clear();
-			status.setComplete();
-		    return new ModelAndView("redirect:list.form", ERROR_MESSAGE, "error.not.admin");
-		}
-		
-    	if("cancel".equals(certificateToolState.getSubmitValue()))
-    	{
-    		if(certificateToolState.isNewDefinition())
-    		{
-    			/*
-    			 * delete certificate definition from the db;
-    			 */
-    			CertificateToolState.clear();
-    			status.setComplete();
-    			return new ModelAndView("redirect:list.form");
-    		}
-    		else
-    		{
-    			CertificateToolState.clear();
-    			status.setComplete();
-    			return new ModelAndView("redirect:list.form");
-    		}
-
-		}
-    	else if("back".equals(certificateToolState.getSubmitValue()))
-    	{
-    		return createCertHandlerFirst(certificateToolState, result, request, status);
-    	}
-
-    	if(result.hasErrors())
-		{
-			return new ModelAndView("createCertificateTwo",STATUS_MESSAGE_KEY,FORM_ERR);
-		}
-    	else if("next".equals(certificateToolState.getSubmitValue()))
-    	{
-    		try
-    		{
-	    		certificateDefinitionValidator.validateSecond(certificateToolState, result);
-	    		if(!result.hasErrors())
-	    		{
-	    		CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-		    		getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
-		    		model.put(STATUS_MESSAGE_KEY, SUCCESS);
-	    		}
-	    		else
-	    		{
-	    			model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-	    			model.put(MOD_ATTR, certificateToolState);
-	    			model.put(ERROR_MESSAGE, PREDEFINED_VAR_EXCEPTION);
-	        		return new ModelAndView("createCertificateTwo", model);
-	    		}
-    		}
-    		catch(Exception e)
-    		{
-    			logger.warn("CertificateEditController.createCertHandlerSecond.next", e);
-    			model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-    			model.put(MOD_ATTR, certificateToolState);
-    			return new ModelAndView("createCertificateTwo", model);
-    		}
-    		/*
-		 	get DocumentTemplate from certificateDefinition
-		 	put into model:
-		 		1) template fields for certificateDefinition:
-		 			DocTemplateSvc.getTemplateFields(DocTemplate)
-		 		2) predefined variables:
-		 			CertSvc.getPredefinedTemplateVariables(...)
-		 */
-    		/*
- 		   Add any fields that have been set in the CertDef.
- 		   		CertDefn.getFieldValues()
- 		 */
-
-            certificateToolState.setSubmitValue(null);
-            return createCertHandlerThird(certificateToolState, result, request, status);
-    	}
-    	else
-    	{
-    		/*
-    		 	get DocumentTemplate from certificateDefinition
-    		 	put into model:
-    		 		1) template fields for certificateDefinition:
-    		 			DocTemplateSvc.getTemplateFields(DocTemplate)
-    		 		2) predefined variables:
-    		 			CertSvc.getPredefinedTemplateVariables(...)
-    		 */
-            certificateToolState.setPredifinedFields(getCertificateService().getPredefinedTemplateVariables());
-    		return new ModelAndView("createCertificateTwo",MOD_ATTR,certificateToolState);
-    	}
-    }
-
-   /* private boolean validateSecondForm(CertificateToolState certificateToolState) {
-    	Map<String, String> currentFields = certificateToolState.getTemplateFields();
-    	Map<String, String> preDefFields = certificateToolState.getPredifinedFields();
-    	Set<String> keySet = preDefFields.keySet();
-    	for(String val : currentFields.values())
-    	{
-            Matcher
-                variableMatcher = variablePattern.matcher(val);
-
-            if (variableMatcher.matches() && !keySet.contains(val))
-            {
-                return false;
-            }
-    	}
-		return true;
-	}*/
-
-	@RequestMapping(value="/third.form")
-    protected ModelAndView createCertHandlerThird(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
                                                   BindingResult result, HttpServletRequest request, SessionStatus status)
         throws Exception
     {
@@ -418,12 +300,12 @@ public class CertificateEditController
         else if("back".equals(subVal))
     	{
             certificateToolState.setSubmitValue(null);
-            return createCertHandlerSecond(certificateToolState, result, request, status);
+            return createCertHandlerFirst(certificateToolState, result, request, status);
     	}
 
         if(result.hasErrors())
         {
-        	viewName="createCertificateThree";
+        	viewName="createCertificateTwo";
         }
     	else if("next".equals(subVal))
     	{
@@ -431,11 +313,11 @@ public class CertificateEditController
 			 	save criteria using:
 			 		CertificateSvc.setCriteria(Set<Criterion>)
 			 */
-    		certificateDefinitionValidator.validateThird(certificateToolState, result);
+    		certificateDefinitionValidator.validateSecond(certificateToolState, result);
 			if(!result.hasErrors())
 			{
     		    certificateToolState.setSubmitValue(null);
-    		    return createCertHandlerFourth(certificateToolState, result, request, status);
+    		    return createCertHandlerThird(certificateToolState, result, request, status);
         	}
     	    else
     	    {
@@ -465,12 +347,114 @@ public class CertificateEditController
             certificateToolState.setCriteriaTemplates(criteriaTemplates);
             certificateToolState.setCertificateDefinition(certDef);
 
-            viewName="createCertificateThree";
+            viewName="createCertificateTwo";
     	}
 
         model.put(MOD_ATTR, certificateToolState);
     	return new ModelAndView (viewName, model);
     }
+
+    @RequestMapping(value="/third.form")
+    protected ModelAndView createCertHandlerThird(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
+                                                    BindingResult result, HttpServletRequest request,
+                                                    SessionStatus status)
+     throws Exception
+     {
+         Map<String, Object> model = new HashMap<String, Object>();
+
+         if (!isAdministrator())
+         {
+             CertificateToolState.clear();
+             status.setComplete();
+             return new ModelAndView("redirect:list.form", ERROR_MESSAGE, "error.not.admin");
+         }
+
+         if("cancel".equals(certificateToolState.getSubmitValue()))
+         {
+             if(certificateToolState.isNewDefinition())
+             {
+                 /*
+                  * delete certificate definition from the db;
+                  */
+                 CertificateToolState.clear();
+                 status.setComplete();
+                 return new ModelAndView("redirect:list.form");
+             }
+             else
+             {
+                 CertificateToolState.clear();
+                 status.setComplete();
+                 return new ModelAndView("redirect:list.form");
+             }
+
+         }
+         else if("back".equals(certificateToolState.getSubmitValue()))
+         {
+             //bbailla2 - added this for consistency
+             certificateToolState.setSubmitValue(null);
+             return createCertHandlerSecond(certificateToolState, result, request, status);
+         }
+
+         if(result.hasErrors())
+         {
+             return new ModelAndView("createCertificateThree",STATUS_MESSAGE_KEY,FORM_ERR);
+         }
+         else if("next".equals(certificateToolState.getSubmitValue()))
+         {
+             try
+             {
+                 certificateDefinitionValidator.validateThird(certificateToolState, result);
+                 if(!result.hasErrors())
+                 {
+                     CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
+                     getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
+                     model.put(STATUS_MESSAGE_KEY, SUCCESS);
+                 }
+                 else
+                 {
+                     model.put(STATUS_MESSAGE_KEY, FORM_ERR);
+                     model.put(MOD_ATTR, certificateToolState);
+                     model.put(ERROR_MESSAGE, PREDEFINED_VAR_EXCEPTION);
+                     return new ModelAndView("createCertificateThree", model);
+                 }
+             }
+             catch(Exception e)
+             {
+                 logger.warn("CertificateEditController.createCertHandlerThird.next", e);
+                 model.put(STATUS_MESSAGE_KEY, FORM_ERR);
+                 model.put(MOD_ATTR, certificateToolState);
+                 return new ModelAndView("createCertificateThree", model);
+             }
+             /*
+             get DocumentTemplate from certificateDefinition
+             put into model:
+                 1) template fields for certificateDefinition:
+                     DocTemplateSvc.getTemplateFields(DocTemplate)
+                 2) predefined variables:
+                     CertSvc.getPredefinedTemplateVariables(...)
+            */
+             /*
+            Add any fields that have been set in the CertDef.
+                 CertDefn.getFieldValues()
+            */
+
+             certificateToolState.setSubmitValue(null);
+             return createCertHandlerFourth(certificateToolState, result, request, status);
+         }
+         else
+         {
+             /*
+                 get DocumentTemplate from certificateDefinition
+                 put into model:
+                     1) template fields for certificateDefinition:
+                         DocTemplateSvc.getTemplateFields(DocTemplate)
+                     2) predefined variables:
+                         CertSvc.getPredefinedTemplateVariables(...)
+              */
+             certificateToolState.setPredifinedFields(getCertificateService().getPredefinedTemplateVariables());
+             return new ModelAndView("createCertificateThree",MOD_ATTR,certificateToolState);
+         }
+     }
 
     @RequestMapping(value="/fourth.form", method=RequestMethod.POST)
     protected ModelAndView createCertHandlerFourth(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,

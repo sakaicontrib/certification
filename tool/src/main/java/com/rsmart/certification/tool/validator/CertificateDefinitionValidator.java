@@ -29,24 +29,8 @@ public class CertificateDefinitionValidator
 		}
 		
 	}
-	
+
 	public void validateSecond(CertificateToolState certificateToolState, Errors errors)
-	{
-		Map<String, String> currentFields = certificateToolState.getTemplateFields();
-		Map<String, String> preDefFields = certificateToolState.getPredifinedFields();
-		Set<String> keySet = preDefFields.keySet();
-		for(String val : currentFields.values())
-		{
-	        Matcher variableMatcher = variablePattern.matcher(val);
-	
-	        if (variableMatcher.matches() && !keySet.contains(val))
-	        {
-	            errors.rejectValue("templateFields","not valid","not valid");
-	        }
-		}
-	}
-	
-	public void validateThird(CertificateToolState certificateToolState, Errors errors)
 	{
 		CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
 		if(certDef.getAwardCriteria().isEmpty())
@@ -54,8 +38,20 @@ public class CertificateDefinitionValidator
 			errors.rejectValue("certificateDefinition.awardCriteria", "required", "not provided");
 		}
 	}
+
+	public void validateThird(CertificateToolState certificateToolState, Errors errors)
+	{
+		Map<String, String> currentFields = certificateToolState.getTemplateFields();
+		Map<String, String> preDefFields = certificateToolState.getPredifinedFields();
+		Set<String> keySet = preDefFields.keySet();
+		for(String val : currentFields.values())
+		{
+			Matcher variableMatcher = variablePattern.matcher(val);
+
+			if (variableMatcher.matches() && !keySet.contains(val))
+			{
+				errors.rejectValue("templateFields","not valid","not valid");
+			}
+		}
+	}
 }
-
-
-
-

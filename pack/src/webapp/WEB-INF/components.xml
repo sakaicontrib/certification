@@ -30,6 +30,7 @@
                 <value>com/rsmart/certification/impl/hibernate/criteria/GreaterThanScoreCriterionHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/DueDatePassedCriterionHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/FinalGradeScoreCriterionHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/WillExpireCriterionHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertAssignment.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertCategory.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradebook.hbm.xml</value>
@@ -62,7 +63,14 @@
                 <bean class="com.rsmart.certification.impl.RecipientVariableResolver">
                     <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
                 </bean>
-                <bean class="com.rsmart.certification.impl.ExpiryOffsetVariableResolver" />
+                <bean class="com.rsmart.certification.impl.GradebookVariableResolver">
+                    <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
+                    <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+                    <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
+                    <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+                    <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+                    <property name="adminUser" value="admin"/>
+                </bean>
             </set>
         </property>
     </bean>

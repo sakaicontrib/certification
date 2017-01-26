@@ -2,13 +2,10 @@ package com.rsmart.certification.impl;
 
 import com.rsmart.certification.api.CertificateAward;
 import com.rsmart.certification.api.VariableResolutionException;
-import com.rsmart.certification.api.VariableResolver;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 
-import java.util.HashMap;
-import java.util.Set;
 
 /**
  * User: duffy
@@ -28,6 +25,7 @@ public class RecipientVariableResolver
 
     public RecipientVariableResolver()
     {
+        //TODO: Internationalize
         addVariable (FULL_NAME, "full name of the recipient");
         addVariable (FIRST_NAME, "first name of the recipient");
         addVariable (LAST_NAME, "last name of the recipient");

@@ -11,6 +11,8 @@ import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
+import java.util.Calendar;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.service.gradebook.shared.Assignment;
@@ -27,6 +29,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.sakaiproject.service.gradebook.shared.GradeDefinition;
 
 /**
  * User: duffy
@@ -54,6 +57,7 @@ public class GradebookCriteriaFactory
         gbDueDatePassedTemplate = null;
     private FinalGradeScoreCriteriaTemplate
     	gbFinalGradeScoreTemplate = null;
+    private WillExpireCriteriaTemplate gbWillExpireTemplate = null;
     private ResourceLoader
         resourceLoader = null;
     private SecurityService
@@ -77,13 +81,18 @@ public class GradebookCriteriaFactory
         gbFinalGradeScoreTemplate = new FinalGradeScoreCriteriaTemplate(this);
         gbFinalGradeScoreTemplate.setResourceLoader(resourceLoader);
 
+        gbWillExpireTemplate = new WillExpireCriteriaTemplate(this);
+        gbWillExpireTemplate.setResourceLoader(resourceLoader);
+
         criteriaTemplates.put(gbItemScoreTemplate.getId(), gbItemScoreTemplate);
         criteriaTemplates.put(gbDueDatePassedTemplate.getId(), gbDueDatePassedTemplate);
         criteriaTemplates.put(gbFinalGradeScoreTemplate.getId(), gbFinalGradeScoreTemplate);
+        criteriaTemplates.put(gbWillExpireTemplate.getId(), gbWillExpireTemplate);
 
         criterionClasses.add(GreaterThanScoreCriterionHibernateImpl.class);
         criterionClasses.add(DueDatePassedCriterionHibernateImpl.class);
         criterionClasses.add(FinalGradeScoreCriterionHibernateImpl.class);
+        criterionClasses.add(WillExpireCriterionHibernateImpl.class);
 
         if (certService != null)
         {
@@ -194,6 +203,8 @@ public class GradebookCriteriaFactory
         	return gbFinalGradeScoreTemplate;
         else if (DueDatePassedCriterionHibernateImpl.class.isAssignableFrom (criterion.getClass()))
             return gbDueDatePassedTemplate;
+        else if (WillExpireCriterionHibernateImpl.class.isAssignableFrom (criterion.getClass()))
+            return gbWillExpireTemplate;
 
         throw new UnknownCriterionTypeException(criterion.getClass().getName());
 
@@ -471,6 +482,11 @@ public class GradebookCriteriaFactory
             return (assn != null && (new Date()).compareTo(assn.getDueDate()) > 0);
 
         }
+        else if (WillExpireCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
+        {
+            //we don't want to enforce this one
+            return true;
+        }
         else
         {
             throw new UnknownCriterionTypeException(criterion.getClass().getName());
@@ -725,6 +741,20 @@ public class GradebookCriteriaFactory
 //            criterion.setItemId(assn.getId());
 //            criterion.setItemName(assn.getName());
 
+            return criterion;
+        }
+        else if (WillExpireCriteriaTemplate.class.isAssignableFrom(template.getClass()))
+        {
+            WillExpireCriterionHibernateImpl criterion = new WillExpireCriterionHibernateImpl();
+
+            Long itemId = new Long(bindings.get("gradebook.item"));
+            GradebookService gbs = getGradebookService();
+            String contextId = getToolManager().getCurrentPlacement().getContext();
+            Assignment assn = gbs.getAssignment(contextId, itemId);
+
+            criterion.setAssignment(assn);
+            String strExpiryOffset = bindings.get("expiry.offset");
+            criterion.setExpiryOffset(strExpiryOffset);
             return criterion;
         }
         throw new UnknownCriterionTypeException (template.getClass().getName());

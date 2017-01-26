@@ -35,7 +35,6 @@
         <property name="shortUrl" type="java.lang.String" column="short_url" not-null="false"/>
         <property name="status" type="com.rsmart.certification.impl.hibernate.CertificateDefinitionStatusEnumUserType"
                   not-null="true"/>
-        <property name="expiryOffset" type="java.lang.String" column="defn_offset" length="5" />
         <set name="awardCriteria" lazy="false" cascade="save-update,delete">
             <key column="certificate_definition_id"/>
             <one-to-many class="com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl"/>

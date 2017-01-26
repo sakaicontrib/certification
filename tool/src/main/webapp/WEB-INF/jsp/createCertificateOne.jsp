@@ -28,13 +28,6 @@
 					<td><form:textarea cssStyle="resize:none; width:350px; height:100px" path="certificateDefinition.description"/></td>
 				</tr>
 				<tr>
-					<td><form:label path="certificateDefinition.expiryOffset" ><B><spring:message code="form.label.expiryOffset1" /></B></form:label></td>
-					<td>
-						<form:input maxlength="5" size="5" path="certificateDefinition.expiryOffset" id="expiryOffset" />
-						<form:label path="certificateDefinition.expiryOffset" ><B><spring:message code="form.label.expiryOffset2" /></B></form:label>
-					</td>
-				</tr>
-				<tr>
 					<td><form:label path="certificateDefinition.documentTemplate"><B><spring:message code="form.label.templatefile" /><B><span class="reqStarInline">*</span></form:label></td>
                     <td>
                         <c:if test="${certificateToolState.certificateDefinition.documentTemplate != null}">
