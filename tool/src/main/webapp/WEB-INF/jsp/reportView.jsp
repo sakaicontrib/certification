@@ -6,8 +6,14 @@
             <a href="" id="return"><spring:message code="return.cert.list"/></a>
         </div>
         <h2><spring:message code="report.header" arguments="${cert.name}"/></h2>
-        <br>
-        <br>
+        <p>
+            <spring:message code="report.requirements"/>
+            <ul>
+                <c:forEach items="${requirements}" var="requirement">
+                    <li>${requirement}</li>
+                </c:forEach>
+            </ul>
+        </p>
         <!-- TODO: put this in the c:choose -->
         <p class="viewNav"><spring:message code="report.blurb"/></p>
         <div class="listNav">

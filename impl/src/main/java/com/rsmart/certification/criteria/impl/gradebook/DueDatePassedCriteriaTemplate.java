@@ -2,6 +2,7 @@ package com.rsmart.certification.criteria.impl.gradebook;
 
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
+import java.text.DateFormat;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -76,12 +77,15 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
         }
 
         Object
-            vars[] = new String[1];
+            vars[] = new String[2];
 
         DueDatePassedCriterionHibernateImpl
            gischi = (DueDatePassedCriterionHibernateImpl)criterion;
 
+        final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
+
         vars[0] = gischi.getItemName();
+        vars[1] = dateFormat.format(gischi.getDueDate());
 
         return getResourceLoader().getFormattedMessage(DueDatePassedCriteriaTemplate.class.getName(), vars);
     }

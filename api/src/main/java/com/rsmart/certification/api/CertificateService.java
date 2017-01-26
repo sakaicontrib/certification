@@ -12,6 +12,7 @@ import org.sakaiproject.exception.IdUsedException;
 
 import java.io.InputStream;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -286,4 +287,16 @@ public interface CertificateService
     public Map<Long,Double> getAssignmentScores(final String gradebookId, final String studentId);
 
     public Map<Long,Date> getAssignmentDatesRecorded(final String gradebookId, final String studentId);
+
+    /**
+     * UNTESTED
+     * Returns a list of map entries where each key is a requirement and each value is the user's progress towards 
+     * the requirement (both as human readable strings for the UI)
+     * @param certId the certificate definition id from which we are pulling the requirements
+     * @param userId the user whose progress we are checking
+     * @return
+     * @throws org.sakaiproject.exception.IdUnusedException
+     */
+    public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId) 
+        throws IdUnusedException;
 }

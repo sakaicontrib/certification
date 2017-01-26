@@ -19,6 +19,11 @@ import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.GradebookItemCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
@@ -65,6 +70,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -1739,5 +1745,69 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         };
 
         return (HashMap<Long, Date>)getHibernateTemplate().execute(callback);
+    }
+
+    @Override
+    public List<Map.Entry<String, String>> getCertificateRequirementsForUser (String certId, String user) throws IdUnusedException
+    {
+        CertificateDefinition certDef = getCertificateDefinition(certId);
+
+        Map requirements = new HashMap<String, String>();
+
+        Set<Criterion> criteria = certDef.getAwardCriteria();
+        Iterator<Criterion> itCriteria = criteria.iterator();
+        while (itCriteria.hasNext())
+        {
+            Criterion crit = itCriteria.next();
+            CriteriaFactory factory = crit.getCriteriaFactory();
+            String expression = crit.getExpression();
+            String progress = "";
+            //some criteria are irrelevant as to whether or not the certificate will be awarded
+            boolean relevant = true;
+            if (crit instanceof DueDatePassedCriterionHibernateImpl)
+            {
+                DueDatePassedCriterionHibernateImpl ddpCrit = (DueDatePassedCriterionHibernateImpl) crit;
+                Date dueDate = ddpCrit.getDueDate();
+                Date currentDate = new Date();
+                if (currentDate.before(dueDate))
+                {
+                    //TODO: Internationalize
+                    progress = "This certificate is not yet released to students";
+                }
+                else
+                {
+                    //TODO: Internationalize
+                    progress = "This certificate is released to students";
+                }
+            }
+            else if (crit instanceof FinalGradeScoreCriterionHibernateImpl)
+            {
+                FinalGradeScoreCriterionHibernateImpl fgcCrit = (FinalGradeScoreCriterionHibernateImpl) crit;
+                String score = fgcCrit.getScore();
+                //TODO: Internationalize
+                progress = "You have earned " + score + " points";
+            }
+            else if (crit instanceof GreaterThanScoreCriterionHibernateImpl)
+            {
+                GreaterThanScoreCriterionHibernateImpl gtsCrit = (GreaterThanScoreCriterionHibernateImpl) crit;
+                String score = gtsCrit.getScore();
+                //TODO: Internationalize
+                progress = "You have earned " + score + "points";
+            }
+            else if (crit instanceof WillExpireCriterionHibernateImpl)
+            {
+                relevant = false;
+            }
+            else if (crit instanceof GradebookItemCriterionHibernateImpl)
+            {
+                relevant = false;
+            }
+
+            if (relevant)
+            {
+                requirements.put(expression, progress);
+            }
+        }
+        return new ArrayList<Map.Entry<String, String>>(requirements.entrySet());
     }
 }
