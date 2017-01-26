@@ -79,7 +79,7 @@
                 <c:when test="${certAwardList[cert.id] != null}">
 
                     <td>
-                        ${certAwardList[cert.id].certificationTimeStamp}
+                        ${certAwardList[cert.id].formattedCertificationTimeStamp}
                     </td>
                     <td>
                         <a href='<c:url value="printPreview.form"><c:param name="certId" value="${cert.id}" /></c:url>'>

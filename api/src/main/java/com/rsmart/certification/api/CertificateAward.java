@@ -19,4 +19,6 @@ public interface CertificateAward
     public CertificateDefinition getCertificateDefinition();
 
     public Date getCertificationTimeStamp();
+
+    public String getFormattedCertificationTimeStamp();
 }

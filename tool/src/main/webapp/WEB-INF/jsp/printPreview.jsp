@@ -19,25 +19,11 @@
     		<tr>
     			<td>${award.certificateDefinition.name}</td>
     			<td>${award.certificateDefinition.description}</td>
-    			<td>${award.certificationTimeStamp}</td>
+    			<td>${award.formattedCertificationTimeStamp}</td>
     		</tr>
     	</tbody>
     </table>
     </div>
-    <!-- Below code is commented to remove the preview functionality issue #CLE-9696 -->
-    <!-- 
-    <div>
-    <p><spring:message code="print.preview.title"/></p>
-    <c:choose>
-        <c:when test="${previewAvailable}">
-            <img src="url" alt="certificate preview"/>
-        </c:when>
-        <c:otherwise>
-            <spring:message code="print.nopreview"/>
-        </c:otherwise>
-    </c:choose>
-    </div>
-     -->
     <div style="margin:5px">
 	    <form:form id="printForm" action="print.form" method="POST">
 	        <input type="hidden" id="certId" name="certId" value="${award.certificateDefinition.id}"/>
