@@ -45,6 +45,7 @@ public class BaseCertificateController
     protected static final String SUCCESS= "form.submit.success";
     protected CertificateDefinitionValidator certificateDefinitionValidator = new CertificateDefinitionValidator();
 
+    protected static final String EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY = "form.expiry.onlyCriterionError";
     final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
 
     public UserDirectoryService getUserDirectoryService()

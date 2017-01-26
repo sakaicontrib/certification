@@ -223,6 +223,11 @@
 						$("#submitError").html(match[1]).show();
 						resetHeight();
 					}
+					else if( xhr.response.indexOf( "**TooManyExpiry**" ) !== -1 )
+					{
+						$("#submitError").html("<spring:message code='form.expiry.tooMany' />").show();
+						resetHeight();
+					}
 					else
 					{
 						$("#submitError").html("<spring:message code='form.error.criteriaProcessingError' />").show();

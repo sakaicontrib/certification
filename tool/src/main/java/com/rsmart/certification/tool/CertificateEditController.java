@@ -35,7 +35,9 @@ import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.Criterion;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.tool.utils.CertificateToolState;
+import java.util.Iterator;
 import org.sakaiproject.tool.api.ToolSession;
 import org.sakaiproject.tool.cover.SessionManager;
 
@@ -317,6 +319,20 @@ public class CertificateEditController extends BaseCertificateController
 			 	save criteria using:
 			 		CertificateSvc.setCriteria(Set<Criterion>)
 			 */
+
+            // Can't have expiry date as the only criterion
+            if( certDef.getAwardCriteria().size() == 1 )
+            {
+                Criterion criterion = (Criterion) certDef.getAwardCriteria().iterator().next();
+                if( criterion != null && criterion instanceof WillExpireCriterionHibernateImpl )
+                {
+                    viewName = "createCertificateTwo";
+                    model.put( ERROR_MESSAGE, EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY );
+                    model.put( MOD_ATTR, certificateToolState );
+                    return new ModelAndView( viewName, model );
+                }
+            }
+
     		certificateDefinitionValidator.validateSecond(certificateToolState, result);
 			if(!result.hasErrors())
 			{
@@ -773,7 +789,33 @@ public class CertificateEditController extends BaseCertificateController
             response.sendError(400, ibe.getLocalizedMessage());
             return;
         }
-       
+
+        // Multiple expiry date criterion check
+        if( newCriterion != null && newCriterion instanceof WillExpireCriterionHibernateImpl )
+        {
+            boolean alreadyHasExpiry = false;
+            if( cert.getAwardCriteria().size() > 0 )
+            {
+                Iterator<Criterion> itr = cert.getAwardCriteria().iterator();
+                while( itr.hasNext() )
+                {
+                    Criterion criterion = (Criterion) itr.next();
+                    if( criterion != null && criterion instanceof WillExpireCriterionHibernateImpl )
+                    {
+                        alreadyHasExpiry = true;
+                        break;
+                    }
+                }
+            }
+
+            // If more than one expiry was found, return the flag to produce the proper UI error message
+            if( alreadyHasExpiry )
+            {
+                response.sendError( 400, "**TooManyExpiry**" );
+                return;
+            }
+        }
+
         cs.addAwardCriterion(certId[0], newCriterion);
 
         //refresh the certificate definition in memory so it has the new criterion
