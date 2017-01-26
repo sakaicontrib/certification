@@ -27,5 +27,6 @@
 
     </tool>
     <function name="certificate.admin"/>
+    <function name="certificate.extraprops.view"/>
 
 </registration>

@@ -95,8 +95,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private SecurityService
     	securityService = null;
     private String
-    	adminUser = null;
-    private String
         templateDirectory = null;
     private HashMap<String, CriteriaFactory>
         criteriaTemplateMap = new HashMap<String, CriteriaFactory>();
@@ -189,14 +187,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
 	public void setSecurityService(SecurityService securityService) {
 		this.securityService = securityService;
-	}
-
-	public String getAdminUser() {
-		return adminUser;
-	}
-
-	public void setAdminUser(String adminUser) {
-		this.adminUser = adminUser;
 	}
 
     public void init()
@@ -867,33 +857,15 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         final org.sakaiproject.tool.api.Session
             sakaiSession = sessionManager.getCurrentSession();
         final String
-            contextId = contextId(),
-            adminUser = getAdminUser();
+            contextId = contextId();
 
         try
         {
-            securityService.pushAdvisor(new SecurityAdvisor ()
+            securityService.pushAdvisor(new SecurityAdvisor()
             {
                 public SecurityAdvice isAllowed(String userId, String function, String reference)
                 {
-                    String compTo;
-                    if (contextId.startsWith("/site/"))
-                    {
-                        compTo = contextId;
-                    }
-                    else
-                    {
-                        compTo = "/site/" + contextId;
-                    }
-
-                    if (reference.equals(compTo) && ("content.read".equals(function)))
-                    {
-                        return SecurityAdvice.ALLOWED;
-                    }
-                    else
-                    {
-                        return SecurityAdvice.PASS;
-                    }
+                    return SecurityAdvice.ALLOWED;
                 }
             });
 

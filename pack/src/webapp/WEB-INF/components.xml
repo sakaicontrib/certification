@@ -69,7 +69,6 @@
                     <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
                     <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
                     <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
-                    <property name="adminUser" value="admin"/>
                 </bean>
             </set>
         </property>
@@ -92,7 +91,6 @@
         <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
         <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
         <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
-        <property name="adminUser" value="admin"/>
         <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
         <property name="templateDirectory" value="${sakai.home}/templates"/>
         <property name="shortenedUrlService" ref="org.sakaiproject.shortenedurl.api.ShortenedUrlService"/>
@@ -110,7 +108,6 @@
         <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
         <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
         <property name="resourceLoader" ref="gradebook.criteriaResourceLoader"/>
-        <property name="adminUser" value="admin"/>
     </bean>
 
     <bean id="gradebook.criteriaResourceLoader"

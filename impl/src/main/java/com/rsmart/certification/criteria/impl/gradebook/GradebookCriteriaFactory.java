@@ -13,7 +13,6 @@ import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedC
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
-import java.util.ArrayList;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.service.gradebook.shared.Assignment;
@@ -68,8 +67,6 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         securityService = null;
     private SessionManager
         sessionManager = null;
-    private String
-        adminUser = null;
 
     public void init()
     {
@@ -168,14 +165,6 @@ public class GradebookCriteriaFactory implements CriteriaFactory
 
     public void setSessionManager(SessionManager sessionManager) {
         this.sessionManager = sessionManager;
-    }
-
-    public String getAdminUser() {
-        return adminUser;
-    }
-
-    public void setAdminUser(String adminUser) {
-        this.adminUser = adminUser;
     }
 
     protected final String contextId()

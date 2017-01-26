@@ -55,11 +55,12 @@
                     <!-- create the headers in an array from java code -->
                     <th><spring:message code="report.table.header.name"/></th>
                     <th><spring:message code="report.table.header.userid"/></th>
-                    <!-- TODO: this is western specific -->
-                    <th><spring:message code="report.table.header.employeenum"/></th>
+                    <c:forEach items="${userPropHeaders}" var="prop">
+                        <th>${prop}</th>
+                    </c:forEach>
                     <th><spring:message code="report.table.header.issuedate"/></th>
-                    <c:forEach items="${headers}" var="tableHeader">
-                        <th>${tableHeader}</th>
+                    <c:forEach items="${critHeaders}" var="crit">
+                        <th>${crit}</th>
                     </c:forEach>
                     <th><spring:message code="report.table.header.awarded"/></th>
                 </tr>
@@ -69,7 +70,9 @@
                 <tr>
                     <td>${row.name}</td>
                     <td>${row.userId}</td>
-                    <td>${row.employeeNumber}</td>
+                    <c:forEach var="prop" items="${row.extraProps}">
+                        <td>${prop}</td>
+                    </c:forEach>
                     <td>${row.issueDate}</td>
                     <c:forEach var="criterionCell" items="${row.criterionCells}">
                         <td>${criterionCell}</td>
