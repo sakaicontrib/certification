@@ -87,7 +87,7 @@
 		             		${cert.status}
 		            	</td>
 		            	<td>
-			            	${cert.createDate}
+			            	${cert.formattedCreateDate}
 			         	</td>
 			         	<td>
 			         		<c:if test="${cert.shortUrl != null}">${cert.shortUrl}</c:if>

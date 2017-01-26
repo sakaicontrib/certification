@@ -1,6 +1,8 @@
 package com.rsmart.certification.api;
 
 import com.rsmart.certification.api.criteria.Criterion;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.HashMap;
@@ -12,8 +14,7 @@ import java.util.Set;
  * Date: Jun 29, 2011
  * Time: 2:54:55 PM
  */
-public class BaseCertificateDefinition
-    implements CertificateDefinition
+public class BaseCertificateDefinition implements CertificateDefinition
 {
     protected String
         id,
@@ -40,6 +41,12 @@ public class BaseCertificateDefinition
 
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
+    }
+
+    public String getFormattedCreateDate()
+    {
+        DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy hh:mm aa");
+        return dateFormat.format(getCreateDate());
     }
 
     public String getCreatorUserId() {
