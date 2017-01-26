@@ -75,7 +75,7 @@
 		        	<c:forEach var="cert" items="${certList.pageList}">
 		            <tr>
 	                    <td>
-	                        <input type="checkbox" value="${cert.id}"/>
+	                        <input type="radio" name="certDefRadioButtons" value="${cert.id}"/>
 	                    </td>
 		            	<td>
 		                	${cert.name}
