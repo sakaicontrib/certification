@@ -23,6 +23,7 @@ import com.rsmart.certification.api.BaseCertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinition;
 
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
+import java.util.Iterator;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.tool.api.ToolSession;
@@ -121,7 +122,6 @@ public class CertificateToolState
     }
 
    public Map<String, String> getTemplateFields() {
-       LOG.error("template fields: " + templateFields);
 		return templateFields;
 	}
 
@@ -129,9 +129,33 @@ public class CertificateToolState
 		this.templateFields = templateFields;
 	}
 
+	/**
+	 * 
+	 * @return a map of ${} format to description
+	 */
 	public Map<String, String> getPredifinedFields() {
-        LOG.error("predifined fields: " + predifinedFields);
 		return predifinedFields;
+	}
+
+	public Map<String, String> getEscapedPredifinedFields() {
+		Map<String, String> retVal = new HashMap<String, String>();
+		Map<String, String> predefFields = getPredifinedFields();
+		if (predefFields==null || predefFields.isEmpty())
+		{
+			//TODO: log it
+			return predefFields;
+		}
+
+		Iterator<String> itPredefFields = predefFields.keySet().iterator();
+		while (itPredefFields.hasNext())
+		{
+			String key = itPredefFields.next();
+			//passing something of the form ${} makes jsp treat it like a variable
+			//soln: remove the $ here and append it back in the jsp code
+			retVal.put(key.substring(1), predefFields.get(key));
+		}
+
+		return retVal;
 	}
 
     public String getMimeTypes() {
@@ -158,6 +182,75 @@ public class CertificateToolState
 			}
 		}
 		this.predifinedFields = temp;
+	}
+
+	/**
+	 * @return a map from the PDF's fields to their selected values' descriptions
+	 */
+	public Map <String, String> getTemplateFieldsToDescriptions()
+	{
+		Map<String, String> retVal = new HashMap<String, String>();
+		Map<String, String> preDefFields = getPredifinedFields();
+
+		if (preDefFields == null || preDefFields.isEmpty())
+		{
+			LOG.error("preDefFields is null or empty!");
+			return null;
+		}
+
+		CertificateDefinition certDef = getCertificateDefinition();
+		if (certDef == null)
+		{
+			LOG.error("certDef is null!");
+			return null;
+		}
+		Set<String> keys = certDef.getFieldValues().keySet();
+		if (keys == null || keys.isEmpty())
+		{
+			//this is fine - just means it's a new cert def
+			return null;
+		}
+
+		Iterator<String> itKeys = keys.iterator();
+		while (itKeys.hasNext())
+		{
+			String key = itKeys.next();
+			retVal.put(key, preDefFields.get(certDef.getFieldValues().get(key)));
+		}
+		return retVal;
+	}
+
+	/**
+	 * 
+	 * @return a map of PDF field names to ${} format
+	 */
+	public Map<String, String> getEscapedFieldValues()
+	{
+		Map<String, String> retVal = null;
+		CertificateDefinition certDef = getCertificateDefinition();
+		if (certDef == null)
+		{
+			LOG.error("certDef is null");
+			return retVal;
+		}
+		Map<String, String> fieldValues = certDef.getFieldValues();
+		if (fieldValues == null || fieldValues.isEmpty())
+		{
+			//this is fine, just means it's a new cert def
+			return getTemplateFields();
+		}
+		retVal = new HashMap<String, String>();
+		Iterator<String> itKeys = fieldValues.keySet().iterator();
+		while (itKeys.hasNext())
+		{
+			String key = itKeys.next();
+			//passing something of the form ${} makes jsp treat it like a variable
+			//soln: remove the $ here and append it back in the jsp code
+			String value = fieldValues.get(key).substring(1);
+			retVal.put(key, value);
+		}
+
+		return retVal;
 	}
 
 	public CertificateToolState ()
@@ -238,10 +331,5 @@ public class CertificateToolState
         {
             session.removeAttribute(CERTIFICATE_TOOL_STATE);
         }
-    }
-
-    public static String getSelectedPredefField(String key)
-    {
-        return "HI! " + key;
     }
 }

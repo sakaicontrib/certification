@@ -24,14 +24,21 @@
 						</tr>
 					</thead>
 					<tbody>
-						<c:forEach items="${certificateToolState.templateFields}" var="tField" varStatus="index">
+						<c:forEach items="${certificateToolState.escapedFieldValues}" var="tField" varStatus="index">
 							<tr>
 								<td>${tField.key}</td>
 								<td>
 									<form:select path="templateFields['${tField.key}']">
-										<% /* k, so if tField.key is DateOfIssue (comes from the PDF), then java code has to look it up and find that it maps to ${cert.date}, and convert that to the pretty message*/ %>
-										<% // <form:option value="0" label="${certificateToolState.getSelectedPredefField(tField.key)}"/> %>
-										<form:options items="${certificateToolState.predifinedFields}"/>
+										<c:forEach items="${certificateToolState.templateFieldsToDescriptions}" var="predefDefault" varStatus="index">
+											<c:if test="${tField.key eq predefDefault.key}">
+												<form:option value="$${tField.value}" label="${predefDefault.value}"/>
+											</c:if>
+										</c:forEach>
+										<c:forEach items="${certificateToolState.escapedPredifinedFields}" var="escapedPredefField" varStatus="index">
+											<c:if test="${tField.value ne escapedPredefField.key}">
+												<form:option value="$${escapedPredefField.key}" label="${escapedPredefField.value}"/>
+											</c:if>
+										</c:forEach>
 									</form:select>
 								</td>
 							</tr>
