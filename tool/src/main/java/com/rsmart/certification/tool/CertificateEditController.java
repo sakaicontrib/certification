@@ -36,6 +36,8 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.tool.utils.CertificateToolState;
+import org.sakaiproject.tool.api.ToolSession;
+import org.sakaiproject.tool.cover.SessionManager;
 
 /**
  * User: duffy
@@ -222,7 +224,10 @@ public class CertificateEditController
 
     		certDef = getCertificateService().getCertificateDefinition(certDef.getId());
 			DocumentTemplate dt = certDef.getDocumentTemplate();
-			certificateToolState.setTemplateFields(getDocumentTemplateService().getTemplateFields(dt));
+			Set<String> templateFields = getDocumentTemplateService().getTemplateFields(dt);
+			ToolSession session = SessionManager.getCurrentToolSession();
+			session.setAttribute("template.fields", templateFields);
+			certificateToolState.setTemplateFields(templateFields);
     	}
     	else
     	{
@@ -316,6 +321,14 @@ public class CertificateEditController
     		certificateDefinitionValidator.validateSecond(certificateToolState, result);
 			if(!result.hasErrors())
 			{
+				//certificateToolState.getTemplateFields() is probably returning an empty list.
+				//Look into presistFirstDataForm, find out how they get populated!
+				ToolSession session = SessionManager.getCurrentToolSession();
+				Set<String> templateFields = (Set<String>) session.getAttribute("template.fields");
+				certificateToolState.setTemplateFields(templateFields);
+				getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
+				model.put(STATUS_MESSAGE_KEY, SUCCESS);
+
     		    certificateToolState.setSubmitValue(null);
     		    return createCertHandlerThird(certificateToolState, result, request, status);
         	}
