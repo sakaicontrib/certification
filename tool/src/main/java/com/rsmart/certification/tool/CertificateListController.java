@@ -24,7 +24,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
 
 import com.rsmart.certification.api.CertificateAward;
 import com.rsmart.certification.api.CertificateDefinition;
@@ -45,8 +44,7 @@ import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
  * Time: 4:15:18 PM
  */
 @Controller
-public class CertificateListController
-    extends BaseCertificateController
+public class CertificateListController extends BaseCertificateController
 {
 	
 	public static final String PAGINATION_NEXT = "next";
@@ -117,7 +115,7 @@ public class CertificateListController
 	    	}
 	    	else
 	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(0);
+	    		pageSize = PAGE_SIZE_LIST.get(4);
 	    		certList.setPageSize(pageSize);
 	    	}
 	    	if(pageNo != null)
@@ -246,7 +244,7 @@ public class CertificateListController
 	    	}
 	    	else
 	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(0);
+	    		pageSize = PAGE_SIZE_LIST.get(4);
 	    		certList.setPageSize(pageSize);
 	    	}
 	    	if(pageNo != null)
