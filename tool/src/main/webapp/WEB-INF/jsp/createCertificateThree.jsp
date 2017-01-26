@@ -29,6 +29,8 @@
 								<td>${tField.key}</td>
 								<td>
 									<form:select path="templateFields['${tField.key}']">
+										<% /* k, so if tField.key is DateOfIssue (comes from the PDF), then java code has to look it up and find that it maps to ${cert.date}, and convert that to the pretty message*/ %>
+										<% // <form:option value="0" label="${certificateToolState.getSelectedPredefField(tField.key)}"/> %>
 										<form:options items="${certificateToolState.predifinedFields}"/>
 									</form:select>
 								</td>

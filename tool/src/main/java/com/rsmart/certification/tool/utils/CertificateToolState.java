@@ -17,9 +17,7 @@
 package com.rsmart.certification.tool.utils;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import com.rsmart.certification.api.BaseCertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinition;
@@ -123,6 +121,7 @@ public class CertificateToolState
     }
 
    public Map<String, String> getTemplateFields() {
+       LOG.error("template fields: " + templateFields);
 		return templateFields;
 	}
 
@@ -131,6 +130,7 @@ public class CertificateToolState
 	}
 
 	public Map<String, String> getPredifinedFields() {
+        LOG.error("predifined fields: " + predifinedFields);
 		return predifinedFields;
 	}
 
@@ -240,4 +240,8 @@ public class CertificateToolState
         }
     }
 
+    public static String getSelectedPredefField(String key)
+    {
+        return "HI! " + key;
+    }
 }

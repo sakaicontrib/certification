@@ -696,8 +696,8 @@ public class CertificateServiceHibernateImpl
         }
     }
 
-    private DocumentTemplateHibernateImpl processFile (DocumentTemplateHibernateImpl docTemp, String fileName,
-                                          String mimeType, InputStream template)
+    private DocumentTemplateHibernateImpl processFile (DocumentTemplateHibernateImpl docTemp, final String fileName,
+                                          final String mimeType, final InputStream template)
         throws DocumentTemplateException, UnsupportedTemplateTypeException
     {
         final CertificateDefinition
@@ -709,32 +709,45 @@ public class CertificateServiceHibernateImpl
         }
 
         docTemp.setName(fileName);
-        String resourceId = DocumentTemplate.COLLECTION_ID + cd.getSiteId() + "/" + cd.getId() + "/" + fileName;
-        ContentResourceEdit
-            templateFile = storeTemplateFile(cd.getSiteId(), cd.getId(), template, fileName, mimeType, resourceId);
+        final String resourceId = DocumentTemplate.COLLECTION_ID + cd.getSiteId() + "/" + cd.getId() + "/" + fileName;
+        ContentResourceEdit templateFile = null;
+        try
+        {
+            templateFile = (ContentResourceEdit) doSecureCertificateService(new SecureCertificateServiceCallback()
+            {
+                public Object doSecureAction() throws Exception
+                {
+                    return storeTemplateFile(cd.getSiteId(), cd.getId(), template, fileName, mimeType, resourceId);
+                }
+            });
+        }
+        catch(Exception e)
+        {
+            throw new TemplateReadException ("Could not write Document Template with id: " + resourceId, e);
+        }
 
         docTemp.setResourceId(resourceId);
-        //docTemp.setPath(templateFile.getPath());
+        String newMimeType = mimeType;
 
-        if (mimeType == null)
+        if (newMimeType == null)
         {
             try 
             {
-				mimeType = getMimeType(templateFile.getContent());
-			} 
+                newMimeType = getMimeType(templateFile.getContent());
+            }
             catch (ServerOverloadException e) 
             {
-            	throw new DocumentTemplateException ("Error storing template", e);
-			}
+                throw new DocumentTemplateException ("Error storing template", e);
+            }
         }
 
-        if (null == getDocumentTemplateService().getRenderEngineForMimeType(mimeType))
+        if (null == getDocumentTemplateService().getRenderEngineForMimeType(newMimeType))
         {
-        	deleteTemplateFile(resourceId);
-            throw new UnsupportedTemplateTypeException(mimeType);
+            deleteTemplateFile(resourceId);
+            throw new UnsupportedTemplateTypeException(newMimeType);
         }
 
-        docTemp.setOutputMimeType(mimeType);
+        docTemp.setOutputMimeType(newMimeType);
 
         return docTemp;
     }
@@ -926,7 +939,8 @@ public class CertificateServiceHibernateImpl
 
         if (cd.getDocumentTemplate() == null ||
             cd.getName() == null ||
-            cd.getAwardCriteria() == null)
+            cd.getAwardCriteria() == null ||
+            cd.getFieldValues() == null)
         {
             throw new IncompleteCertificateDefinitionException ("incomplete certificate definition");
         }

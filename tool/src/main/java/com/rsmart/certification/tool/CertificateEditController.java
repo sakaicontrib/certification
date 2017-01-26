@@ -323,10 +323,14 @@ public class CertificateEditController
 			{
 				//certificateToolState.getTemplateFields() is probably returning an empty list.
 				//Look into presistFirstDataForm, find out how they get populated!
-				ToolSession session = SessionManager.getCurrentToolSession();
-				Set<String> templateFields = (Set<String>) session.getAttribute("template.fields");
+				Set<String> templateFields = getDocumentTemplateService().getTemplateFields(certDef.getDocumentTemplate());
+				if (templateFields == null || templateFields.isEmpty())
+				{
+					ToolSession session = SessionManager.getCurrentToolSession();
+					templateFields = (Set<String>) session.getAttribute("template.fields");
+				}
+				//getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
 				certificateToolState.setTemplateFields(templateFields);
-				getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
 				model.put(STATUS_MESSAGE_KEY, SUCCESS);
 
     		    certificateToolState.setSubmitValue(null);
