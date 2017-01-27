@@ -587,9 +587,9 @@ public class CertificateListController extends BaseCertificateController
 
                 fNameBuff.append (certName);
                 fNameBuff.append('_').append(strIssueDate);
-                fNameBuff.append('_').append(extension);
+                fNameBuff.append(extension);
 
-                response.setContentType(dts.getPreviewMimeType(template));
+                response.setContentType("application/force-download");
                 response.addHeader("Content-Disposition", "attachement; filename = " + fNameBuff.toString());
                 response.setHeader("Cache-Control", "");
                 response.setHeader("Pragma", "");
