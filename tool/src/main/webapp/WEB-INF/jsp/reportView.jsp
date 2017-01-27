@@ -20,7 +20,7 @@
             </ul>
         </p>
         <c:if test="${expiryOffset != null}">
-            <p><spring:message code="report.expiry.offset" arguments="${expiryOffset}" /></p>
+            <p><spring:message code="report.disclaimer" arguments="${expiryOffset}" /></p>
         </c:if>
         <p class="viewNav"><spring:message code="report.blurb"/></p>
         <div class="listNav">

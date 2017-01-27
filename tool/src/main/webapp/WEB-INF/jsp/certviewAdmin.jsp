@@ -2,13 +2,16 @@
 <jsp:include page="/WEB-INF/jsp/header.jsp"/>
 	<form:form id="certList" method="POST">
 		<c:choose>
-		<c:when test="${empty certList}">
+		<c:when test="${certList.nrOfElements == 0}">
 		<div class="navIntraTool">
 			<a href="" id="Add"><spring:message code="form.menu.add"/></a>
 		</div>
-		<div style="position:relative; float:left; display:inline-block;">
-			<spring:message code="form.text.emptycertlist"/></br>
-		</div>
+		<p class="instruction">
+			<spring:message code="instructions.admin"/>
+		</p>
+		<p class="instruction">
+			<spring:message code="form.text.emptycertlist.instruct"/></br>
+		</p>
 		</c:when>
 		<c:otherwise>
 			<div class="navIntraTool">

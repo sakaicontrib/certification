@@ -2,8 +2,13 @@
 <jsp:include page="/WEB-INF/jsp/header.jsp"/>
 		<form:form id="certList" method="POST">
 		<c:choose>
-		<c:when test="${empty certList}">
-		 		<spring:message code="form.text.emptycertlist"/>
+		<c:when test="${certList.nrOfElements == 0}">
+			<p class="instruction">
+				<spring:message code="instructions.student"/>
+			</p>
+			<h3 class="instruction" style="text-align:center">
+				<spring:message code="form.text.emptycertlist"/>
+			</h3>
 		</c:when>
 		<c:otherwise>
         <c:forEach items="${unmetCriteria}" var="condition">
@@ -94,7 +99,7 @@
                 --%>
                 <c:when test="${certRequirementList[cert.id] != null}">
                     <td>
-                        <ul>
+                        <ul style="margin-top:0px;">
                             <c:forEach items="${certRequirementList[cert.id]}" var="req">
                                 <li>${req.key}</li>
                                 <ul>
