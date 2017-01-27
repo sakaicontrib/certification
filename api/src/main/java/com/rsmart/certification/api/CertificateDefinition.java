@@ -71,6 +71,7 @@ public interface CertificateDefinition
      * Determines whether the the certificate was awarded to the given user
      * @param userId
      * @return
+     * @throws UnknownCriterionTypeException
      */
     public boolean isAwarded(String userId) throws UnknownCriterionTypeException;
 }
