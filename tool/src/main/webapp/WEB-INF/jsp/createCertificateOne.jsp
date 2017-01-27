@@ -35,7 +35,7 @@
                                 <c:out value="${certificateToolState.certificateDefinition.documentTemplate.name}"/><br/>
                                 <form:hidden id="currentTemplate" path="certificateDefinition.documentTemplate.id" />
                         </c:if>
-                        <input type="file" name="data" />
+                        <input type="file" name="data" accept="application/pdf" />
                         <span style="font-size : xx-small;"><spring:message code="form.label.mimeTypes" arguments="${certificateToolState.mimeTypes}"/></span>
                     </td>
 				</tr>
