@@ -1,11 +1,13 @@
 package com.rsmart.certification.api;
 
+import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.Criterion;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
@@ -130,6 +132,30 @@ public class BaseCertificateDefinition implements CertificateDefinition
 
     public Set<Criterion> getAwardCriteria() {
         return awardCriteria;
+    }
+
+    public Date getIssueDate(String userId)
+    {
+        if (awardCriteria.isEmpty())
+        {
+            return null;
+        }
+
+        Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
+        while (itAwardCriteria.hasNext())
+        {
+            Criterion crit = itAwardCriteria.next();
+            if (crit != null)
+            {
+                CriteriaFactory critFact = crit.getCriteriaFactory();
+                if (critFact != null)
+                {
+                    return critFact.getDateIssued(userId, siteId, this);
+                }
+            }
+        }
+
+        return null;
     }
 
     public void setAwardCriteria(Set<Criterion> awardCriteria) {

@@ -294,9 +294,10 @@ public interface CertificateService
      * the requirement (both as human readable strings for the UI)
      * @param certId the certificate definition id from which we are pulling the requirements
      * @param userId the user whose progress we are checking
+     * @param siteId
      * @return
      * @throws org.sakaiproject.exception.IdUnusedException
      */
-    public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId) 
+    public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId, String siteId) 
         throws IdUnusedException;
 }

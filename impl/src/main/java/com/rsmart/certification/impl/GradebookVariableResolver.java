@@ -47,106 +47,53 @@ public class GradebookVariableResolver extends AbstractVariableResolver
         addVariable(CERT_AWARDDATE, "date of award");
     }
 
-    public String getValue(CertificateAward award, String varLabel) throws VariableResolutionException
+    public String getValue(CertificateDefinition certDef, String varLabel, String userId) throws VariableResolutionException
     {
         if (CERT_EXPIREDATE.equals(varLabel))
         {
-            //if this is true, then the criteria has been met.
-            //so, this assumes that the user has a grade recorded in the criteria's gradebook item
-
-            Set<Criterion> awardCriteria = getAwardCriteriaFromAward(award);
+            Date issueDate = certDef.getIssueDate(userId);
+            if (issueDate == null)
+            {
+                //shouldn't happen unless new criteria are added where issue date is incalculable
+                return "";
+            }
+            Set<Criterion> awardCriteria = certDef.getAwardCriteria();
 
             Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
             while (itAwardCriteria.hasNext())
             {
-                Criterion criterion = itAwardCriteria.next();
-                if (criterion instanceof WillExpireCriterionHibernateImpl)
+                Criterion crit = itAwardCriteria.next();
+                if (crit instanceof WillExpireCriterionHibernateImpl)
                 {
-                    WillExpireCriterionHibernateImpl criterionImpl = (WillExpireCriterionHibernateImpl) criterion;
+                    //get the offset
+                    WillExpireCriterionHibernateImpl wechi = (WillExpireCriterionHibernateImpl) crit;
+                    int expiryOffset = Integer.parseInt(wechi.getExpiryOffset());
 
-                    Date dateRecorded;
-                    try
-                    {
-                        dateRecorded = getDateRecorded(criterionImpl);
-                    }
-                    catch (AssessmentNotFoundException anfe)
-                    {
-                        LOG.warn("Certificate criterion uses non-existant gradebook item in " + contextId());
-                        //TODO: gradebook item is missing, what do we do?
-                        return "";
-                    }
-
-                    int expiryOffset = Integer.parseInt(criterionImpl.getExpiryOffset());
-
+                    //add the offset to the issue date
                     Calendar cal = Calendar.getInstance();
-                    cal.setTime(dateRecorded);
-
+                    cal.setTime(issueDate);
                     cal.add(Calendar.MONTH, expiryOffset);
 
                     Date expiryDate = cal.getTime();
 
+                    //return
                     DateFormat sdf = SimpleDateFormat.getDateInstance();
                     return sdf.format(expiryDate);
                 }
             }
-            //could not find a WillExpireCriteriaTemplate
+
             return "";
         }
         else if (CERT_AWARDDATE.equals(varLabel))
         {
-            //search for a criteria with a gradebook item
-            Set<Criterion> awardCriteria = getAwardCriteriaFromAward(award);
-            //WillExpireCriterionHibernateImpl takes precedence
-            Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
-            while (itAwardCriteria.hasNext())
+            Date issueDate = certDef.getIssueDate(userId);
+            if (issueDate == null)
             {
-                Criterion criterion = itAwardCriteria.next();
-                if (criterion instanceof WillExpireCriterionHibernateImpl)
-                {
-                    Date dateRecorded;
-                    try
-                    {
-                        dateRecorded = getDateRecorded((WillExpireCriterionHibernateImpl)criterion);
-                    }
-                    catch (AssessmentNotFoundException anfe)
-                    {
-                        LOG.warn("Certificate criterion uses non-existant gradebook item in " + contextId());
-                        //TODO: gradebook item is missing, what do we do?
-                        return "";
-                    }
-
-                    DateFormat sdf = SimpleDateFormat.getDateInstance();
-                    return sdf.format(dateRecorded);
-                }
+                return "";
             }
 
-            //Try other types of GradebookItemCriterionHibernateImpl
-            itAwardCriteria = awardCriteria.iterator();
-            while (itAwardCriteria.hasNext())
-            {
-                Criterion criterion = itAwardCriteria.next();
-                if (criterion instanceof GradebookItemCriterionHibernateImpl)
-                {
-                    Date dateRecorded;
-                    try
-                    {
-                        dateRecorded = getDateRecorded((GradebookItemCriterionHibernateImpl)criterion);
-                    }
-                    catch (AssessmentNotFoundException anfe)
-                    {
-                        LOG.warn("Certificate criterion uses non-existant gradebook item in " + contextId());
-                        //TODO: gradebook item is missing, what do we do?
-                        return "";
-                    }
-
-                    DateFormat sdf = SimpleDateFormat.getDateInstance();
-                    return sdf.format(dateRecorded);
-                }
-            }
-
-            //No gradebook related criteria found, so just return the award timestamp
-            DateFormat dateFormat = SimpleDateFormat.getDateInstance();
-            return dateFormat.format(award.getCertificationTimeStamp());
+            DateFormat sdf = SimpleDateFormat.getDateInstance();
+            return sdf.format(issueDate);
         }
 
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");

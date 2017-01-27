@@ -58,4 +58,11 @@ public interface CertificateDefinition
     public Map<String, String> getFieldValues();
 
     public Set<Criterion> getAwardCriteria();
+
+    /**
+     * Returns the date of issue for the given user
+     * @param userId
+     * @return
+     */
+    public Date getIssueDate(String userId);
 }

@@ -17,7 +17,6 @@ import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
-import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
@@ -726,12 +725,6 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         {
             WillExpireCriterionHibernateImpl criterion = new WillExpireCriterionHibernateImpl();
 
-            Long itemId = new Long(bindings.get("gradebook.item"));
-            GradebookService gbs = getGradebookService();
-            String contextId = getToolManager().getCurrentPlacement().getContext();
-            Assignment assn = gbs.getAssignment(contextId, itemId);
-
-            criterion.setAssignment(assn);
             String strExpiryOffset = bindings.get("expiry.offset");
             criterion.setExpiryOffset(strExpiryOffset);
             return criterion;

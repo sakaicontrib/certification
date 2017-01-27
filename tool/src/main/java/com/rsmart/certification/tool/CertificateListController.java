@@ -61,7 +61,6 @@ import org.sakaiproject.util.ResourceLoader;
 @Controller
 public class CertificateListController extends BaseCertificateController
 {
-	
 	public static final String PAGINATION_NEXT = "next";
 	public static final String PAGINATION_LAST = "last";
 	public static final String PAGINATION_PREV = "previous";
@@ -205,8 +204,13 @@ public class CertificateListController extends BaseCertificateController
             certDefs = null;
     	List<CertificateDefinition>
             filteredList = new ArrayList<CertificateDefinition>();
+        //TODO: Remove this when ready
     	Map<String, CertificateAward>
             certAwardList = new HashMap<String, CertificateAward>();
+
+        Map<String, List<Map.Entry<String, String>>> certRequirementList = new HashMap<String, List<Map.Entry<String, String>>>();
+        Map<String, Boolean> certificateIsAwarded = new HashMap<String, Boolean>();
+
         HttpSession
             session = request.getSession();
         PagedListHolder
@@ -237,6 +241,16 @@ public class CertificateListController extends BaseCertificateController
             for(CertificateDefinition cfl : certDefs)
             {
                 certDefIds.add(cfl.getId());
+                List<Map.Entry<String, String>> requirementList = new ArrayList<Map.Entry<String, String>>();
+                try
+                {
+                    requirementList = cs.getCertificateRequirementsForUser(cfl.getId(), userId(), siteId());
+                }
+                catch (IdUnusedException e)
+                {
+                    logger.warn("While getting certificate requirements, found unused certificate id: " + cfl.getId());
+                }
+                certRequirementList.put (cfl.getId(), requirementList);
             }
 
             String
@@ -253,8 +267,22 @@ public class CertificateListController extends BaseCertificateController
                 {
                     filteredList.add(cd);
                 }
+
+                boolean awarded=true;
+                Set<Criterion> awardCriteria = cd.getAwardCriteria();
+                Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
+                while (itAwardCriteria.hasNext())
+                {
+                    Criterion crit = itAwardCriteria.next();
+                    CriteriaFactory critFact = crit.getCriteriaFactory();
+                    if (!critFact.isCriterionMet(crit))
+                    {
+                        awarded=false;
+                    }
+                }
+                certificateIsAwarded.put(cd.getId(), awarded);
             }
-			
+
 	    	certList = new PagedListHolder();
 	    	if(pageSize != null)
 	    	{
@@ -294,6 +322,8 @@ public class CertificateListController extends BaseCertificateController
 		{
 			certList = (PagedListHolder) session.getAttribute("certList");
 			certAwardList = (Map) session.getAttribute("certAwardList");
+			certRequirementList = (Map) session.getAttribute("certRequirementList");
+			certificateIsAwarded = (Map) session.getAttribute("certIsAwarded");
 
     		if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
     		{
@@ -313,10 +343,16 @@ public class CertificateListController extends BaseCertificateController
     		}
 		}
 
-    	session.setAttribute ("certList", certList);
+        session.setAttribute ("certList", certList);
+        //TODO: Remove this when ready
         session.setAttribute ("certAwardList", certAwardList);
+        session.setAttribute ("certRequirementList", certRequirementList);
+        session.setAttribute ("certIsAwarded", certificateIsAwarded);
         model.put("certList", certList);
+        //TODO: Remove this when ready
         model.put("certAwardList", certAwardList);
+        model.put("certRequirementList", certRequirementList);
+        model.put("certIsAwarded", certificateIsAwarded);
         model.put("pageSizeList", PAGE_SIZE_LIST);
         model.put("pageNo", certList.getPage());
         model.put("firstElement", (certList.getFirstElementOnPage()+1));
@@ -597,33 +633,12 @@ public class CertificateListController extends BaseCertificateController
             certService = getCertificateService();
         CertificateDefinition
             definition = null;
-        CertificateAward
-            award = null;
 
         try
         {
             definition = certService.getCertificateDefinition(certId);
         }
         catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        try
-        {
-            award = getCertificateService().getCertificateAward(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        if (!isAwardPrintable(award))
-        {
-            //error
-        }
-
-        if (award == null)
         {
             //error
         }
@@ -652,9 +667,10 @@ public class CertificateListController extends BaseCertificateController
                 extension = templName.substring(dotIndex);
             }
 
-            certName = certName.replaceAll("[^a-zA-Z0-9]","_");
+            certName = certName.replaceAll("[^a-zA-Z0-9]+","-");
 
-            fNameBuff.append (sdf.format(award.getCertificationTimeStamp())).append('_');
+            //TODO: replace with issue date
+            //fNameBuff.append (sdf.format(award.getCertificationTimeStamp())).append('_');
             fNameBuff.append (certName).append(extension);
 
 			response.setContentType(dts.getPreviewMimeType(template));
@@ -666,7 +682,7 @@ public class CertificateListController extends BaseCertificateController
             OutputStream
                 out = response.getOutputStream();
             InputStream
-                in = dts.render(template, award, definition.getFieldValues());
+                in = dts.render(template, definition, userId());
 
             byte
                 buff[] = new byte[2048];
