@@ -471,21 +471,6 @@ public class CertificateListController extends BaseCertificateController
 
         model.put("cert", definition);
         model.put("award", award);
-        
-        //Below code is commented to remove the preview functionality issue #CLE-9696
-        /*DocumentTemplate
-            template = definition.getDocumentTemplate();
-        DocumentTemplateService
-            dts = getDocumentTemplateService();
-        boolean
-            previewable = dts.isPreviewable(template);
-        
-        model.put("previewable", previewable);
-
-        if (previewable)
-        {
-            model.put ("previewableMimeType", dts.getPreviewMimeType(template));
-        }*/
 
         return new ModelAndView ("printPreview", model);
     	/*
@@ -499,89 +484,6 @@ public class CertificateListController extends BaseCertificateController
     		create a final rendering with:
     			render()
 		*/
-    }
-
-    @RequestMapping("/printData.form")
-    public void previewDataHandler(@RequestParam("certId") String certId,
-                                        HttpServletRequest request,
-    		                            HttpServletResponse response)
-    {
-        CertificateService
-            certService = getCertificateService();
-        CertificateDefinition
-            definition = null;
-        CertificateAward
-            award = null;
-
-        try
-        {
-            definition = certService.getCertificateDefinition(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        try
-        {
-            award = getCertificateService().getCertificateAward(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        if (!isAwardPrintable(award))
-        {
-            //error
-        }
-
-        if (award == null)
-        {
-            //error
-        }
-
-        DocumentTemplate
-            template = definition.getDocumentTemplate();
-
-        DocumentTemplateService
-            dts = getDocumentTemplateService();
-
-        try
-        {
-            if (!dts.isPreviewable(template))
-            {
-
-            }
-
-            response.setContentType(dts.getPreviewMimeType(template));
-
-            OutputStream
-                out = response.getOutputStream();
-            InputStream
-                in = dts.renderPreview(template, award, definition.getFieldValues());
-
-            byte
-                buff[] = new byte[2048];
-            int
-                numread = 0;
-
-            while ((numread = in.read(buff)) != -1)
-            {
-                out.write(buff, 0, numread);
-            }
-        }
-        catch (TemplateReadException e)
-        {
-            //error
-        }
-        catch (VariableResolutionException e)
-        {
-        }
-        catch (IOException e)
-        {
-        }
-
     }
 
     @RequestMapping("/delete.form")
@@ -643,66 +545,67 @@ public class CertificateListController extends BaseCertificateController
             //error
         }
 
-        DocumentTemplate
-            template = definition.getDocumentTemplate();
-
-        DocumentTemplateService
-            dts = getDocumentTemplateService();
-
+        boolean awarded = false;
         try
         {
-            StringBuffer
-                fNameBuff = new StringBuffer();
-            SimpleDateFormat
-                sdf = new SimpleDateFormat("yyyy_MM_dd");
-            String
-                certName = definition.getName(),
-                templName = template.getName(),
-                extension = "";
-            int
-                dotIndex = -1;
+            awarded = definition.isAwarded(userId());
+        }
+        catch (UnknownCriterionTypeException e)
+        {
+            //TODO: indicate to the user?
+        }
+        if (awarded)
+        {
+            DocumentTemplate template = definition.getDocumentTemplate();
+            DocumentTemplateService dts = getDocumentTemplateService();
 
-            if (templName != null && (dotIndex = templName.lastIndexOf('.')) > -1)
+            try
             {
-                extension = templName.substring(dotIndex);
+                StringBuilder fNameBuff = new StringBuilder();
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
+                String  certName = definition.getName();
+                String templName = template.getName();
+                String extension = "";
+                int dotIndex = -1;
+
+                if (templName != null && (dotIndex = templName.lastIndexOf('.')) > -1)
+                {
+                    extension = templName.substring(dotIndex);
+                }
+
+                certName = certName.replaceAll("[^a-zA-Z0-9]+","-");
+
+                //TODO: replace with issue date
+                //fNameBuff.append (sdf.format(award.getCertificationTimeStamp())).append('_');
+                fNameBuff.append (certName).append(extension);
+
+                response.setContentType(dts.getPreviewMimeType(template));
+                response.addHeader("Content-Disposition", "attachement; filename = " + fNameBuff.toString());
+                response.setHeader("Cache-Control", "");
+                response.setHeader("Pragma", "");
+
+
+                OutputStream out = response.getOutputStream();
+                InputStream in = dts.render(template, definition, userId());
+
+                byte buff[] = new byte[2048];
+                int numread = 0;
+
+                while ((numread = in.read(buff)) != -1)
+                {
+                    out.write(buff, 0, numread);
+                }
             }
-
-            certName = certName.replaceAll("[^a-zA-Z0-9]+","-");
-
-            //TODO: replace with issue date
-            //fNameBuff.append (sdf.format(award.getCertificationTimeStamp())).append('_');
-            fNameBuff.append (certName).append(extension);
-
-			response.setContentType(dts.getPreviewMimeType(template));
-            response.addHeader("Content-Disposition", "attachement; filename = " + fNameBuff.toString());
-            response.setHeader("Cache-Control", "");
-            response.setHeader("Pragma", "");
-
-
-            OutputStream
-                out = response.getOutputStream();
-            InputStream
-                in = dts.render(template, definition, userId());
-
-            byte
-                buff[] = new byte[2048];
-            int
-                numread = 0;
-
-            while ((numread = in.read(buff)) != -1)
+            catch (TemplateReadException e)
             {
-                out.write(buff, 0, numread);
+                //error
             }
-        }
-        catch (TemplateReadException e)
-        {
-            //error
-        }
-        catch (VariableResolutionException e)
-        {
-        }
-        catch (IOException e)
-        {
+            catch (VariableResolutionException e)
+            {
+            }
+            catch (IOException e)
+            {
+            }
         }
 
     }

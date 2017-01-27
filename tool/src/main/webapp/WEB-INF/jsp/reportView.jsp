@@ -107,7 +107,7 @@
                 return false;
             });
 
-            var id = $('#reporttable').getAttribute('certificateid');
+            var id = $("#reporttable").attr("certificateid");
 
             $("#export").click( function() {
                 location.href="reportView.form?certId=" + id + "&export=true";

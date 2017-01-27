@@ -1,6 +1,7 @@
 package com.rsmart.certification.api;
 
 import com.rsmart.certification.api.criteria.Criterion;
+import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 
 import java.util.Date;
 import java.util.Map;
@@ -65,4 +66,11 @@ public interface CertificateDefinition
      * @return
      */
     public Date getIssueDate(String userId);
+
+    /**
+     * Determines whether the the certificate was awarded to the given user
+     * @param userId
+     * @return
+     */
+    public boolean isAwarded(String userId) throws UnknownCriterionTypeException;
 }

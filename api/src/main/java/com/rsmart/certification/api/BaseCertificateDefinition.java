@@ -2,6 +2,7 @@ package com.rsmart.certification.api;
 
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.Criterion;
+import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 
@@ -166,9 +167,26 @@ public class BaseCertificateDefinition implements CertificateDefinition
     {
         return expiryOffset;
     }
-    
+
     public void setExpiryOffset( String expiryOffset )
     {
         this.expiryOffset = expiryOffset;
+    }
+
+    public boolean isAwarded(String userId) throws UnknownCriterionTypeException
+    {
+        Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
+        boolean awarded = true;
+        while (itAwardCriteria.hasNext())
+        {
+            Criterion crit = itAwardCriteria.next();
+            CriteriaFactory critFact = crit.getCriteriaFactory();
+            if (!critFact.isCriterionMet(crit, userId, siteId))
+            {
+                awarded = false;
+            }
+        }
+
+        return awarded;
     }
 }
