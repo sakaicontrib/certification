@@ -686,7 +686,7 @@ public class CertificateListController extends BaseCertificateController
         model.put("cert", definition);
 
         //for internationalization - loads Messages.properties
-        ResourceLoader messages = new ResourceLoader("com.rsmart.certification.tool.Messages");
+        ResourceLoader messages = getMessages();
 
         //we'll need this to get additional user properties
         ExtraUserPropertyUtility extraPropsUtil = ExtraUserPropertyUtility.getInstance();
@@ -694,6 +694,7 @@ public class CertificateListController extends BaseCertificateController
         boolean canShowUserProps = extraPropsUtil.isExtraUserPropertiesEnabled() && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
         List<String> propHeaders = new ArrayList<String>();
         List<String> requirements = new ArrayList<String>();
+        Integer expiryOffset = null;
 
         if(page==null && export==null)
         {
@@ -766,8 +767,15 @@ public class CertificateListController extends BaseCertificateController
                 }
                 else if (crit instanceof WillExpireCriterionHibernateImpl)
                 {
+                    WillExpireCriterionHibernateImpl wechi = (WillExpireCriterionHibernateImpl) crit;
                     //says 'Expires'
                     criteriaHeaders.add(0, messages.getString("report.table.header.expire"));
+                    String strExpiryOffset = wechi.getExpiryOffset();
+                    if (logIfNull(strExpiryOffset, "no expiry offset found for criterion: "+ wechi.getId()))
+                    {
+                        return null;
+                    }
+                    expiryOffset = new Integer(strExpiryOffset);
                 }
                 else if (crit instanceof GradebookItemCriterionHibernateImpl)
                 {
@@ -816,6 +824,7 @@ public class CertificateListController extends BaseCertificateController
                     setNameFieldForReportRow(currentRow, firstName, lastName);
 
                     currentRow.setUserId(currentUser.getEid());
+                    currentRow.setRole(getRole(userId));
                     ArrayList<String> extraProps = new ArrayList<String>();
                     if (canShowUserProps)
                     {
@@ -924,14 +933,7 @@ public class CertificateListController extends BaseCertificateController
                             }
                             else
                             {
-                                WillExpireCriterionHibernateImpl weCrit = (WillExpireCriterionHibernateImpl) crit;
-                                //get the expiry offset and add it to the issue date
-                                String strExpiryOffset = weCrit.getExpiryOffset();
-                                if (logIfNull(strExpiryOffset, "no expiry offset found for criterion: "+ weCrit.getId()))
-                                {
-                                    return null;
-                                }
-                                Integer expiryOffset = new Integer(strExpiryOffset);
+                                //we already have the expiration date
                                 Calendar cal = Calendar.getInstance();
                                 cal.setTime(issueDate);
                                 cal.add(Calendar.MONTH, expiryOffset);
@@ -1018,6 +1020,7 @@ public class CertificateListController extends BaseCertificateController
 
             //pull the headers and the report list from the http session
             requirements = (List<String>) session.getAttribute("requirements");
+            expiryOffset = (Integer) session.getAttribute("expiryOffset");
             propHeaders = (List<String>) session.getAttribute("reportPropHeaders");
             criteriaHeaders = (List<Object>) session.getAttribute("reportCritHeaders");
             reportList = (PagedListHolder) session.getAttribute("reportList");
@@ -1045,6 +1048,7 @@ public class CertificateListController extends BaseCertificateController
             // they clicked Export as CSV
             //get the headers and the report list from the http session
             requirements = (List<String>) session.getAttribute("requirements");
+            expiryOffset = (Integer) session.getAttribute("expiryOffset");
             propHeaders = (List<String>) session.getAttribute("reportPropHeaders");
             criteriaHeaders = (List<Object>) session.getAttribute("reportCritHeaders");
             reportList = (PagedListHolder) session.getAttribute("reportList");
@@ -1074,6 +1078,7 @@ public class CertificateListController extends BaseCertificateController
                 StringBuilder contents = new StringBuilder();
                 appendItem(contents, messages.getString("report.table.header.name"), false);
                 appendItem(contents, messages.getString("report.table.header.userid"), false);
+                appendItem(contents, messages.getString("report.table.header.role"), false);
                 if (canShowUserProps)
                 {
                     if (logIfNull(propHeaders, "propHeaders is null"))
@@ -1118,6 +1123,7 @@ public class CertificateListController extends BaseCertificateController
                     ReportRow row = itTable.next();
                     appendItem(contents, row.getName(), false);
                     appendItem(contents, row.getUserId(), false);
+                    appendItem(contents, row.getRole(), false);
                     if (canShowUserProps)
                     {
                         List<String> extraProps = row.getExtraProps();
@@ -1171,8 +1177,20 @@ public class CertificateListController extends BaseCertificateController
             return null;
         }
 
+        //handle plurals when appropriate
+        String strExpiryOffset = null;
+        if (expiryOffset == 1)
+        {
+            strExpiryOffset = "1 " + messages.getString("report.expiry.offset.month"); 
+        }
+        else if (expiryOffset != null)
+        {
+            strExpiryOffset = expiryOffset + " " + messages.getString("report.expiry.offset.months");
+        }
+
         //push the navigator and the headers to the http session
         session.setAttribute("requirements", requirements);
+        session.setAttribute("expiryOffset", expiryOffset);
         session.setAttribute("reportPropHeaders", propHeaders);
         session.setAttribute("reportCritHeaders", criteriaHeaders);
         session.setAttribute("reportList", reportList);
@@ -1180,6 +1198,7 @@ public class CertificateListController extends BaseCertificateController
         //populate the model as necessary
         model.put("errors", errors);
         model.put("requirements", requirements);
+        model.put("expiryOffset", strExpiryOffset);
         model.put("userPropHeaders", propHeaders);
         model.put("critHeaders",criteriaHeaders);
         model.put("reportList", reportList);
@@ -1359,6 +1378,7 @@ public class CertificateListController extends BaseCertificateController
     {
         private String name = "";
         private String userId = "";
+        private String role = "";
         private List<String> extraProps = new ArrayList<String>();
         private String issueDate = "";
         private List<String> criterionCells = new ArrayList<String>();
@@ -1382,6 +1402,16 @@ public class CertificateListController extends BaseCertificateController
         public String getUserId()
         {
             return userId;
+        }
+
+        public void setRole(String role)
+        {
+            this.role = role;
+        }
+
+        public String getRole()
+        {
+            return role;
         }
 
         public void setExtraProps(List<String> extraProps)

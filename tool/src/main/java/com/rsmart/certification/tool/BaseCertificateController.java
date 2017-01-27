@@ -15,6 +15,7 @@ import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.authz.api.Member;
+import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.entity.api.Entity;
@@ -23,6 +24,7 @@ import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
@@ -46,6 +48,7 @@ public class BaseCertificateController
     protected static final String INVALID_TEMPLATE = "form.error.invalidTemplate";
     protected static final String SUCCESS= "form.submit.success";
     protected CertificateDefinitionValidator certificateDefinitionValidator = new CertificateDefinitionValidator();
+    protected ResourceLoader messages = new ResourceLoader("com.rsmart.certification.tool.Messages");
 
     protected static final String EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY = "form.expiry.onlyCriterionError";
     final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
@@ -227,5 +230,23 @@ public class BaseCertificateController
     public Set<String> getHistoricalGradedUserIds()
     {
         return new HashSet<String> (getCertificateService().getGradedUserIds(siteId()));
+    }
+
+    public String getRole(String userId)
+    {
+        Role role = getCurrentSite().getUserRole(userId);
+        if (role != null)
+        {
+            return role.getId();
+        }
+        else
+        {
+            return messages.getString("report.table.notamember");
+        }
+    }
+
+    public ResourceLoader getMessages()
+    {
+        return messages;
     }
 }

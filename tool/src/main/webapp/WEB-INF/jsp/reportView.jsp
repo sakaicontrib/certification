@@ -19,6 +19,9 @@
                 </c:forEach>
             </ul>
         </p>
+        <c:if test="${expiryOffset != null}">
+            <p><spring:message code="report.expiry.offset" arguments="${expiryOffset}" /></p>
+        </c:if>
         <p class="viewNav"><spring:message code="report.blurb"/></p>
         <div class="listNav">
             <div class="pager">
@@ -65,6 +68,7 @@
                     <!-- create the headers in an array from java code -->
                     <th><spring:message code="report.table.header.name"/></th>
                     <th><spring:message code="report.table.header.userid"/></th>
+                    <th><spring:message code="report.table.header.role"/></th>
                     <c:forEach items="${userPropHeaders}" var="prop">
                         <th>${prop}</th>
                     </c:forEach>
@@ -80,6 +84,7 @@
                 <tr>
                     <td>${row.name}</td>
                     <td>${row.userId}</td>
+                    <td>${row.role}</td>
                     <c:forEach var="prop" items="${row.extraProps}">
                         <td>${prop}</td>
                     </c:forEach>
