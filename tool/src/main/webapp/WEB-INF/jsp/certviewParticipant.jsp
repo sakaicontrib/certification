@@ -108,9 +108,14 @@
                         <input type="hidden" id="certId" name="certId" value="${cert.id}"/>
                         <input id="print" type="submit" value="<spring:message code="form.submit.print"/>"/>&nbsp;
                     --%>
-                    <c:if test="${certIsAwarded[cert.id]}">
-                        <a id="viewCert${cert.id}" href="" certificate="${cert.id}"><spring:message code="form.submit.print"/></a>
-                    </c:if>
+                    <c:choose>
+                        <c:when test="${certIsAwarded[cert.id]}">
+                            <a id="viewCert${cert.id}" href="" certificate="${cert.id}"><spring:message code="form.submit.print"/></a>
+                        </c:when>
+                        <c:otherwise>
+                            <spring:message code="form.submit.na"/>
+                        </c:otherwise>
+                    </c:choose>
                     </td>
                 </c:when>
                 <c:otherwise>

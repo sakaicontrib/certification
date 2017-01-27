@@ -34,6 +34,7 @@ public class BaseCertificateController
 	protected static final String REQUEST_PARAMATER_SUBVAL = "submitValue";
 	protected static final String MOD_ATTR = "certificateToolState";
     protected static final String ADMIN_FN = "certificate.admin";
+    protected static final String AWARDABLE_FN = "certificate.be.awarded";
     protected static final String STATUS_MESSAGE_KEY = "statusMessageKey";
     protected static final String ERROR_MESSAGE = "errorMessage";
     protected static final String FORM_ERR= "form.submit.error";
@@ -114,6 +115,33 @@ public class BaseCertificateController
         return isAdministrator(userId());
     }
 
+    protected boolean isAwardable(String userId)
+    {
+        String siteId = siteId();
+        String fullId = siteId;
+
+        if (getSecurityService().isSuperUser(userId))
+        {
+            //haha! Take that, admin!
+            return false;
+        }
+        if (siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT))
+        {
+            fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
+        }
+        if (getSecurityService().unlock(userId, AWARDABLE_FN, fullId))
+        {
+            //user has certificate.be.awarded
+            return true;
+        }
+        return false;
+    }
+
+    protected boolean isAwardable()
+    {
+        return isAwardable(userId());
+    }
+
     protected boolean isAwardPrintable (CertificateAward award)
     {
         String
@@ -169,8 +197,9 @@ public class BaseCertificateController
         }
 
         Set<Member> members = currentSite.getMembers();
-        if (members==null)
+        if (members == null)
         {
+            //impossible, a site must always have at least one instructor/maintainer
             return null;
         }
 
@@ -180,8 +209,7 @@ public class BaseCertificateController
             Member currentMember = itMembers.next();
             String userId = currentMember.getUserId();
 
-            // TODO: add logic for different account types (new permission)
-            if (!isAdministrator(userId))
+            if (isAwardable(userId))
             {
                 //user can't add/edit a certificate, hence this person is awardable
                 userIds.add(userId);

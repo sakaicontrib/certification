@@ -90,14 +90,18 @@ public class CertificateListController extends BaseCertificateController
 	public ModelAndView certListHandler(@RequestParam(value=PAGINATION_PAGE, required=false) String page,
 			@RequestParam(value=PAGE_SIZE, required=false) Integer pageSize,
 			@RequestParam(value=PAGE_NO, required=false) Integer pageNo, HttpServletRequest request) throws Exception
-    {
+	{
 		if(isAdministrator())
 		{
 			return certAdminListHandler(page, pageSize, pageNo, request);
 		}
-		else
+		else if (isAwardable())
 		{
 			return certParticipantListHandler(page, pageSize, pageNo, request);
+		}
+		else
+		{
+			return certUnauthorizedListHandler(page, pageSize, pageNo, request);
 		}
 	}
 
@@ -268,7 +272,12 @@ public class CertificateListController extends BaseCertificateController
                     filteredList.add(cd);
                 }
 
-                boolean awarded=true;
+                boolean awarded = true;
+                if (!isAwardable())
+                {
+                    awarded=false;
+                }
+
                 Set<Criterion> awardCriteria = cd.getAwardCriteria();
                 Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
                 while (itAwardCriteria.hasNext())
@@ -361,7 +370,13 @@ public class CertificateListController extends BaseCertificateController
 		mav.addAllObjects(model);
 		return mav;
     }
-    
+
+    public ModelAndView certUnauthorizedListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
+    {
+        ModelAndView mav = new ModelAndView("certviewUnauthorized");
+        return mav;
+    }
+
     @RequestMapping("/checkstatus.form")
     public ModelAndView checkCertAwardStatus(@RequestParam("certId") String certId, HttpServletRequest request,
     		HttpServletResponse response)
@@ -547,7 +562,7 @@ public class CertificateListController extends BaseCertificateController
 
         Date issueDate = definition.getIssueDate(userId());
         //they've been awarded if issueDate != null
-        if (issueDate != null)
+        if (issueDate != null && isAwardable())
         {
             DocumentTemplate template = definition.getDocumentTemplate();
             DocumentTemplateService dts = getDocumentTemplateService();
@@ -1150,7 +1165,6 @@ public class CertificateListController extends BaseCertificateController
         }
         else
         {
-            // TODO: make this return some sort of error message to the UI
             //should never happen
             logger.warn("hit reportView.form with export=false. Should never happen");
             return null;

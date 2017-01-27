@@ -21,12 +21,12 @@
     <tool id="com.rsmart.certification"
           title="Certification"
           description="Provides certification for students who have met criteria established by an instructor">
-
        <category name="course" />
        <category name="project" />
-
     </tool>
+
     <function name="certificate.admin"/>
     <function name="certificate.extraprops.view"/>
+    <function name="certificate.be.awarded"/>
 
 </registration>
