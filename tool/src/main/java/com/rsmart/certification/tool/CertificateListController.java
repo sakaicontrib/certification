@@ -795,7 +795,8 @@ public class CertificateListController extends BaseCertificateController
 
             /* Iterate through the list of users who have the ability to be awarded certificates,
              * populate each row of the table accordingly*/
-            List<String> userIds = getAwardableUserIds();
+            Set<String> userIds = getHistoricalGradedUserIds();
+            userIds.addAll(getAwardableUserIds());
             Iterator<String> itUser = userIds.iterator();
             while (itUser.hasNext())
             {

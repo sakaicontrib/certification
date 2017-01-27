@@ -11,6 +11,7 @@ import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.IdUsedException;
 
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -300,4 +301,6 @@ public interface CertificateService
      */
     public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId, String siteId) 
         throws IdUnusedException;
+
+    public Collection<String> getGradedUserIds(String siteId);
 }
