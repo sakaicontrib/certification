@@ -857,8 +857,7 @@ public class CertificateListController extends BaseCertificateController
                 {
                     //I believe this is only used as a parent class and this code will never be reached
                     logger.warn("certAdminReportHandler failed to find a child criterion for a GradebookItemCriterion");
-                    GradebookItemCriterionHibernateImpl giCrit = (GradebookItemCriterionHibernateImpl) crit;
-                    criteriaHeaders.add(giCrit.getItemName());
+                    return null;
                 }
 
                 //Expiration date should immediately follow issue date
@@ -934,6 +933,7 @@ public class CertificateListController extends BaseCertificateController
                         return null;
                     }
 
+                    // TODO: refactor this into the certificate definition instead of criteriaFactory
                     Date issueDate = criteriaFactory.getDateIssued(userId, siteId(), definition);
                     if (issueDate == null)
                     {
@@ -958,6 +958,7 @@ public class CertificateListController extends BaseCertificateController
                             return null;
                         }
 
+                        // TODO: refactor this entire block; use over-ridden method to provide cell(s) instead of instanceof checks
                         if (crit instanceof DueDatePassedCriterionHibernateImpl)
                         {
                             DueDatePassedCriterionHibernateImpl ddpCrit = (DueDatePassedCriterionHibernateImpl) crit;
@@ -1049,7 +1050,7 @@ public class CertificateListController extends BaseCertificateController
                             logger.warn("certAdminReportHandler failed to find a child criterion for a GradebookItemCriterion");
 
                             //place holder
-                            criterionCells.add(null);
+                            return null;
                         }
                     }
                     currentRow.setCriterionCells(criterionCells);
@@ -1167,7 +1168,7 @@ public class CertificateListController extends BaseCertificateController
                 {
                     return null;
                 }
-                defName = defName.replaceAll("\\s","_");
+                defName = defName.replaceAll("[^a-zA-Z0-9]+","-");
                 response.addHeader("Content-Disposition", "attachment; filename = " + defName + "_" + report + "_" + today +".csv");
                 response.setHeader("Cache-Control", "");
                 response.setHeader("Pragma", "");
@@ -1199,47 +1200,48 @@ public class CertificateListController extends BaseCertificateController
                 appendItem(contents, messages.getString("report.table.header.awarded"), true);
 
                 // gets the original list of ReportRows
-                List table = reportList.getSource();
+                List<ReportRow> table;
+                try
+                {
+                    table = (List<ReportRow>) reportList.getSource();
+                }
+                catch( Exception ex )
+                {
+                    // TODO: make this return some sort of error message to the UI
+                    logger.error( "Couldn't cast reportList..." );
+                    return null;
+                }
 
                 //fill the rest of the csv
-                Iterator<Object> itTable = table.iterator();
+                Iterator<ReportRow> itTable = table.iterator();
                 while (itTable.hasNext())
                 {
-                    Object objRow = itTable.next();
-                    if (objRow instanceof ReportRow)
+                    //represents a line in the table
+                    ReportRow row = itTable.next();
+                    appendItem(contents, row.getName(), false);
+                    appendItem(contents, row.getUserId(), false);
+                    if (canShowUserProps)
                     {
-                        //represents a line in the table
-                        ReportRow row = (ReportRow) objRow;
-                        appendItem(contents, row.getName(), false);
-                        appendItem(contents, row.getUserId(), false);
-                        if (canShowUserProps)
+                        List<String> extraProps = row.getExtraProps();
+                        if (logIfNull(extraProps, "Extra props is null for certId: " + certId))
                         {
-                            List<String> extraProps = row.getExtraProps();
-                            if (logIfNull(extraProps, "Extra props is null for certId: " + certId))
-                            {
-                                return null;
-                            }
-                            Iterator<String> itExtraProps = extraProps.iterator();
-                            while (itExtraProps.hasNext())
-                            {
-                                appendItem(contents, itExtraProps.next(), false);
-                            }
+                            return null;
                         }
-                        appendItem(contents, row.getIssueDate(), false);
-
-                        Iterator<String> itCriterionCells = row.getCriterionCells().iterator();
-                        while (itCriterionCells.hasNext())
+                        Iterator<String> itExtraProps = extraProps.iterator();
+                        while (itExtraProps.hasNext())
                         {
-                            appendItem(contents, itCriterionCells.next(), false);
+                            appendItem(contents, itExtraProps.next(), false);
                         }
-
-                        appendItem(contents, row.getAwarded(), true);
                     }
-                    else
+                    appendItem(contents, row.getIssueDate(), false);
+
+                    Iterator<String> itCriterionCells = row.getCriterionCells().iterator();
+                    while (itCriterionCells.hasNext())
                     {
-                        //???
-                        logger.warn("not a ReportRow:" + objRow);
+                        appendItem(contents, itCriterionCells.next(), false);
                     }
+
+                    appendItem(contents, row.getAwarded(), true);
                 }
 
                 //send contents
@@ -1254,6 +1256,7 @@ public class CertificateListController extends BaseCertificateController
             }
             catch (IdUnusedException e)
             {
+                // TODO: make this return some sort of error message to the UI
                 //they sent an invalid certId in their http GET;
                 /*possible causes: they clicked on View Report after another user deleted the certificate definition,
                 or they attempted to do evil with a random http GET.
@@ -1263,6 +1266,7 @@ public class CertificateListController extends BaseCertificateController
         }
         else
         {
+            // TODO: make this return some sort of error message to the UI
             //should never happen
             logger.warn("hit reportView.form with export=false. Should never happen");
             return null;
@@ -1386,17 +1390,12 @@ public class CertificateListController extends BaseCertificateController
 
     public class ReportRow
     {
-        String name = null;
-        String userId = null;
-        List<String> extraProps = null;
-        String issueDate = null;
-        List<String> criterionCells = null;
-        String awarded = null;
-
-        public ReportRow()
-        {
-            criterionCells = new ArrayList<String>();
-        }
+        private String name = "";
+        private String userId = "";
+        private List<String> extraProps = new ArrayList<String>();
+        private String issueDate = "";
+        private List<String> criterionCells = new ArrayList<String>();
+        private String awarded = "";
 
         public void setName(String name)
         {

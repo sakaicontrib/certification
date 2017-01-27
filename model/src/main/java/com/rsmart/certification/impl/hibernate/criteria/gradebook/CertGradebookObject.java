@@ -16,7 +16,8 @@ public class CertGradebookObject
     private CertCategory category;
     private boolean
         removed,
-        ungraded;
+        ungraded,
+        released;
 
     public CertGradebook getGradebook() {
 		return gradebook;
@@ -64,6 +65,16 @@ public class CertGradebookObject
 
     public void setUngraded(boolean ungraded) {
         this.ungraded = ungraded;
+    }
+
+    public boolean isReleased()
+    {
+        return released;
+    }
+    
+    public void setReleased(boolean released)
+    {
+        this.released = released;
     }
 
     @Override

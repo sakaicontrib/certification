@@ -4,6 +4,7 @@ import com.rsmart.certification.api.VariableResolver;
 
 import java.util.HashMap;
 import java.util.Set;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
@@ -13,14 +14,14 @@ import java.util.Set;
 public abstract class AbstractVariableResolver
     implements VariableResolver
 {
-    private HashMap<String, String>
-        descriptions = new HashMap<String, String>();
+    private ResourceLoader messages = new ResourceLoader("com.rsmart.certification.criteria.impl.gradebook.Messages");
+    private HashMap<String, String> descriptions = new HashMap<String, String>();
 
     public void addVariable (String variable, String description)
     {
         descriptions.put(variable, description);
     }
-    
+
     public Set<String> getVariableLabels()
     {
         return descriptions.keySet();
@@ -31,4 +32,8 @@ public abstract class AbstractVariableResolver
         return descriptions.get(key);
     }
 
+    public ResourceLoader getMessages()
+    {
+        return messages;
+    }
 }

@@ -79,6 +79,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
@@ -87,8 +88,7 @@ import java.util.Set;
  */
 public class CertificateServiceHibernateImpl extends HibernateDaoSupport implements CertificateService
 {
-    private static Log
-        LOG = LogFactory.getLog(CertificateServiceHibernateImpl.class);
+    private static Log LOG = LogFactory.getLog(CertificateServiceHibernateImpl.class);
     private DocumentTemplateService
         documentTemplateService = null;
     private UserDirectoryService
@@ -112,6 +112,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private HashMap<String, VariableResolver>
         variableResolvers = new HashMap<String, VariableResolver>();
 	private ContentHostingService contentHostingService = null;
+
+    private ResourceLoader messages = new ResourceLoader("com.rsmart.certification.criteria.impl.gradebook.Messages");
 
 	private AuthzGroupService authzGroupService= null;
 	private SiteService siteService= null;
@@ -1693,8 +1695,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     
     public Map<Long, Double> getAssignmentScores(final String gradebookId, final String studentId)
     {
-        
-
         HibernateCallback
             callback = new HibernateCallback()
         {
@@ -1704,6 +1704,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 Iterator results = session.createQuery
                      ("select agr.gradableObject.id, agr.pointsEarned from CertAssignmentScore as agr " +
                         "where agr.gradableObject.removed=false " +
+                        "and agr.gradableObject.released=true " +
 					    "and agr.gradableObject.gradebook.uid=:gradebookId and agr.studentId = :studentId").
 					    setParameter("gradebookId", gradebookId).setParameter("studentId", studentId).list().iterator();
 
@@ -1725,12 +1726,12 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session)
-                throws HibernateException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 Iterator results = session.createQuery
                      ("select agr.gradableObject.id, agr.dateRecorded from CertAssignmentScore as agr " +
                         "where agr.gradableObject.removed=false " +
+                        "and agr.gradableObject.released=true " +
                         "and agr.gradableObject.gradebook.uid=:gradebookId and agr.studentId = :studentId").
                         setParameter("gradebookId", gradebookId).setParameter("studentId", studentId).list().iterator();
 
@@ -1772,30 +1773,40 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 Date currentDate = new Date();
                 if (currentDate.before(dueDate))
                 {
-                    //TODO: Internationalize
-                    progress = "This certificate is not yet available to be awarded";
+                    progress = messages.getString("cert.unavailable");
                 }
                 else
                 {
-                    //TODO: Internationalize
-                    progress = "This certificate is available to students";
+                    progress = messages.getString("cert.available");
                 }
             }
             else if (crit instanceof FinalGradeScoreCriterionHibernateImpl)
             {
                 FinalGradeScoreCriterionHibernateImpl fgcCrit = (FinalGradeScoreCriterionHibernateImpl) crit;
                 Double dblScore = fgcCrit.getCriteriaFactory().getFinalScore(userId, siteId);
-                String score = numberFormat.format(dblScore);
-                //TODO: Internationalize
-                progress = "You have earned " + score + " points";
+                if (dblScore == null)
+                {
+                    progress = messages.getString("item.incomplete");
+                }
+                else
+                {
+                    String score = numberFormat.format(dblScore);
+                    progress = messages.getFormattedMessage("item.complete", new Object[]{ score });
+                }
             }
             else if (crit instanceof GreaterThanScoreCriterionHibernateImpl)
             {
                 GreaterThanScoreCriterionHibernateImpl gtsCrit = (GreaterThanScoreCriterionHibernateImpl) crit;
                 Double dblScore = gtsCrit.getCriteriaFactory().getScore(gtsCrit.getItemId(), userId, siteId);
-                String score = numberFormat.format(dblScore);
-                //TODO: Internationalize
-                progress = "You have earned " + score + " points";
+                if (dblScore  == null)
+                {
+                    progress = messages.getString("item.incomplete");
+                }
+                else
+                {
+                    String score = numberFormat.format(dblScore);
+                    progress = messages.getFormattedMessage("item.complete", new String[]{ score });
+                }
             }
             else if (crit instanceof WillExpireCriterionHibernateImpl)
             {

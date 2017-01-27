@@ -15,13 +15,14 @@
 
 		<property name="name" column="NAME" type="string" not-null="true"/>
 		<property name="removed" column="REMOVED" type="boolean" />
-        <many-to-one name="gradebook" column="GRADEBOOK_ID" not-null="true"/>
-        <many-to-one name="category" column="CATEGORY_ID" class="com.rsmart.certification.impl.hibernate.criteria.gradebook.CertCategory" not-null="false"/>
-		
-       <property name="ungraded" column="UNGRADED" type="boolean"/>
+		<property name="released" column="RELEASED" type="boolean" />
+		<many-to-one name="gradebook" column="GRADEBOOK_ID" not-null="true"/>
+		<many-to-one name="category" column="CATEGORY_ID" class="com.rsmart.certification.impl.hibernate.criteria.gradebook.CertCategory" not-null="false"/>
+
+		<property name="ungraded" column="UNGRADED" type="boolean"/>
 
 		<subclass name="com.rsmart.certification.impl.hibernate.criteria.gradebook.CertAssignment"
-                  extends="com.rsmart.certification.impl.hibernate.criteria.gradebook.CertGradebookObject"  discriminator-value="1">
+				extends="com.rsmart.certification.impl.hibernate.criteria.gradebook.CertGradebookObject"  discriminator-value="1">
 			<property name="pointsPossible" column="POINTS_POSSIBLE" type="double" />
 			<property name="notCounted" column="NOT_COUNTED" type="boolean" />
 			<property name="assignmentWeighting" column="ASSIGNMENT_WEIGHTING" type="double" not-null="false" />

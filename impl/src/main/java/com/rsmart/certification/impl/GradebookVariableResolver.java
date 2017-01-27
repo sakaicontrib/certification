@@ -42,9 +42,10 @@ public class GradebookVariableResolver extends AbstractVariableResolver
 
     public GradebookVariableResolver()
     {
-        //TODO: Internationalize
-        addVariable(CERT_EXPIREDATE, "expiration date");
-        addVariable(CERT_AWARDDATE, "date of award");
+        String expirationDate = getMessages().getString("variable.expiration");
+        String awardDate = getMessages().getString("variable.issuedate");
+        addVariable(CERT_EXPIREDATE, expirationDate);
+        addVariable(CERT_AWARDDATE, awardDate);
     }
 
     public String getValue(CertificateDefinition certDef, String varLabel, String userId) throws VariableResolutionException

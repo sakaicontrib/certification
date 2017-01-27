@@ -3,9 +3,6 @@ package com.rsmart.certification.impl;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.VariableResolutionException;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
 /**
  * User: duffy
  * Date: Jul 7, 2011
@@ -17,8 +14,8 @@ public class AwardVariableResolver extends AbstractVariableResolver
 
     public AwardVariableResolver()
     {
-        //TODO: Internationalize
-        addVariable(CERT_NAME, "name of this certificate");
+        String name = getMessages().getString("variable.nameOfCert");
+        addVariable(CERT_NAME, name);
     }
 
     public String getValue(CertificateDefinition certDef, String varLabel, String userId) throws VariableResolutionException
