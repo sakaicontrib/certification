@@ -71,10 +71,15 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
     public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException
     {
         assertCorrectType(template);
+        return getTemplateFields(certificateService.getTemplateFileInputStream(template.getResourceId()));
+    }
 
+    public Set<String> getTemplateFields(InputStream inputStream)
+            throws TemplateReadException
+    {
         try
         {
-            PdfReader reader = new PdfReader(certificateService.getTemplateFileInputStream(template.getResourceId()));
+            PdfReader reader = new PdfReader(inputStream);
             AcroFields acroFields = reader.getAcroFields();
             Map<String, AcroFields.Item> fields = acroFields.getFields();
 

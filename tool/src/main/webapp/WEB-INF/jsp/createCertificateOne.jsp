@@ -30,12 +30,12 @@
 				<tr>
 					<td><form:label path="certificateDefinition.documentTemplate"><B><spring:message code="form.label.templatefile" /><B><span class="reqStarInline">*</span></form:label></td>
                     <td>
-                        <c:if test="${certificateToolState.certificateDefinition.documentTemplate != null}">
+                        <c:if test="${certificateToolState.templateFilename != null}">
                                 <spring:message code="form.label.currentFile"/>
-                                <c:out value="${certificateToolState.certificateDefinition.documentTemplate.name}"/><br/>
-                                <form:hidden id="currentTemplate" path="certificateDefinition.documentTemplate.id" />
+                                <c:out value="${certificateToolState.templateFilename}"/><br/>
+                                <form:hidden id="currentTemplate" path="templateFilename" />
                         </c:if>
-                        <input type="file" name="data" accept="application/pdf" />
+                        <input type="file" name="newTemplate" accept="application/pdf"/>
                         <span style="font-size : xx-small;"><spring:message code="form.label.mimeTypes" arguments="${certificateToolState.mimeTypes}"/></span>
                     </td>
 				</tr>

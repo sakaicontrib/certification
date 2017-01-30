@@ -1,10 +1,8 @@
 package com.rsmart.certification.api;
 
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Map;
 import java.util.Set;
-
 /**
  * This represents a service capable of rendering templates of a specific set of MIME types.
  *
@@ -23,6 +21,11 @@ public interface DocumentTemplateRenderEngine
      * @return extracts named fields from the template.
      */
     public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException;
+
+    /**
+     * @return extracts named fields from the inputStream
+     */
+    public Set<String> getTemplateFields(InputStream inputStream) throws TemplateReadException;
 
     /**
      * Renders the given template to an OutputStream, populating template fields with the supplied bindings.

@@ -45,8 +45,8 @@
 		<form:label path="certificateDefinition.documentTemplate">
 			<td><h6><spring:message code="form.label.templatefile" /></h6></td>
 			<c:choose>
-				<c:when test="${certificateToolState.certificateDefinition.documentTemplate != null}">
-					<td>${certificateToolState.certificateDefinition.documentTemplate.name}</td>
+				<c:when test="${certificateToolState.templateFilename != null}">
+					<td>${certificateToolState.templateFilename}</td>
 				</c:when>
 				<c:otherwise>
 					<td></td>

@@ -7,13 +7,14 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Implementation for CertificateDefinition
- * 
+ *
  * User: duffy
  * Date: Jun 29, 2011
  * Time: 2:54:55 PM
@@ -30,7 +31,7 @@ public class BaseCertificateDefinition implements CertificateDefinition
     protected CertificateDefinitionStatus status = CertificateDefinitionStatus.UNPUBLISHED;
     protected DocumentTemplate documentTemplate;
     protected Map<String, String> fieldValues = new HashMap<String, String>(0);
-    protected Set<Criterion> awardCriteria = null;
+    protected Set<Criterion> awardCriteria = new HashSet<Criterion>();
 
     private final DateFormat DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy hh:mm aa");
 
@@ -139,6 +140,16 @@ public class BaseCertificateDefinition implements CertificateDefinition
     public Set<Criterion> getAwardCriteria()
     {
         return awardCriteria;
+    }
+
+    public void addAwardCriterion(Criterion criterion)
+    {
+        if (awardCriteria == null)
+        {
+            awardCriteria = new HashSet<Criterion>();
+        }
+
+        awardCriteria.add(criterion);
     }
 
     public Date getIssueDate(String userId)

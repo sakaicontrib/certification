@@ -17,13 +17,14 @@ public class CertificateDefinitionValidator
 
     public void validateFirst(CertificateToolState certificateToolState, Errors errors)
     {
-        if(certificateToolState.getData().getSize() > 0)
+        CommonsMultipartFile newTemplate = certificateToolState.getNewTemplate();
+
+        if (newTemplate != null && newTemplate.getSize() > 0)
         {
-            CommonsMultipartFile file = certificateToolState.getData();
             String mimeTypes[] = certificateToolState.getMimeTypes().split(", ");
-            if(certificateToolState.getMimeTypes().indexOf(file.getContentType()) < 0)
+            if(certificateToolState.getMimeTypes().indexOf(newTemplate.getContentType()) < 0)
             {
-                errors.rejectValue("data", "mimeType", "invalid mimeType");
+                errors.rejectValue("newTemplate", "mimeType", "invalid mimeType");
             }
         }
     }

@@ -330,11 +330,29 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         return myCertDefn;
     }
 
-    public CertificateDefinition updateCertificateDefinition(CertificateDefinition cd) throws IdUnusedException
+    public CertificateDefinition updateCertificateDefinition(final CertificateDefinition cd) throws IdUnusedException
     {
+        CertificateDefinitionHibernateImpl retVal = null;
+        if (cd instanceof CertificateDefinitionHibernateImpl)
+        {
+            retVal = (CertificateDefinitionHibernateImpl) cd;
+        }
+
         try
         {
-            getHibernateTemplate().update(cd);
+            retVal = (CertificateDefinitionHibernateImpl) getHibernateTemplate().execute(new HibernateCallback()
+            {
+                public Object doInHibernate(Session session)
+                {
+                    Query q = session.createQuery ("from "+ CertificateDefinitionHibernateImpl.class.getName() + " where id = :id ");
+                    q.setParameter("id", cd.getId());
+                    CertificateDefinitionHibernateImpl cdhi = (CertificateDefinitionHibernateImpl) q.list().get(0);
+                    cdhi.setName(cd.getName());
+                    cdhi.setDescription(cd.getDescription());
+                    session.update(cdhi);
+                    return cdhi;
+                }
+            });
         }
         catch (ObjectNotFoundException onfe)
         {
@@ -345,7 +363,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             throw new IdUnusedException(cd.getId());
         }
 
-        return cd;
+        return retVal;
     }
 
     public CertificateDefinition createCertificateDefinition(String name, String description, String siteId) throws IdUsedException
@@ -942,7 +960,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     {
                         if (existingConditions.contains(condition))
                         {
-                            session.update (condition);
+                            //do nothing, a criterion's bindings never change
                         }
                         else
                         {
@@ -951,7 +969,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     }
 
                     cd.setAwardCriteria(conditions);
-                    session.update(cd);
+                    session.merge(cd);
                     return null;
                 }
             });

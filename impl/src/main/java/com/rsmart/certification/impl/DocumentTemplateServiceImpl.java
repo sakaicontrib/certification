@@ -83,6 +83,17 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
         throw new TemplateReadException ("No rendering engine supports the supplied template type");
     }
 
+    public Set<String> getTemplateFields(InputStream inputStream, String mimeType) throws TemplateReadException
+    {
+        DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(mimeType);
+        if (engine != null)
+        {
+            return engine.getTemplateFields(inputStream);
+        }
+
+        throw new TemplateReadException ("No rendering engine supports the supplied template type");
+    }
+
     public InputStream render(DocumentTemplate template, CertificateDefinition certDef, String userId)
             throws TemplateReadException, VariableResolutionException
     {

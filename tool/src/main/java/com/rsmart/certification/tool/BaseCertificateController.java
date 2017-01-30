@@ -42,7 +42,7 @@ public class BaseCertificateController
     protected static final String ERROR_ARGUMENTS = "errorArguments";
     protected static final String ERROR_BAD_ID = "error.bad.id";
     protected static final String FORM_ERR= "form.submit.error";
-    protected static final String TEMPLATE_PROCESSING_ERR = "form.error.templateProcessingError";
+    protected static final String TEMPLATE_FIELD_ERR = "form.error.templateField";
     protected static final String ERROR_BAD_TEMPLATE_ID = "error.bad.template.id";
     protected static final String DUPLICATE_NAME_ERR = "form.error.duplicateName";
     protected static final String PREDEFINED_VAR_EXCEPTION = "form.error.predefinedVariableException";
