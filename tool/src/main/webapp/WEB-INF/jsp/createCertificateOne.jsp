@@ -90,17 +90,6 @@
 			error = true;
 		}
 
-		// Expiry offset check
-		if( $( "#expiryOffset" ).val() )
-		{
-			value = $( "#expiryOffset" ).val();
-			if( value.indexOf( "-" ) !== -1 || ( parseFloat( value ) !== parseInt( value ) ) || isNaN( value ) )
-			{
-				error = true;
-				errHtml = errHtml + "<spring:message code="form.error.expiryOffset.notNumber"/>" + "</br>";
-			}
-		}
-
 		if(!$("input:file").val() && !$("#currentTemplate").val()) {
 			errHtml = errHtml + "<spring:message code="form.error.templateField"/>" + "</br>" ;
 			error = true;

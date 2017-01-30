@@ -270,13 +270,14 @@ public class CertificateEditController extends BaseCertificateController
             throw icde;
         }
 
+        CertificateService certificateService = getCertificateService();
         if(certDef.getId() == null)
         {
             CertificateDefinition existing = null;
 
             try
             {
-                existing = getCertificateService().getCertificateDefinitionByName(siteId(), certDef.getName());
+                existing = certificateService.getCertificateDefinitionByName(siteId(), certDef.getName());
             }
             catch (IdUnusedException iue)
             {
@@ -288,10 +289,10 @@ public class CertificateEditController extends BaseCertificateController
                 throw new IdUsedException (certDef.getName());
             }
 
-            certDef = getCertificateService().createCertificateDefinition(certDef.getName(), certDef.getDescription(),
+            certDef = certificateService.createCertificateDefinition(certDef.getName(), certDef.getDescription(),
                     siteId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream());
 
-            certDef = getCertificateService().getCertificateDefinition(certDef.getId());
+            certDef = certificateService.getCertificateDefinition(certDef.getId());
             DocumentTemplate dt = certDef.getDocumentTemplate();
             Set<String> templateFields = getDocumentTemplateService().getTemplateFields(dt);
             ToolSession session = SessionManager.getCurrentToolSession();
@@ -301,10 +302,10 @@ public class CertificateEditController extends BaseCertificateController
         else
         {
             //added the following line - wouldn't allow us to change the certDef name
-            getCertificateService().updateCertificateDefinition(certDef);
+            certificateService.updateCertificateDefinition(certDef);
             if(data.getSize() > 0)
             {
-                DocumentTemplate dt = getCertificateService().setDocumentTemplate(certDef.getId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream());
+                DocumentTemplate dt = certificateService.setDocumentTemplate(certDef.getId(), data.getOriginalFilename(), data.getContentType(), data.getInputStream());
                 certificateToolState.setTemplateFields(getDocumentTemplateService().getTemplateFields(dt));
             }
             else
@@ -320,7 +321,7 @@ public class CertificateEditController extends BaseCertificateController
                 }
             }
 
-            certDef = getCertificateService().getCertificateDefinition(certDef.getId());
+            certDef = certificateService.getCertificateDefinition(certDef.getId());
         }
 
         certificateToolState.setCertificateDefinition(certDef);
@@ -431,6 +432,7 @@ public class CertificateEditController extends BaseCertificateController
         }
 
         model.put(MOD_ATTR, certificateToolState);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
         return new ModelAndView (viewName, model);
     }
 
@@ -470,6 +472,7 @@ public class CertificateEditController extends BaseCertificateController
             return createCertHandlerSecond(certificateToolState, result, request, status);
         }
 
+        CertificateService certificateService = getCertificateService();
         if(result.hasErrors())
         {
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, STATUS_MESSAGE_KEY, FORM_ERR);
@@ -482,7 +485,7 @@ public class CertificateEditController extends BaseCertificateController
                 if(!result.hasErrors())
                 {
                     CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-                    getCertificateService().setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
+                    certificateService.setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
                     model.put(STATUS_MESSAGE_KEY, SUCCESS);
                 }
                 else
@@ -506,7 +509,7 @@ public class CertificateEditController extends BaseCertificateController
         }
         else
         {
-            certificateToolState.setPredifinedFields(getCertificateService().getPredefinedTemplateVariables());
+            certificateToolState.setPredifinedFields(certificateService.getPredefinedTemplateVariables());
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, MOD_ATTR, certificateToolState);
         }
     }

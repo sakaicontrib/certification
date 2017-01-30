@@ -117,7 +117,7 @@
 	{
 		jQuery.ajax(
 			{
-				url: 'removeCriterion.form',
+				url: '${toolUrl}/removeCriterion.form',
 				data:
 					{
 						certId: $("#certId").val(),
@@ -217,7 +217,7 @@
 		if(flag){
 			jQuery.ajax(
 			{
-				url: 'addCriterion.form',
+				url: '${toolUrl}/addCriterion.form',
 				data: {
 					certId : $("#certId").val(),
 					templateId : $("#criteriaTemplate").val(),
@@ -286,7 +286,7 @@
 	function completeCriterionForm(selectedTemplate)
 	{
 		jQuery.ajax({
-			url: "getTemplate.form",
+			url: '${toolUrl}/getTemplate.form',
 			data: { templateId : selectedTemplate },
 			dataType: 'json',
 			type: 'POST',

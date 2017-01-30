@@ -15,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.authz.api.Member;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
+import org.sakaiproject.component.api.ServerConfigurationService;
 import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.entity.api.Entity;
 import org.sakaiproject.site.api.Site;
@@ -49,6 +50,7 @@ public class BaseCertificateController
     protected static final String INVALID_TEMPLATE = "form.error.invalidTemplate";
     protected static final String SUCCESS= "form.submit.success";
     protected static final String REPORT_TABLE_NOT_A_MEMBER = "report.table.notamember";
+    protected static final String MODEL_KEY_TOOL_URL = "toolUrl";
     public static final String REDIRECT = "redirect:";
 
     protected CertificateDefinitionValidator certificateDefinitionValidator = new CertificateDefinitionValidator();
@@ -80,6 +82,11 @@ public class BaseCertificateController
     public SecurityService getSecurityService()
     {
         return (SecurityService) ComponentManager.get(SecurityService.class);
+    }
+
+    public ServerConfigurationService getServerConfigurationService()
+    {
+        return (ServerConfigurationService) ComponentManager.get(ServerConfigurationService.class);
     }
 
     protected String userId()
@@ -231,6 +238,26 @@ public class BaseCertificateController
         {
             return messages.getString(REPORT_TABLE_NOT_A_MEMBER);
         }
+    }
+
+    /**
+     * Gets the tool instance's url. Helps resolve issues in the PDA view
+     * @return
+     */
+    public String getToolUrl()
+    {
+        /**
+         * Fixes an issue with the PDA view.
+         * For example, simply linking to print.form?certId=${cert.id} caused a download of the tool's markup
+         */
+        StringBuilder urlPrefix = new StringBuilder();
+        String toolId = getToolManager().getCurrentPlacement().getId();
+        String toolUrl = getServerConfigurationService().getToolUrl();
+        urlPrefix.append(toolUrl);
+        urlPrefix.append("/");
+        urlPrefix.append(toolId);
+
+        return urlPrefix.toString();
     }
 
     public ResourceLoader getMessages()

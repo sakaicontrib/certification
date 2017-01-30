@@ -366,6 +366,7 @@ public class CertificateListController extends BaseCertificateController
         session.setAttribute (SESSION_IS_AWARDED_ATTRIBUTE, certificateIsAwarded);
         model.put(MODEL_KEY_CERTIFICATE_LIST, certList);
         model.put(MODEL_KEY_REQUIREMENT_LIST_ATTRIBUTE, certRequirementList);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
         model.put(MODEL_KEY_IS_AWARDED_ATTRIBUTE, certificateIsAwarded);
         model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
         model.put(MODEL_KEY_PAGE_NO, certList.getPage());
@@ -601,6 +602,7 @@ public class CertificateListController extends BaseCertificateController
         }
 
         model.put(MODEL_KEY_CERTIFICATE, definition);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
 
         //for internationalization - loads Messages.properties
         ResourceLoader messages = getMessages();

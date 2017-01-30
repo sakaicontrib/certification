@@ -86,10 +86,10 @@
 					        <input type="radio" name="certDefRadioButtons" value="${cert.id}"/>
 					    </td>
 						<td>
-		                	${cert.name}
+		                	<c:out value="${cert.name}"></c:out>
 		                </td>
                         <td>
-                            ${cert.description}
+                            <c:out value="${cert.description}"></c:out>
                         </td>
 		             	<td>
 		             		${cert.status}

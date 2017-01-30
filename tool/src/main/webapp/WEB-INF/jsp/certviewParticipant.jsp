@@ -75,10 +75,10 @@
 	        	<c:forEach var="cert" items="${certList.pageList}">
 	            <tr>
 	            	<td>
-	                	${cert.name}
+                        <c:out value="${cert.name}"></c:out>
 	                </td>
                     <td>
-                        ${cert.description}
+                        <c:out value="${cert.description}"></c:out>
                     </td>
             <c:choose>
                 <c:when test="${certRequirementList[cert.id] != null}">
@@ -95,7 +95,7 @@
                     <td>
                     <c:choose>
                         <c:when test="${certIsAwarded[cert.id]}">
-                            <a id="viewCert${cert.id}" href="print.form?certId=${cert.id}"><spring:message code="form.submit.print"/></a>
+                            <a id="viewCert${cert.id}" href="${toolUrl}/print.form?certId=${cert.id}"><spring:message code="form.submit.print"/></a>
                         </c:when>
                         <c:otherwise>
                             <spring:message code="form.submit.na"/>

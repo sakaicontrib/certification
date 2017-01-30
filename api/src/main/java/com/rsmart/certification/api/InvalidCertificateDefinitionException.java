@@ -8,8 +8,6 @@ package com.rsmart.certification.api;
 public class InvalidCertificateDefinitionException extends CertificationException
 {
     public static final int REASON_TOO_LONG = 1;
-    //TODO: just escape angle brackets (ie. &lt;)
-    //public static final int REASON_CONTAINS_JS = 2;
 
     private int invalidField = 0;
     private int reason = 0;

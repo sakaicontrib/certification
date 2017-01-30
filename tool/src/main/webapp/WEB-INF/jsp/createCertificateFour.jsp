@@ -21,13 +21,13 @@
 		<tr>
 			<form:label path="certificateDefinition.name">
 				<td><h6><spring:message code="form.label.name" /></h6></td>
-				<td>${certificateToolState.certificateDefinition.name}</td>
+				<td><c:out value="${certificateToolState.certificateDefinition.name}"></c:out></td>
 			</form:label>
 		</tr>
 		<tr>
 			<form:label path="certificateDefinition.description">
 				<td><h6><spring:message code="form.label.description" /></h6></td>
-				<td>${certificateToolState.certificateDefinition.description}</td>
+				<td><c:out value="${certificateToolState.certificateDefinition.description}"></c:out></td>
 			</form:label>
 		</tr>
 		<c:if test="${not empty certificateToolState.certificateDefinition.expiryOffset}">
