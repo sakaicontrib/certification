@@ -65,6 +65,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
     private static final String ERROR_MIN_REQUIRED = "value.minRequired";
     private static final String ERROR_EXPIRY_OFFSET_REQUIRED = "value.expiryOffsetRequired";
     private static final String ERROR_NAN = "value.notanumber";
+    private static final String ERROR_WHOLE_NUMBER_REQUIRED = "value.wholeNumberRequired";
     private static final String ERROR_NEGATIVE_NUMBER = "value.negativenumber";
     private static final String ERROR_TOO_HIGH = "value.toohigh";
 
@@ -483,6 +484,22 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                 }
                 else if (variable.getVariableKey().equals(KEY_SCORE))
                 {
+                    if (!"".equals(value))
+                    {
+                        try
+                        {
+                            Double.parseDouble(value);
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            InvalidBindingException ibe = new InvalidBindingException();
+                            ibe.setBindingKey(KEY_SCORE);
+                            ibe.setBindingValue(value);
+                            ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {value} ));
+                            throw ibe;
+                        }
+                    }
+
                     InvalidBindingException ibe = new InvalidBindingException ();
                     ibe.setBindingKey(variable.getVariableKey());
                     ibe.setBindingValue(value);
@@ -491,6 +508,35 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                 }
                 else if (variable.getVariableKey().equals(KEY_EXPIRY_OFFSET))
                 {
+                    if (!"".equals(value))
+                    {
+                        try
+                        {
+                            Double.parseDouble(value);
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            InvalidBindingException ibe = new InvalidBindingException();
+                            ibe.setBindingKey(KEY_EXPIRY_OFFSET);
+                            ibe.setBindingValue(value);
+                            ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {value} ));
+                            throw ibe;
+                        }
+
+                        try
+                        {
+                            Integer.parseInt(value);
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            InvalidBindingException ibe = new InvalidBindingException();
+                            ibe.setBindingKey(KEY_EXPIRY_OFFSET);
+                            ibe.setBindingValue(value);
+                            ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_WHOLE_NUMBER_REQUIRED, new Object[] {value} ));
+                            throw ibe;
+                        }
+                    }
+
                     InvalidBindingException ibe = new InvalidBindingException ();
                     ibe.setBindingKey(variable.getVariableKey());
                     ibe.setBindingValue(value);
@@ -677,6 +723,29 @@ public class GradebookCriteriaFactory implements CriteriaFactory
             criterion.setCriteriaFactory(this);
             criterion.setId(Long.toString(System.currentTimeMillis()));
             String strExpiryOffset = bindings.get(KEY_EXPIRY_OFFSET);
+
+            int expiryOffset = -1;
+            try
+            {
+                expiryOffset = Integer.parseInt(strExpiryOffset);
+            }
+            catch (NumberFormatException e)
+            {
+                InvalidBindingException ibe = new InvalidBindingException();
+                ibe.setBindingKey(KEY_EXPIRY_OFFSET);
+                ibe.setBindingValue(strExpiryOffset);
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {strExpiryOffset} ));
+                throw ibe;
+            }
+            if (expiryOffset < 0)
+            {
+                InvalidBindingException ibe = new InvalidBindingException();
+                ibe.setBindingKey(KEY_EXPIRY_OFFSET);
+                ibe.setBindingValue(strExpiryOffset);
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {strExpiryOffset} ));
+                throw ibe;
+            }
+
             criterion.setExpiryOffset(strExpiryOffset);
             return criterion;
         }
