@@ -38,6 +38,7 @@ public class BaseCertificateController
     protected static final String AWARDABLE_FN = "certificate.be.awarded";
     protected static final String STATUS_MESSAGE_KEY = "statusMessageKey";
     protected static final String ERROR_MESSAGE = "errorMessage";
+    protected static final String ERROR_ARGUMENTS = "errorArguments";
     protected static final String ERROR_BAD_ID = "error.bad.id";
     protected static final String FORM_ERR= "form.submit.error";
     protected static final String TEMPLATE_PROCESSING_ERR = "form.error.templateProcessingError";

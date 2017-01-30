@@ -17,6 +17,12 @@ import java.util.Set;
 public interface CertificateDefinition
 {
     /**
+     * Integers to identify the fields in the certificate definition
+     */
+   public static final int FIELD_NAME = 1;
+   public static final int FIELD_DESCRIPTION = 2;
+
+    /**
      * Unique ID for this certificate
      * @return
      */

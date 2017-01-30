@@ -13,7 +13,7 @@
 		</c:if>
 		<c:if test="${errorMessage != null}" >
 			<div id="errorMessage" class="alertMessage" >
-				<spring:message code="${errorMessage}" />
+				<spring:message code="${errorMessage}" arguments="${errorArguments}"/>
 			</div>
 		</c:if>
 		<div style="position:relative; margin-left:20px">

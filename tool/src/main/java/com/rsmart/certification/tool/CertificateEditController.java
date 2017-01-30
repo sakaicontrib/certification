@@ -3,6 +3,7 @@ package com.rsmart.certification.tool;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
+import com.rsmart.certification.api.InvalidCertificateDefinitionException;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
@@ -77,12 +78,18 @@ public class CertificateEditController extends BaseCertificateController
     public static final String REQUEST_PARAM_CERT_ID = "certId";
 
     private static final String ERROR_NOT_ADMIN = "error.not.admin";
+    private static final String INVALID_NAME_LENGTH = "form.submit.error.name.too.long";
+    private static final String INVALID_DESCRIPTION_LENGTH = "form.submit.error.description.too.long";
+
     private static final String TOO_MANY_EXPIRATION_CRITERIA = "**TooManyExpiry**";
 
     private Pattern varValuePattern = Pattern.compile ("variableValues\\[(.*)\\]");
     private Pattern variablePattern = Pattern.compile ("\\$\\{(.+)\\}");
 
     private ObjectMapper mapper = new ObjectMapper();
+
+    private final int CONSTRAINT_DESCRIPTION_LENGTH = 500;
+    private final int CONSTRAINT_NAME_LENGTH = 255;
 
     public final int ERROR_BAD_REQUEST = 400;
 
@@ -155,11 +162,39 @@ public class CertificateEditController extends BaseCertificateController
                 }
                 else
                 {
-                    model.put(STATUS_MESSAGE_KEY, FORM_ERR);
+                    //just says "There was an error with your submission"
                     model.put(ERROR_MESSAGE, INVALID_TEMPLATE);
                     model.put(MOD_ATTR, certificateToolState);
                     return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, model);
                 }
+            }
+            catch (InvalidCertificateDefinitionException icde)
+            {
+                int field = icde.getInvalidField();
+                if (icde.getReason() == InvalidCertificateDefinitionException.REASON_TOO_LONG)
+                {
+                    if (field == CertificateDefinition.FIELD_NAME)
+                    {
+                        model.put(ERROR_MESSAGE, INVALID_NAME_LENGTH);
+                        model.put(ERROR_ARGUMENTS, CONSTRAINT_NAME_LENGTH);
+                    }
+                    else if (field == CertificateDefinition.FIELD_DESCRIPTION)
+                    {
+                        model.put(ERROR_MESSAGE, INVALID_DESCRIPTION_LENGTH);
+                        model.put(ERROR_ARGUMENTS, CONSTRAINT_DESCRIPTION_LENGTH);
+                    }
+                    else
+                    {
+                        model.put(STATUS_MESSAGE_KEY, FORM_ERR);
+                    }
+                }
+                else
+                {
+                    model.put(STATUS_MESSAGE_KEY, FORM_ERR);
+                }
+
+                model.put(MOD_ATTR, certificateToolState);
+                return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, model);
             }
             catch (IdUsedException iue)
             {
@@ -219,6 +254,21 @@ public class CertificateEditController extends BaseCertificateController
     {
         CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
         CommonsMultipartFile data = certificateToolState.getData();
+
+        if (certDef.getName().length() > CONSTRAINT_NAME_LENGTH)
+        {
+            InvalidCertificateDefinitionException icde = new InvalidCertificateDefinitionException();
+            icde.setInvalidField(CertificateDefinition.FIELD_NAME);
+            icde.setReason(icde.REASON_TOO_LONG);
+            throw icde;
+        }
+        else if (certDef.getDescription().length() > CONSTRAINT_DESCRIPTION_LENGTH)
+        {
+            InvalidCertificateDefinitionException icde = new InvalidCertificateDefinitionException();
+            icde.setInvalidField(CertificateDefinition.FIELD_DESCRIPTION);
+            icde.setReason(icde.REASON_TOO_LONG);
+            throw icde;
+        }
 
         if(certDef.getId() == null)
         {
