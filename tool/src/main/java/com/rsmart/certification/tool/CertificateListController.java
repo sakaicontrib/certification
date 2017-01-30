@@ -1,31 +1,5 @@
 package com.rsmart.certification.tool;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import org.sakaiproject.component.cover.ServerConfigurationService;
-import org.sakaiproject.exception.IdUnusedException;
-import org.sakaiproject.tool.cover.SessionManager;
-import org.springframework.beans.support.PagedListHolder;
-import org.springframework.beans.support.SortDefinition;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.servlet.ModelAndView;
-
-import com.rsmart.certification.api.CertificateAward;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinitionStatus;
 import com.rsmart.certification.api.CertificateService;
@@ -33,25 +7,38 @@ import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateException;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
-import com.rsmart.certification.api.UnmetCriteriaException;
 import com.rsmart.certification.api.VariableResolutionException;
-import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.Criterion;
-import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
-import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
-import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
-import com.rsmart.certification.impl.hibernate.criteria.gradebook.GradebookItemCriterionHibernateImpl;
-import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.tool.utils.ExtraUserPropertyUtility;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.NumberFormat;
-import java.util.Calendar;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import org.sakaiproject.component.cover.ServerConfigurationService;
+import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.util.ResourceLoader;
+import org.springframework.beans.support.PagedListHolder;
+import org.springframework.beans.support.SortDefinition;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.ModelAndView;
 
 /**
  * User: duffy
@@ -61,6 +48,9 @@ import org.sakaiproject.util.ResourceLoader;
 @Controller
 public class CertificateListController extends BaseCertificateController
 {
+	public static final String THIS_PAGE = "list.form";
+
+	//Pagination request params
 	public static final String PAGINATION_NEXT = "next";
 	public static final String PAGINATION_LAST = "last";
 	public static final String PAGINATION_PREV = "previous";
@@ -70,8 +60,86 @@ public class CertificateListController extends BaseCertificateController
 	public static final String PAGE_NO = "pageNo";
 	public static final List<Integer> PAGE_SIZE_LIST = Arrays.asList(10,25,50,100,200,Integer.MAX_VALUE);
 
-    private final String STUDENT_NUMBER_SAKAI_PROPERTY= "certification.studentnumber.key";
-    private final String studentNumberKey = ServerConfigurationService.getString(STUDENT_NUMBER_SAKAI_PROPERTY);
+	//Other request params
+	public static final String PARAM_CERT_ID = "certId";
+	public static final String PARAM_EXPORT = "export";
+
+	//sakai.properties
+	private final String MAIL_SUPPORT_SAKAI_PROPERTY =  "mail.support";
+	private final String MAIL_SUPPORT = ServerConfigurationService.getString(MAIL_SUPPORT_SAKAI_PROPERTY);
+
+	// JSP views
+	private final String ADMIN_VIEW = "certviewAdmin";
+	private final String PARTICIPANT_VIEW = "certviewParticipant";
+	private final String UNAUTHORIZED_VIEW = "certviewUnauthorized";
+	private final String REPORT_VIEW = "reportView";
+
+	private final String CERTIFICATE_NAME_PROPERTY = "name";
+
+	//Keys for http session attributes
+	private final String SESSION_LIST_ATTRIBUTE = "certList";
+	private final String SESSION_REQUIREMENTS_ATTRIBUTE = "requirements";
+	private final String SESSION_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
+	private final String SESSION_REPORT_PROP_HEADERS_ATTRIBUTE = "reportPropHeaders";
+	private final String SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE = "reportCritHeaders";
+	private final String SESSION_REPORT_LIST_ATTRIBUTE = "reportList";
+	private final String SESSION_REQUIREMENT_LIST_ATTRIBUTE = "certRequirementList";
+	private final String SESSION_IS_AWARDED_ATTRIBUTE = "certIsAwarded";
+
+	//Keys for mav models
+	private final String MODEL_KEY_CERTIFICATE_LIST = "certList";
+	private final String MODEL_KEY_PAGE_SIZE_LIST = "pageSizeList";
+	private final String MODEL_KEY_PAGE_NO = "pageNo";
+	private final String MODEL_KEY_PAGE_SIZE = "pageSize";
+	private final String MODEL_KEY_FIRST_ELEMENT = "firstElement";
+	private final String MODEL_KEY_LAST_ELEMENT = "lastElement";
+	private final String MODEL_KEY_CERTIFICATE = "cert";
+	private final String MODEL_KEY_REQUIREMENT_LIST_ATTRIBUTE = "certRequirementList";
+	private final String MODEL_KEY_IS_AWARDED_ATTRIBUTE = "certIsAwarded";
+	private final String MODEL_KEY_ERROR_ARGUMENTS_ATTRIBUTE = "errorArgs";
+	private final String MODEL_KEY_ERRORS_ATTRIBUTE = "errors";
+	private final String MODEL_KEY_REQUIREMENTS_ATTRIBUTE = "requirements";
+	private final String MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
+	private final String MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE = "userPropHeaders";
+	private final String MODEL_KEY_CRIT_HEADERS_ATTRIBUTE = "critHeaders";
+	private final String MODEL_KEY_REPORT_LIST_ATTRIBUTE = "reportList";
+
+    //UI Message keys
+    private final String MESSAGE_ERROR_NOT_ADMIN = "error.not.admin";
+    private final String MESSAGE_ERROR_NO_SELECTION = "error.no.selection";
+    private final String MESSAGE_ERROR_BAD_ID = "error.bad.id";
+    private final String MESSAGE_TEMPLATE_PROCESSING_ERROR = "form.error.templateProcessingError";
+    private final String MESSAGE_FORM_PRINT_ERROR = "form.print.error";
+    private final String MESSAGE_REPORT_TABLE_HEADER_DUEDATE = "report.table.header.duedate";
+    private final String MESSAGE_REPORT_TABLE_HEADER_FCG = "report.table.header.fcg";
+    private final String MESSAGE_REPORT_TABLE_HEADER_EXPIRE = "report.table.header.expire";
+    private final String MESSAGE_NO = "report.table.no";
+    private final String MESSAGE_YES = "report.table.yes";
+    private final String MESSAGE_REPORT_EXPORT_FNAME = "report.export.fname";
+    private final String MESSAGE_REPORT_EXPORT_ERROR = "report.export.error";
+    private final String MESSAGE_REPORT_TABLE_HEADER_NAME = "report.table.header.name";
+    private final String MESSAGE_REPORT_TABLE_HEADER_USER_ID = "report.table.header.userid";
+    private final String MESSAGE_REPORT_TABLE_HEADER_ROLE = "report.table.header.role";
+    private final String MESSAGE_REPORT_TABLE_HEADER_ISSUEDATE = "report.table.header.issuedate";
+    private final String MESSAGE_REPORT_TABLE_HEADER_AWARDED = "report.table.header.awarded";
+    private final String MESSAGE_EXPIRY_OFFSET_MONTH = "report.expiry.offset.month";
+    private final String MESSAGE_EXPIRY_OFFSET_MONTHS = "report.expiry.offset.months";
+
+    //HTTP Headers
+    private final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+    private final String HEADER_CACHE_CONTROL = "Cache-Control";
+    private final String HEADER_PRAGMA = "Pragma";
+
+    //Date Formats
+    private final String PDF_FILE_NAME_DATE_FORMAT = "yyyy_MM_dd";
+    private final String CSV_FILE_NAME_FORMAT = "yyyy-MM-dd";
+
+    //Mime types
+    private static final String PDF_MIME_TYPE = "application/octet-stream";
+    private static final String CSV_MIME_TYPE = "text/csv";
+
+    //Logging levels supported by logifNull()
+    private final String LEVEL_WARN = "warn";
 
 	private String getAbsoluteUrlForRedirect(String redirectTo)
 	{
@@ -82,11 +150,11 @@ public class CertificateListController extends BaseCertificateController
         // String redirectPrefix = portalurl + "/tool/" + placementId;
         //This one is for SAKAI 11
         String redirectPrefix = portalurl + "/site/" + siteId + "/tool/" + placementId;
-        String redirectString = "redirect:" + redirectPrefix + "/" + redirectTo;
+        String redirectString = REDIRECT + redirectPrefix + "/" + redirectTo;
         return redirectString;
 	}
-	
-	@RequestMapping("/list.form")
+
+	@RequestMapping("/" + THIS_PAGE)
 	public ModelAndView certListHandler(@RequestParam(value=PAGINATION_PAGE, required=false) String page,
 			@RequestParam(value=PAGE_SIZE, required=false) Integer pageSize,
 			@RequestParam(value=PAGE_NO, required=false) Integer pageNo, HttpServletRequest request) throws Exception
@@ -107,140 +175,107 @@ public class CertificateListController extends BaseCertificateController
 
     public ModelAndView certAdminListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
     {
-    	ModelAndView
-            mav = new ModelAndView("certviewAdmin");
+        ModelAndView mav = new ModelAndView(ADMIN_VIEW);
+        Map<String, Object> model = new HashMap<String, Object>();
+        List<CertificateDefinition> certDefList = new ArrayList<CertificateDefinition>();
+        HttpSession session = request.getSession();
+        PagedListHolder certList = null;
 
-    	Map<String, Object>
-            model = new HashMap<String, Object>();
-    	
-    	List<CertificateDefinition>
-            certDefList = new ArrayList<CertificateDefinition>();
-
-        HttpSession
-            session = request.getSession();
-
-        PagedListHolder
-            certList = null;
-
-    	if(page==null)
-		{
-    		String
-                siteId = siteId();
-
-			certDefList.addAll(getCertificateService().getCertificateDefinitionsForSite(siteId));
+        if(page == null)
+        {
+            String siteId = siteId();
+            certDefList.addAll(getCertificateService().getCertificateDefinitionsForSite(siteId));
 
             certList = new PagedListHolder(certDefList);
-	    	if(pageSize != null)
-	    	{
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	else
-	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(3);
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	if(pageNo != null)
-	    	{
-	    		certList.setPage(pageNo);
-	    	}
-            certList.setSort(
-                new SortDefinition()
+            if(pageSize != null)
+            {
+                certList.setPageSize(pageSize);
+            }
+            else
+            {
+                pageSize = PAGE_SIZE_LIST.get(3);
+                certList.setPageSize(pageSize);
+            }
+            if(pageNo != null)
+            {
+                certList.setPage(pageNo);
+            }
+            certList.setSort(new SortDefinition()
+            {
+                public String getProperty()
                 {
-                    public String getProperty() {
-                        return "name";
-                    }
-
-                    public boolean isIgnoreCase() {
-                        return true;
-                    }
-
-                    public boolean isAscending() {
-                        return true;
-                    }
+                    return CERTIFICATE_NAME_PROPERTY;
                 }
-            );
 
-            certList.resort();                
-		}
-    	else
-    	{
-    		certList = (PagedListHolder) session.getAttribute("certList");
+                public boolean isIgnoreCase()
+                {
+                    return true;
+                }
 
-    		if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
-    		{
-    			certList.nextPage();
-    		}
-    		else if(PAGINATION_LAST.equals(page))
-    		{
-    			certList.setPage(certList.getLastLinkedPage());
-    		}
-    		else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
-    		{
-    			certList.previousPage();
-    		}
-    		else if(PAGINATION_FIRST.equals(page))
-    		{
-    			certList.setPage(certList.getFirstLinkedPage());
-    		}
-    	}
+                public boolean isAscending()
+                {
+                    return true;
+                }
+            });
 
-        session.setAttribute("certList", certList);
-        model.put("certList", certList);
-        model.put("pageSizeList", PAGE_SIZE_LIST);
-        model.put("pageNo", certList.getPage());
-        model.put("pageSize", pageSize);
-        model.put("firstElement", (certList.getFirstElementOnPage()+1));
-        model.put("lastElement", (certList.getLastElementOnPage()+1));
-    	mav.addAllObjects(model);
-    	return mav;
+            certList.resort();
+        }
+        else
+        {
+            certList = (PagedListHolder) session.getAttribute(SESSION_LIST_ATTRIBUTE);
+
+            if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
+            {
+                certList.nextPage();
+            }
+            else if(PAGINATION_LAST.equals(page))
+            {
+                certList.setPage(certList.getLastLinkedPage());
+            }
+            else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
+            {
+                certList.previousPage();
+            }
+            else if(PAGINATION_FIRST.equals(page))
+            {
+                certList.setPage(certList.getFirstLinkedPage());
+            }
+        }
+
+        session.setAttribute(SESSION_LIST_ATTRIBUTE, certList);
+        model.put(MODEL_KEY_CERTIFICATE_LIST, certList);
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, certList.getPage());
+        model.put(MODEL_KEY_PAGE_SIZE, pageSize);
+        model.put(MODEL_KEY_FIRST_ELEMENT, (certList.getFirstElementOnPage() + 1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (certList.getLastElementOnPage() + 1));
+        mav.addAllObjects(model);
+        return mav;
     }
-    
+
     public ModelAndView certParticipantListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
     {
-        final CertificateService
-            cs = getCertificateService();
-    	ModelAndView
-            mav = new ModelAndView("certviewParticipant");
-		Map<String, Object>
-            model = new HashMap<String, Object>();
-    	
-        Set<CertificateDefinition>
-            certDefs = null;
-    	List<CertificateDefinition>
-            filteredList = new ArrayList<CertificateDefinition>();
-        //TODO: Remove this when ready
-    	Map<String, CertificateAward>
-            certAwardList = new HashMap<String, CertificateAward>();
+        final CertificateService cs = getCertificateService();
+        ModelAndView mav = new ModelAndView(PARTICIPANT_VIEW);
+        Map<String, Object> model = new HashMap<String, Object>();
+
+        Set<CertificateDefinition> certDefs = null;
 
         Map<String, List<Map.Entry<String, String>>> certRequirementList = new HashMap<String, List<Map.Entry<String, String>>>();
         Map<String, Boolean> certificateIsAwarded = new HashMap<String, Boolean>();
 
-        HttpSession
-            session = request.getSession();
-        PagedListHolder
-            certList = null;
+        HttpSession session = request.getSession();
+        PagedListHolder certList = null;
 
-        Set<Criterion>
-            unmet = (Set<Criterion>)SessionManager.getCurrentToolSession().getAttribute("unmetCriteria");
-
-        if (unmet != null)
+        // If this is the first time we're going to the page, or changing the paging size
+        if(page==null)
         {
-            SessionManager.getCurrentToolSession().removeAttribute("unmetCriterion");
-            request.setAttribute("unmetCriteria", unmet);
-        }
-                    
-    	if(page==null)
-		{
-            certDefs = cs.getCertificateDefinitionsForSite
-                        (siteId(),
-                         new CertificateDefinitionStatus[]
-                         {
-                            CertificateDefinitionStatus.ACTIVE,
-                            CertificateDefinitionStatus.INACTIVE
-                         });
+            certDefs = cs.getCertificateDefinitionsForSite(siteId(), new CertificateDefinitionStatus[]
+            {
+               CertificateDefinitionStatus.ACTIVE
+            });
 
-            List<String>
-                certDefIds = new ArrayList<String>();
+            List<String> certDefIds = new ArrayList<String>();
 
             for(CertificateDefinition cfl : certDefs)
             {
@@ -257,267 +292,109 @@ public class CertificateListController extends BaseCertificateController
                 certRequirementList.put (cfl.getId(), requirementList);
             }
 
-            String
-                cdIdArr[] = new String [certDefIds.size()];
-
-            certDefIds.toArray(cdIdArr);
-
-            certAwardList = cs.getCertificateAwardsForUser(cdIdArr);
-
             for (CertificateDefinition cd : certDefs)
             {
-                if (CertificateDefinitionStatus.ACTIVE.equals(cd.getStatus()) ||
-                    certAwardList.containsKey(cd.getId()))
+                boolean awarded = false;
+                if (isAwardable() && cd.isAwarded(userId()))
                 {
-                    filteredList.add(cd);
+                    awarded = true;
                 }
 
-                boolean awarded = true;
-                if (!isAwardable())
-                {
-                    awarded=false;
-                }
-
-                Set<Criterion> awardCriteria = cd.getAwardCriteria();
-                Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
-                while (itAwardCriteria.hasNext())
-                {
-                    Criterion crit = itAwardCriteria.next();
-                    CriteriaFactory critFact = crit.getCriteriaFactory();
-                    if (!critFact.isCriterionMet(crit))
-                    {
-                        awarded=false;
-                    }
-                }
                 certificateIsAwarded.put(cd.getId(), awarded);
             }
 
-	    	certList = new PagedListHolder();
-	    	if(pageSize != null)
-	    	{
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	else
-	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(3);
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	if(pageNo != null)
-	    	{
-	    		certList.setPage(pageNo);
-	    	}
-            certList.setSource(filteredList);
+            certList = new PagedListHolder();
+            if(pageSize != null)
+            {
+                certList.setPageSize(pageSize);
+            }
+            else
+            {
+                pageSize = PAGE_SIZE_LIST.get(3);
+                certList.setPageSize(pageSize);
+            }
+            if(pageNo != null)
+            {
+                certList.setPage(pageNo);
+            }
+            certList.setSource(Arrays.asList(certDefs.toArray()));
 
-            certList.setSort(
-                new SortDefinition()
-                {
-                    public String getProperty() {
-                        return "name";
-                    }
-
-                    public boolean isIgnoreCase() {
-                        return true;
-                    }
-
-                    public boolean isAscending() {
-                        return true;
-                    }
+            certList.setSort(new SortDefinition()
+            {
+                public String getProperty() {
+                    return CERTIFICATE_NAME_PROPERTY;
                 }
-            );
+
+                public boolean isIgnoreCase() {
+                    return true;
+                }
+
+                public boolean isAscending() {
+                    return true;
+                }
+            });
 
             certList.resort();
-		}
-		else
-		{
-			certList = (PagedListHolder) session.getAttribute("certList");
-			certAwardList = (Map) session.getAttribute("certAwardList");
-			certRequirementList = (Map) session.getAttribute("certRequirementList");
-			certificateIsAwarded = (Map) session.getAttribute("certIsAwarded");
+        }
+        else
+        {
+            //They're changing pages
+            certList = (PagedListHolder) session.getAttribute(SESSION_LIST_ATTRIBUTE);
+            certRequirementList = (Map) session.getAttribute(SESSION_REQUIREMENT_LIST_ATTRIBUTE);
+            certificateIsAwarded = (Map) session.getAttribute(SESSION_IS_AWARDED_ATTRIBUTE);
 
-    		if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
-    		{
-    			certList.nextPage();
-    		}
-    		else if(PAGINATION_LAST.equals(page))
-    		{
-    			certList.setPage(certList.getLastLinkedPage());
-    		}
-    		else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
-    		{
-    			certList.previousPage();
-    		}
-    		else if(PAGINATION_FIRST.equals(page))
-    		{
-    			certList.setPage(certList.getFirstLinkedPage());
-    		}
-		}
+            if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
+            {
+                certList.nextPage();
+            }
+            else if(PAGINATION_LAST.equals(page))
+            {
+                certList.setPage(certList.getLastLinkedPage());
+            }
+            else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
+            {
+                certList.previousPage();
+            }
+            else if(PAGINATION_FIRST.equals(page))
+            {
+                certList.setPage(certList.getFirstLinkedPage());
+            }
+        }
 
-        session.setAttribute ("certList", certList);
-        //TODO: Remove this when ready
-        session.setAttribute ("certAwardList", certAwardList);
-        session.setAttribute ("certRequirementList", certRequirementList);
-        session.setAttribute ("certIsAwarded", certificateIsAwarded);
-        model.put("certList", certList);
-        //TODO: Remove this when ready
-        model.put("certAwardList", certAwardList);
-        model.put("certRequirementList", certRequirementList);
-        model.put("certIsAwarded", certificateIsAwarded);
-        model.put("pageSizeList", PAGE_SIZE_LIST);
-        model.put("pageNo", certList.getPage());
-        model.put("firstElement", (certList.getFirstElementOnPage()+1));
-        model.put("lastElement", (certList.getLastElementOnPage()+1));
+        session.setAttribute (SESSION_LIST_ATTRIBUTE, certList);
+        session.setAttribute (SESSION_REQUIREMENT_LIST_ATTRIBUTE, certRequirementList);
+        session.setAttribute (SESSION_IS_AWARDED_ATTRIBUTE, certificateIsAwarded);
+        model.put(MODEL_KEY_CERTIFICATE_LIST, certList);
+        model.put(MODEL_KEY_REQUIREMENT_LIST_ATTRIBUTE, certRequirementList);
+        model.put(MODEL_KEY_IS_AWARDED_ATTRIBUTE, certificateIsAwarded);
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, certList.getPage());
+        model.put(MODEL_KEY_FIRST_ELEMENT, (certList.getFirstElementOnPage() + 1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (certList.getLastElementOnPage() + 1));
 
-		mav.addAllObjects(model);
-		return mav;
+        mav.addAllObjects(model);
+        return mav;
     }
 
     public ModelAndView certUnauthorizedListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
     {
-        ModelAndView mav = new ModelAndView("certviewUnauthorized");
+        ModelAndView mav = new ModelAndView(UNAUTHORIZED_VIEW);
         return mav;
     }
 
-    @RequestMapping("/checkstatus.form")
-    public ModelAndView checkCertAwardStatus(@RequestParam("certId") String certId, HttpServletRequest request,
-    		HttpServletResponse response)
-        throws Exception
-    {
-    	/*
-			should take a certificateDefinition ID as a parameter
-			check if CertificateAward already exists
-				(CertificateService.getCertificateAward)
-			otherwise
-				CertificateService.awardCertificate
-				
-			if user can't receive certificate an UnmetCriteriaException is thrown
-				- this contains a Set<Criterion> to display what hasn't been completed
-				
-			otherwise - forward to printCertificate
-    	 */
-        CertificateAward
-            certAward = null;
-        HashMap<String, Object>
-            model = new HashMap<String, Object>();
-
-        try
-        {
-            certAward = getCertificateService().getCertificateAward(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //no problem - it simply may not have been awarded yet
-        }
-
-        try
-    	{
-    		if(certAward == null)
-    		{
-                getCertificateService().awardCertificate(certId, userId());
-    		}
-
-            return new ModelAndView(getAbsoluteUrlForRedirect("printPreview.form?certId=" + certId));
-    	}
-    	catch (UnmetCriteriaException umet)
-    	{
-    		Set<Criterion>
-                criterion = umet.getUnmetConditions();
-
-            SessionManager.getCurrentToolSession().setAttribute("unmetCriteria", criterion);
-            
-            return new ModelAndView(getAbsoluteUrlForRedirect("list.form"),model);
-            //return certListHandler(null, null, null, request);
-    	}
-        catch (IdUnusedException e)
-        {
-            //error this is a bogus ID
-            return new ModelAndView (getAbsoluteUrlForRedirect("list.form"), model);
-        }
-        catch (UnknownCriterionTypeException e)
-        {
-            //error processing the criteria
-            return new ModelAndView (getAbsoluteUrlForRedirect("list.form"), model);
-        }
-    }
-    
-    @RequestMapping("/printPreview.form")
-    public ModelAndView printPreviewCertificateHandler(@RequestParam("certId") String certId,
-                                        HttpServletRequest request,
-    		                            HttpServletResponse response)
-        throws TemplateReadException
-    {
-        CertificateService
-            certService = getCertificateService();
-        CertificateDefinition
-            definition = null;
-        CertificateAward
-            award = null;
-
-        try
-        {
-            definition = certService.getCertificateDefinition(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        try
-        {
-            award = getCertificateService().getCertificateAward(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        if (!isAwardPrintable(award))
-        {
-            //error
-        }
-
-        if (award == null)
-        {
-            //error
-        }
-        
-        
-        Map<String, Object>
-        model = new HashMap<String, Object>();
-
-        model.put("cert", definition);
-        model.put("award", award);
-
-        return new ModelAndView ("printPreview", model);
-    	/*
-    		should take a certificateDefinition ID as a parameter
-    		see if the user has a CertificateAward for the the CertDefn
-    		get the DocumentTemplate from the CertificateDefinition
-    		create a preview with DocumentTemplateService calls:
-    			isPreviewable()
-    			getPreviewMimeType()
-    			renderPreview()
-    		create a final rendering with:
-    			render()
-		*/
-    }
-
     @RequestMapping("/delete.form")
-    public ModelAndView deleteCertificateHandler(@RequestParam("certId") String certId,
-                    HttpServletRequest request,
-                    HttpServletResponse response)
+    public ModelAndView deleteCertificateHandler(@RequestParam(PARAM_CERT_ID) String certId, HttpServletRequest request, HttpServletResponse response)
     {
 
-        HashMap<String, String>
-            model = new HashMap<String, String>();
-
+        HashMap<String, String> model = new HashMap<String, String>();
         if (!isAdministrator())
         {
-            model.put(ERROR_MESSAGE, "error.not.admin");
+            model.put(ERROR_MESSAGE, MESSAGE_ERROR_NOT_ADMIN);
         }
 
         if (certId == null || certId.trim().length() == 0)
         {
-            model.put(ERROR_MESSAGE, "error.no.selection");
+            model.put(ERROR_MESSAGE, MESSAGE_ERROR_NO_SELECTION);
         }
 
         try
@@ -526,42 +403,58 @@ public class CertificateListController extends BaseCertificateController
         }
         catch (IdUnusedException e)
         {
-            model.put(ERROR_MESSAGE, "error.bad.id");
+            model.put(ERROR_MESSAGE, MESSAGE_ERROR_BAD_ID);
         }
         catch (DocumentTemplateException dte)
         {
-        	model.put(ERROR_MESSAGE, "form.error.templateProcessingError");
+            model.put(ERROR_MESSAGE, MESSAGE_TEMPLATE_PROCESSING_ERROR);
         }
 
         if (model.size () > 0)
         {
-            return new ModelAndView ("redirect:list.form", model);
+            return new ModelAndView (REDIRECT + THIS_PAGE, model);
         }
 
-        return new ModelAndView ("redirect:list.form");
+        return new ModelAndView (REDIRECT + THIS_PAGE);
     }
 
     @RequestMapping("/print.form")
-    public void printCertificateHandler(@RequestParam("certId") String certId,
-                                        HttpServletRequest request,
-    		                            HttpServletResponse response)
+    public ModelAndView printCertificateHandler(@RequestParam(PARAM_CERT_ID) String certId, HttpServletRequest request, HttpServletResponse response)
     {
-        CertificateService
-            certService = getCertificateService();
-        CertificateDefinition
-            definition = null;
+        ModelAndView mav = null;
+        OutputStream out = null;
+
+        //true if there's trouble creating the certificate
+        boolean creationError = false;
+        CertificateService certService = getCertificateService();
+        CertificateDefinition definition = null;
 
         try
         {
             definition = certService.getCertificateDefinition(certId);
         }
-        catch (IdUnusedException e)
+        catch (IdUnusedException iue)
         {
-            //error
+            try
+            {
+                mav = certParticipantListHandler(null, null, null, request);
+                //this gets mav's actual model (not a clone)
+                Map model = mav.getModel();
+                //add the error to mav's model
+                model.put(ERROR_MESSAGE, MESSAGE_ERROR_BAD_ID);
+                return mav;
+            }
+            catch (Exception e)
+            {
+                //Guess there's nothing we can do
+                logger.error(userId() + " has attempted to download certificate for non existant certificate: " + certId+ ", failed to provide feedback");
+                return null;
+            }
         }
 
         Date issueDate = definition.getIssueDate(userId());
-        //they've been awarded if issueDate != null
+
+        //they've been awarded iff issueDate != null and they're awardable
         if (issueDate != null && isAwardable())
         {
             DocumentTemplate template = definition.getDocumentTemplate();
@@ -569,8 +462,15 @@ public class CertificateListController extends BaseCertificateController
 
             try
             {
+                //get an input stream for the PDF
+                InputStream in = dts.render(template, definition, userId());
+
+                //Creating the pdf was a success
+                //proceed to create the http response
+
+                //Make the filename
                 StringBuilder fNameBuff = new StringBuilder();
-                SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MM_dd");
+                SimpleDateFormat sdf = new SimpleDateFormat(PDF_FILE_NAME_DATE_FORMAT);
                 String  certName = definition.getName();
                 String templName = template.getName();
                 String extension = "";
@@ -589,39 +489,56 @@ public class CertificateListController extends BaseCertificateController
                 fNameBuff.append('_').append(strIssueDate);
                 fNameBuff.append(extension);
 
-                response.setContentType("application/force-download");
-                response.addHeader("Content-Disposition", "attachement; filename = " + fNameBuff.toString());
-                response.setHeader("Cache-Control", "");
-                response.setHeader("Pragma", "");
+                //Configure the http headers
+                response.setContentType(PDF_MIME_TYPE);
+                response.addHeader(HEADER_CONTENT_DISPOSITION, "attachement; filename = " + fNameBuff.toString());
+                response.setHeader(HEADER_CACHE_CONTROL, "");
+                response.setHeader(HEADER_PRAGMA, "");
 
-
-                OutputStream out = response.getOutputStream();
-                InputStream in = dts.render(template, definition, userId());
-
+                //put the pdf into the payload (2kb at a time)
                 byte buff[] = new byte[2048];
                 int numread = 0;
+                out = response.getOutputStream();
 
                 while ((numread = in.read(buff)) != -1)
                 {
                     out.write(buff, 0, numread);
                 }
+
+                out.flush();
+                out.close();
             }
-            catch (TemplateReadException e)
+            catch (TemplateReadException | VariableResolutionException | IOException e)
             {
-                //error
-            }
-            catch (VariableResolutionException e)
-            {
-            }
-            catch (IOException e)
-            {
+                creationError = true;
             }
         }
 
+        if (creationError)
+        {
+            try
+            {
+                mav = certParticipantListHandler(null, null, null, request);
+                //this gets mav's actual model (not a clone)
+                Map model = mav.getModel();
+                //add these entries to mav's model
+                model.put(ERROR_MESSAGE, MESSAGE_FORM_PRINT_ERROR);
+                model.put(MODEL_KEY_ERROR_ARGUMENTS_ATTRIBUTE, MAIL_SUPPORT);
+            }
+            catch (Exception e)
+            {
+                //An exception while handling previous errors
+                //Guess there's nothing we can do
+                logger.error("Couldn't create the pdf for " + userId() + ", certId is " + certId + ", failed to provide feedback");
+                return null;
+            }
+        }
+
+        return mav;
     }
 
     /**
-     * This method handles the report. This includes landing on the report view, handling the paging navigators, 
+     * This method handles the report. This includes landing on the report view, handling the paging navigators,
      * and exporting the csv. However, returning to the certificates list is handled in jsp
      * @param certId the certificate on which is being reported
      * @param page the destination (next, previous, first, last)
@@ -634,10 +551,10 @@ public class CertificateListController extends BaseCertificateController
      * @throws Exception
      */
     @RequestMapping("/reportView.form")
-    public ModelAndView certAdminReportHandler(@RequestParam("certId") String certId, @RequestParam(value=PAGINATION_PAGE, required=false) String page,
+    public ModelAndView certAdminReportHandler(@RequestParam(PARAM_CERT_ID) String certId, @RequestParam(value=PAGINATION_PAGE, required=false) String page,
             @RequestParam(value=PAGE_SIZE, required=false) Integer pageSize,
             @RequestParam(value=PAGE_NO, required=false) Integer pageNo,
-            @RequestParam(value="export", required=false) Boolean export,
+            @RequestParam(value=PARAM_EXPORT, required=false) Boolean export,
             HttpServletRequest request, HttpServletResponse response) throws Exception
     {
         if (!isAdministrator())
@@ -655,7 +572,7 @@ public class CertificateListController extends BaseCertificateController
         //Will be used to 'cache' some data to speed up the paging navigator
         HttpSession session = request.getSession();
 
-        /*The Report table's headers for columns that are related to the certificate definition's criteria 
+        /*The Report table's headers for columns that are related to the certificate definition's criteria
          * (other headers are already handled in jsp)*/
         List<Object> criteriaHeaders = new ArrayList<Object>();
 
@@ -683,7 +600,7 @@ public class CertificateListController extends BaseCertificateController
             return null;
         }
 
-        model.put("cert", definition);
+        model.put(MODEL_KEY_CERTIFICATE, definition);
 
         //for internationalization - loads Messages.properties
         ResourceLoader messages = getMessages();
@@ -698,7 +615,7 @@ public class CertificateListController extends BaseCertificateController
 
         if(page==null && export==null)
         {
-            //It's their first time hitting the page or they changed the page size 
+            //It's their first time hitting the page or they changed the page size
             // -we'll load/refresh all the data
 
             //get the requirements for the current user
@@ -747,29 +664,14 @@ public class CertificateListController extends BaseCertificateController
                     return null;
                 }
 
-                if (crit instanceof DueDatePassedCriterionHibernateImpl)
+                if (crit instanceof WillExpireCriterionHibernateImpl)
                 {
-                    DueDatePassedCriterionHibernateImpl ddpCrit = (DueDatePassedCriterionHibernateImpl) crit;
-                    //says 'Due date for <itemName>'
-                    criteriaHeaders.add(messages.getFormattedMessage("report.table.header.duedate", new Object[]{ddpCrit.getItemName()}));
-                }
-                else if (crit instanceof FinalGradeScoreCriterionHibernateImpl)
-                {
-                    FinalGradeScoreCriterionHibernateImpl fgsCrit = (FinalGradeScoreCriterionHibernateImpl) crit;
-                    //says 'Final Course Grade'
-                    criteriaHeaders.add(messages.getString("report.table.header.fcg"));
-                }
-                else if (crit instanceof GreaterThanScoreCriterionHibernateImpl)
-                {
-                    GreaterThanScoreCriterionHibernateImpl gtsCrit = (GreaterThanScoreCriterionHibernateImpl) crit;
-                    //says '<itemName>'
-                    criteriaHeaders.add(gtsCrit.getItemName());
-                }
-                else if (crit instanceof WillExpireCriterionHibernateImpl)
-                {
+                    /* special case because expiration offset is used on the UI
+                     * and this is always the first column after the Issue Date
+                     * */
                     WillExpireCriterionHibernateImpl wechi = (WillExpireCriterionHibernateImpl) crit;
-                    //says 'Expires'
-                    criteriaHeaders.add(0, messages.getString("report.table.header.expire"));
+                    //expiration comes first (immediately after issue date)
+                    criteriaHeaders.addAll(0, crit.getReportHeaders());
                     String strExpiryOffset = wechi.getExpiryOffset();
                     if (logIfNull(strExpiryOffset, "no expiry offset found for criterion: "+ wechi.getId()))
                     {
@@ -777,11 +679,9 @@ public class CertificateListController extends BaseCertificateController
                     }
                     expiryOffset = new Integer(strExpiryOffset);
                 }
-                else if (crit instanceof GradebookItemCriterionHibernateImpl)
+                else
                 {
-                    //I believe this is only used as a parent class and this code will never be reached
-                    logger.warn("certAdminReportHandler failed to find a child criterion for a GradebookItemCriterion");
-                    return null;
+                    criteriaHeaders.addAll(crit.getReportHeaders());
                 }
 
                 //Expiration date should immediately follow issue date
@@ -863,93 +763,7 @@ public class CertificateListController extends BaseCertificateController
                             return null;
                         }
 
-                        // TODO: refactor this entire block; use over-ridden method to provide cell(s) instead of instanceof checks
-                        if (crit instanceof DueDatePassedCriterionHibernateImpl)
-                        {
-                            DueDatePassedCriterionHibernateImpl ddpCrit = (DueDatePassedCriterionHibernateImpl) crit;
-                            Date dueDate = ddpCrit.getDueDate();
-
-                            if (logIfNull(dueDate, "DueDatePassed Criterion without a due date" + crit.getId(), "warn"))
-                            {
-                                //place holder
-                                criterionCells.add(null);
-                            }
-                            else
-                            {
-                                //add the formatted date to the criterion cells
-                                String formatted = dateFormat.format(dueDate);
-                                criterionCells.add(formatted);
-                            }
-                        }
-                        else if (crit instanceof FinalGradeScoreCriterionHibernateImpl)
-                        {
-                            CriteriaFactory critFact = crit.getCriteriaFactory();
-                            if (logIfNull (critFact, "criterion without a factory. crit: " + crit.getId()))
-                            {
-                                return null;
-                            }
-
-                            Double score = critFact.getFinalScore(userId, siteId());
-                            if (score==null)
-                            {
-                                String incomplete = messages.getString("report.table.incomplete");
-                                criterionCells.add(incomplete);
-                            }
-                            else
-                            {
-                                String formatted = numberFormat.format(score);
-                                criterionCells.add(formatted);
-                            }
-                        }
-                        else if (crit instanceof GreaterThanScoreCriterionHibernateImpl)
-                        {
-                            GreaterThanScoreCriterionHibernateImpl gtsCrit = (GreaterThanScoreCriterionHibernateImpl) crit;
-                            CriteriaFactory critFact = gtsCrit.getCriteriaFactory();
-                            if (logIfNull (critFact, "criterion without a factory. crit: " + gtsCrit.getId()))
-                            {
-                                return null;
-                            }
-
-                            Double score = critFact.getScore(gtsCrit.getItemId(), userId, siteId());
-                            if (score == null)
-                            {
-                                String incomplete = messages.getString("report.table.incomplete");
-                                criterionCells.add(incomplete);
-                            }
-                            else
-                            {
-                                String formatted = numberFormat.format(score);
-                                criterionCells.add(formatted);
-                            }
-                        }
-                        else if (crit instanceof WillExpireCriterionHibernateImpl)
-                        {
-                            if (issueDate == null)
-                            {
-                                //user didn't achieve the certificate, so expiration can't be calculated
-
-                                //place holder
-                                criterionCells.add(null);
-                            }
-                            else
-                            {
-                                //we already have the expiration date
-                                Calendar cal = Calendar.getInstance();
-                                cal.setTime(issueDate);
-                                cal.add(Calendar.MONTH, expiryOffset);
-                                Date expiryDate = cal.getTime();
-                                String formatted = dateFormat.format(expiryDate);
-                                criterionCells.add(formatted);
-                            }
-                        }
-                        else if (crit instanceof GradebookItemCriterionHibernateImpl)
-                        {
-                            //I believe this is only used as a parent class and this code will never be reached
-                            logger.warn("certAdminReportHandler failed to find a child criterion for a GradebookItemCriterion");
-
-                            //place holder
-                            return null;
-                        }
+                        criterionCells.addAll(crit.getReportData(userId, siteId(), issueDate));
                     }
                     currentRow.setCriterionCells(criterionCells);
 
@@ -957,12 +771,12 @@ public class CertificateListController extends BaseCertificateController
                     //certificate is awarded iff the issue date is null
                     if (issueDate == null)
                     {
-                        String no = messages.getString("report.table.no");
+                        String no = messages.getString(MESSAGE_NO);
                         currentRow.setAwarded(no);
                     }
                     else
                     {
-                        String yes = messages.getString("report.table.yes");
+                        String yes = messages.getString(MESSAGE_YES);
                         currentRow.setAwarded(yes);
                     }
 
@@ -997,16 +811,19 @@ public class CertificateListController extends BaseCertificateController
             }
             reportList.setSort(new SortDefinition()
             {
-                public String getProperty() {
+                public String getProperty()
+                {
                     //sort by the getName() method
-                    return "name";
+                    return CERTIFICATE_NAME_PROPERTY;
                 }
 
-                public boolean isIgnoreCase() {
+                public boolean isIgnoreCase()
+                {
                     return true;
                 }
 
-                public boolean isAscending() {
+                public boolean isAscending()
+                {
                     return true;
                 }
             });
@@ -1019,11 +836,11 @@ public class CertificateListController extends BaseCertificateController
             // page != null -> they clicked a navigation button
 
             //pull the headers and the report list from the http session
-            requirements = (List<String>) session.getAttribute("requirements");
-            expiryOffset = (Integer) session.getAttribute("expiryOffset");
-            propHeaders = (List<String>) session.getAttribute("reportPropHeaders");
-            criteriaHeaders = (List<Object>) session.getAttribute("reportCritHeaders");
-            reportList = (PagedListHolder) session.getAttribute("reportList");
+            requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
+            expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
+            propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+            criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
+            reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
 
             //navigate appropriately
             if(PAGINATION_NEXT.equals(page) && !reportList.isLastPage())
@@ -1047,43 +864,38 @@ public class CertificateListController extends BaseCertificateController
         {
             // they clicked Export as CSV
             //get the headers and the report list from the http session
-            requirements = (List<String>) session.getAttribute("requirements");
-            expiryOffset = (Integer) session.getAttribute("expiryOffset");
-            propHeaders = (List<String>) session.getAttribute("reportPropHeaders");
-            criteriaHeaders = (List<Object>) session.getAttribute("reportCritHeaders");
-            reportList = (PagedListHolder) session.getAttribute("reportList");
+            requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
+            expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
+            propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+            criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
+            reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
 
             try
             {
                 definition = certService.getCertificateDefinition(certId);
 
-                //prepare the http response header
-                String mimeType = "text/csv";
-                response.setContentType(mimeType);
-                DateFormat filenameDateFormat = new SimpleDateFormat("yyyy-MM-dd");
+                //prepare the file name for the http response header
+                DateFormat filenameDateFormat = new SimpleDateFormat(CSV_FILE_NAME_FORMAT);
                 String today = filenameDateFormat.format(new Date());
-                String report = messages.getString("report.export.fname");
+                String report = messages.getString(MESSAGE_REPORT_EXPORT_FNAME);
                 String defName = definition.getName();
                 if (logIfNull(defName,"certificate name is null: "+ certId))
                 {
-                    errors.add(messages.getString("report.export.error"));
+                    errors.add(getReportExportErrorMessage());
                     return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
                 }
                 defName = defName.replaceAll("[^a-zA-Z0-9]+","-");
-                response.addHeader("Content-Disposition", "attachment; filename = " + defName + "_" + report + "_" + today +".csv");
-                response.setHeader("Cache-Control", "");
-                response.setHeader("Pragma", "");
 
                 //fill in the csv's header
                 StringBuilder contents = new StringBuilder();
-                appendItem(contents, messages.getString("report.table.header.name"), false);
-                appendItem(contents, messages.getString("report.table.header.userid"), false);
-                appendItem(contents, messages.getString("report.table.header.role"), false);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_NAME), false);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_USER_ID), false);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ROLE), false);
                 if (canShowUserProps)
                 {
                     if (logIfNull(propHeaders, "propHeaders is null"))
                     {
-                        errors.add(messages.getString("report.export.error"));
+                        errors.add(getReportExportErrorMessage());
                         return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
                     }
                     Iterator<String> itPropHeaders = propHeaders.iterator();
@@ -1092,7 +904,7 @@ public class CertificateListController extends BaseCertificateController
                         appendItem(contents, itPropHeaders.next(), false);
                     }
                 }
-                appendItem(contents, messages.getString("report.table.header.issuedate"), false);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ISSUEDATE), false);
 
                 Iterator<Object> itHeaders = criteriaHeaders.iterator();
                 while (itHeaders.hasNext())
@@ -1100,7 +912,7 @@ public class CertificateListController extends BaseCertificateController
                     appendItem(contents, (String) itHeaders.next(), false);
                 }
 
-                appendItem(contents, messages.getString("report.table.header.awarded"), true);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_AWARDED), true);
 
                 // gets the original list of ReportRows
                 List<ReportRow> table;
@@ -1111,7 +923,7 @@ public class CertificateListController extends BaseCertificateController
                 catch( Exception ex )
                 {
                     logger.error( "Couldn't cast reportList for the reportView. certId: " + certId);
-                    errors.add(messages.getString("report.export.error"));
+                    errors.add(getReportExportErrorMessage());
                     return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
                 }
 
@@ -1129,7 +941,7 @@ public class CertificateListController extends BaseCertificateController
                         List<String> extraProps = row.getExtraProps();
                         if (logIfNull(extraProps, "Extra props is null for certId: " + certId))
                         {
-                            errors.add(messages.getString("report.export.error"));
+                            errors.add(getReportExportErrorMessage());
                             return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
                         }
                         Iterator<String> itExtraProps = extraProps.iterator();
@@ -1149,6 +961,12 @@ public class CertificateListController extends BaseCertificateController
                     appendItem(contents, row.getAwarded(), true);
                 }
 
+                //Everything went well, set up the http headers to send the file
+                response.setContentType(CSV_MIME_TYPE);
+                response.addHeader(HEADER_CONTENT_DISPOSITION, "attachment; filename = " + defName + "_" + report + "_" + today +".csv");
+                response.setHeader(HEADER_CACHE_CONTROL, "");
+                response.setHeader(HEADER_PRAGMA, "");
+
                 //send contents
                 String data = contents.toString();
                 OutputStream out = response.getOutputStream();
@@ -1166,7 +984,7 @@ public class CertificateListController extends BaseCertificateController
                 or they attempted to do evil with a random http GET.
                 We don't care*/
                 logger.error("unused certificate id passed to report's csv export: "+ certId);
-                errors.add(messages.getString("report.export.error"));
+                errors.add(getReportExportErrorMessage());
                 return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
             }
         }
@@ -1179,44 +997,49 @@ public class CertificateListController extends BaseCertificateController
 
         //handle plurals when appropriate
         String strExpiryOffset = null;
-        if (expiryOffset == 1)
+        if (expiryOffset != null && expiryOffset == 1)
         {
-            strExpiryOffset = "1 " + messages.getString("report.expiry.offset.month"); 
+            strExpiryOffset = "1 " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTH);
         }
         else if (expiryOffset != null)
         {
-            strExpiryOffset = expiryOffset + " " + messages.getString("report.expiry.offset.months");
+            strExpiryOffset = expiryOffset + " " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTHS);
         }
 
         //push the navigator and the headers to the http session
-        session.setAttribute("requirements", requirements);
-        session.setAttribute("expiryOffset", expiryOffset);
-        session.setAttribute("reportPropHeaders", propHeaders);
-        session.setAttribute("reportCritHeaders", criteriaHeaders);
-        session.setAttribute("reportList", reportList);
+        session.setAttribute(SESSION_REQUIREMENTS_ATTRIBUTE, requirements);
+        session.setAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE, expiryOffset);
+        session.setAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        session.setAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
+        session.setAttribute(SESSION_REPORT_LIST_ATTRIBUTE, reportList);
 
         //populate the model as necessary
-        model.put("errors", errors);
-        model.put("requirements", requirements);
-        model.put("expiryOffset", strExpiryOffset);
-        model.put("userPropHeaders", propHeaders);
-        model.put("critHeaders",criteriaHeaders);
-        model.put("reportList", reportList);
-        model.put("pageSizeList", PAGE_SIZE_LIST);
-        model.put("pageNo", reportList.getPage());
-        model.put("pageSize", reportList.getPageSize());
-        model.put("firstElement", (reportList.getFirstElementOnPage()+1));
-        model.put("lastElement", (reportList.getLastElementOnPage()+1));
+        model.put(MODEL_KEY_ERRORS_ATTRIBUTE, errors);
+        model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
+        model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
+        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE,criteriaHeaders);
+        model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, reportList.getPage());
+        model.put(MODEL_KEY_PAGE_SIZE, reportList.getPageSize());
+        model.put(MODEL_KEY_FIRST_ELEMENT, (reportList.getFirstElementOnPage() + 1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (reportList.getLastElementOnPage() + 1));
 
         //send the model to the jsp
-        ModelAndView mav = new ModelAndView("reportView", model);
+        ModelAndView mav = new ModelAndView(REPORT_VIEW, model);
         return mav;
     }
 
+    private String getReportExportErrorMessage()
+    {
+        return getMessages().getFormattedMessage(MESSAGE_REPORT_EXPORT_ERROR, new Object[]{MAIL_SUPPORT});
+    }
+
     /**
-     * If an error occurs that prevents us from generating the report view, 
+     * If an error occurs that prevents us from generating the report view,
      * this will give us a return value such that the user will see the relevant error
-     * 
+     *
      * @param model
      * @param errors
      * @param requirements
@@ -1228,56 +1051,55 @@ public class CertificateListController extends BaseCertificateController
     private ModelAndView reportViewError(Map<String, Object> model, List<String> errors, List<String> requirements, List<String> propHeaders, List<Object> criteriaHeaders, PagedListHolder reportList)
     {
         //Include what we can, but ultimately ensure that we can display the errors to the user
-        if (model.get("errors") == null)
+        if (model.get(MODEL_KEY_ERRORS_ATTRIBUTE) == null)
         {
-            model.put("errors", errors);
+            model.put(MODEL_KEY_ERRORS_ATTRIBUTE, errors);
         }
-        if (model.get("requirements") == null)
+        if (model.get(MODEL_KEY_REQUIREMENTS_ATTRIBUTE) == null)
         {
-            model.put("requirements", requirements);
+            model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
         }
-        if (model.get("userPropHeaders") == null)
+        if (model.get(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE) == null)
         {
-            model.put("userPropHeaders", propHeaders);
+            model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
         }
-        if (model.get("critHeaders") == null)
+        if (model.get(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE) == null)
         {
-            model.put("critHeaders", criteriaHeaders);
+            model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
         }
 
-        //will break if reportList is null, so we need to be careful with this
-        PagedListHolder plh = (PagedListHolder) model.get("reportList");
+        PagedListHolder plh = (PagedListHolder) model.get(MODEL_KEY_REPORT_LIST_ATTRIBUTE);
         if (plh == null)
         {
             if (reportList == null)
             {
                 reportList = new PagedListHolder(new ArrayList<String>());
             }
-            plh=reportList;
-            model.put("reportList", reportList);
+            plh = reportList;
+            model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
         }
 
-        if (model.get("pageSizeList") == null)
+        if (model.get(MODEL_KEY_PAGE_SIZE_LIST) == null)
         {
-            model.put("pageSizeList", PAGE_SIZE_LIST);
+            model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
         }
-        if (model.get("pageNo") == null)
+        if (model.get(MODEL_KEY_PAGE_NO) == null)
         {
-            model.put("pageNo", plh.getPage());
+            model.put(MODEL_KEY_PAGE_NO, plh.getPage());
         }
-        if (model.get("pageSize") == null)
+        if (model.get(MODEL_KEY_PAGE_SIZE) == null)
         {
-            model.put("pageSize", plh.getPageSize());
+            model.put(MODEL_KEY_PAGE_SIZE, plh.getPageSize());
         }
-        if (model.get("firstElement") == null)
+        if (model.get(MODEL_KEY_FIRST_ELEMENT) == null)
         {
-            model.put("firstElement", plh.getFirstElementOnPage()+1);
+            model.put(MODEL_KEY_FIRST_ELEMENT, plh.getFirstElementOnPage() + 1);
         }
-        if (model.get("lastElement") == null)
+        if (model.get(MODEL_KEY_LAST_ELEMENT) == null)
         {
-            model.put("lastElement", plh.getLastElementOnPage()+1);
+            model.put(MODEL_KEY_LAST_ELEMENT, plh.getLastElementOnPage() + 1);
         }
-        return new ModelAndView("reportView", model);
+        return new ModelAndView(REPORT_VIEW, model);
     }
 
     /**
@@ -1289,13 +1111,13 @@ public class CertificateListController extends BaseCertificateController
      */
     private boolean logIfNull(Object obj, String message, String level)
     {
-        if (obj==null)
+        if (obj == null)
         {
             if (level == null)
             {
                 logger.error(message);
             }
-            else if ("warn".equals(level))
+            else if (LEVEL_WARN.equals(level))
             {
                 logger.warn(message);
             }
@@ -1374,6 +1196,9 @@ public class CertificateListController extends BaseCertificateController
         }
     }
 
+    /**
+     * A row in the report table. Represents a user who is awardable
+      */
     public class ReportRow
     {
         private String name = "";
@@ -1454,25 +1279,4 @@ public class CertificateListController extends BaseCertificateController
             return awarded;
         }
     }
-
-   /* @RequestMapping("/admin/list/{pageno}")
-	public ModelAndView certListHandler(@PathVariable("pageno") String pageno) 
-    {
-		ModelAndView mav = new ModelAndView("certviewAdmin");
-		Map model = new HashMap();
-    	setCertificateService(new MockCertificateService());
-    	String siteid = toolManager.getCurrentPlacement().getContext();
-    	Set<CertificateDefinition> certDefList = getCertificateService().getCertificateDefinitionsForSite(siteId);
-    	
-    	List<String> certDefIds = new ArrayList<String>();
-    	for(CertificateDefinition cfl:certDefList)
-    	{
-    		certDefIds.add(cfl.getId());
-    	}
-    	
-    	Map<String, CertificateAward> certAwardList = getCertificateService().getCertificateAwardsForUser((String[])certDefIds.toArray());
-    	PagedListHolder certDefPageList = new PagedListHolder(certDefList);
-    	certDefPageList.setPageSize(5);
-		return mav;
-	}*/
 }

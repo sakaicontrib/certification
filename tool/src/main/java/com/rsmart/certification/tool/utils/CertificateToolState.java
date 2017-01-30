@@ -16,30 +16,24 @@
 
 package com.rsmart.certification.tool.utils;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.rsmart.certification.api.BaseCertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinition;
-
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
+import java.util.HashMap;
 import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.tool.api.ToolSession;
 import org.sakaiproject.tool.cover.SessionManager;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-import java.util.Set;
-
 public class CertificateToolState
 {
-    private static final Log
-        LOG = LogFactory.getLog(CertificateToolState.class);
-    public static final String
-        CERTIFICATE_TOOL_STATE = CertificateToolState.class.getName();
-    private CertificateDefinition
-        certificateDefinition = null;
+    private static final Log LOG = LogFactory.getLog(CertificateToolState.class);
+    public static final String CERTIFICATE_TOOL_STATE = CertificateToolState.class.getName();
+    private CertificateDefinition certificateDefinition = null;
     private String newDocumentTemplateName;
     private String submitValue;
     private String selectedCert;
@@ -50,7 +44,7 @@ public class CertificateToolState
     private Map<String, String> templateFields = null;
     private Map<String, String> predifinedFields = null;
     private boolean newDefinition;
-    
+
     public CriteriaTemplate getSelectedCriteriaTemplate()
     {
         return selectedCriteriaTemplate;
@@ -61,55 +55,67 @@ public class CertificateToolState
         this.selectedCriteriaTemplate = selectedCriteriaTemplate;
     }
 
-    
-	public CertificateDefinition getCertificateDefinition() {
-		return certificateDefinition;
-	}
 
-	public void setCertificateDefinition(
-			CertificateDefinition certificateDefinition) {
-		this.certificateDefinition = certificateDefinition;
-	}
+    public CertificateDefinition getCertificateDefinition()
+    {
+        return certificateDefinition;
+    }
 
-	public String getNewDocumentTemplateName() {
-		return newDocumentTemplateName;
-	}
+    public void setCertificateDefinition(
+            CertificateDefinition certificateDefinition)
+    {
+        this.certificateDefinition = certificateDefinition;
+    }
 
-	public void setNewDocumentTemplateName(String newDocumentTemplateName) {
-		this.newDocumentTemplateName = newDocumentTemplateName;
-	}
+    public String getNewDocumentTemplateName()
+    {
+        return newDocumentTemplateName;
+    }
 
-	public boolean isNewDefinition() {
-		return newDefinition;
-	}
+    public void setNewDocumentTemplateName(String newDocumentTemplateName)
+    {
+        this.newDocumentTemplateName = newDocumentTemplateName;
+    }
 
-	public void setNewDefinition(boolean newDefinition) {
-		this.newDefinition = newDefinition;
-	}
+    public boolean isNewDefinition()
+    {
+        return newDefinition;
+    }
 
-	public CommonsMultipartFile getData() {
-		return data;
-	}
+    public void setNewDefinition(boolean newDefinition)
+    {
+        this.newDefinition = newDefinition;
+    }
 
-	public void setData(CommonsMultipartFile data) {
-		this.data = data;
-	}
+    public CommonsMultipartFile getData()
+    {
+        return data;
+    }
 
-	public String getSubmitValue() {
-		return submitValue;
-	}
+    public void setData(CommonsMultipartFile data)
+    {
+        this.data = data;
+    }
 
-	public void setSubmitValue(String submitValue) {
-		this.submitValue = submitValue;
-	}
+    public String getSubmitValue()
+    {
+        return submitValue;
+    }
 
-	public String getSelectedCert() {
-		return selectedCert;
-	}
+    public void setSubmitValue(String submitValue)
+    {
+        this.submitValue = submitValue;
+    }
 
-	public void setSelectedCert(String selectedCert) {
-		this.selectedCert = selectedCert;
-	}
+    public String getSelectedCert()
+    {
+        return selectedCert;
+    }
+
+    public void setSelectedCert(String selectedCert)
+    {
+        this.selectedCert = selectedCert;
+    }
 
     public void setCriteriaTemplates(Set<CriteriaTemplate> criteriaTemplates)
     {
@@ -121,176 +127,186 @@ public class CertificateToolState
         return criteriaTemplates;
     }
 
-   public Map<String, String> getTemplateFields() {
-		return templateFields;
-	}
+   public Map<String, String> getTemplateFields()
+   {
+        return templateFields;
+    }
 
-	public void setTemplateFields(Map<String, String> templateFields) {
-		this.templateFields = templateFields;
-	}
+    public void setTemplateFields(Map<String, String> templateFields)
+    {
+        this.templateFields = templateFields;
+    }
 
-	/**
-	 * 
-	 * @return a map of ${} format to description
-	 */
-	public Map<String, String> getPredifinedFields() {
-		return predifinedFields;
-	}
+    /**
+     *
+     * @return a map of ${} format to description
+     */
+    public Map<String, String> getPredifinedFields()
+    {
+        return predifinedFields;
+    }
 
-	public Map<String, String> getEscapedPredifinedFields() {
-		Map<String, String> retVal = new HashMap<String, String>();
-		Map<String, String> predefFields = getPredifinedFields();
-		if (predefFields==null || predefFields.isEmpty())
-		{
-			//TODO: log it
-			return predefFields;
-		}
+    public Map<String, String> getEscapedPredifinedFields()
+    {
+        Map<String, String> retVal = new HashMap<String, String>();
+        Map<String, String> predefFields = getPredifinedFields();
+        if (predefFields==null || predefFields.isEmpty())
+        {
+            //TODO: log it
+            return predefFields;
+        }
 
-		Iterator<String> itPredefFields = predefFields.keySet().iterator();
-		while (itPredefFields.hasNext())
-		{
-			String key = itPredefFields.next();
-			//passing something of the form ${} makes jsp treat it like a variable
-			//soln: remove the $ here and append it back in the jsp code
-			retVal.put(key.substring(1), predefFields.get(key));
-		}
+        Iterator<String> itPredefFields = predefFields.keySet().iterator();
+        while (itPredefFields.hasNext())
+        {
+            String key = itPredefFields.next();
+            //passing something of the form ${} makes jsp treat it like a variable
+            //soln: remove the $ here and append it back in the jsp code
+            retVal.put(key.substring(1), predefFields.get(key));
+        }
 
-		return retVal;
-	}
+        return retVal;
+    }
 
-    public String getMimeTypes() {
+    public String getMimeTypes()
+    {
         return mimeTypes;
     }
 
-    public void setMimeTypes(String mimeTypes) {
+    public void setMimeTypes(String mimeTypes)
+    {
         this.mimeTypes = mimeTypes;
-    }    
+    }
 
-	public void setPredifinedFields(Map<String, String> predifinedFields) {
-		Map<String, String> temp = null;
-		if(predifinedFields != null)
-		{
-			temp = new HashMap<String, String>();
-			for(String key : predifinedFields.keySet())
-			{
-				String newKey = key;
-				if(!(key.startsWith("${") && key.endsWith("}")))
-				{
-					newKey = "${"+key+"}";
-				}
-				temp.put(newKey, predifinedFields.get(key));
-			}
-		}
-		this.predifinedFields = temp;
-	}
+    public void setPredifinedFields(Map<String, String> predifinedFields)
+    {
+        Map<String, String> temp = null;
+        if(predifinedFields != null)
+        {
+            temp = new HashMap<String, String>();
+            for(String key : predifinedFields.keySet())
+            {
+                String newKey = key;
+                if(!(key.startsWith("${") && key.endsWith("}")))
+                {
+                    newKey = "${"+key+"}";
+                }
+                temp.put(newKey, predifinedFields.get(key));
+            }
+        }
 
-	/**
-	 * @return a map from the PDF's fields to their selected values' descriptions
-	 */
-	public Map <String, String> getTemplateFieldsToDescriptions()
-	{
-		Map<String, String> retVal = new HashMap<String, String>();
-		Map<String, String> preDefFields = getPredifinedFields();
+        this.predifinedFields = temp;
+    }
 
-		if (preDefFields == null || preDefFields.isEmpty())
-		{
-			LOG.error("preDefFields is null or empty!");
-			return null;
-		}
+    /**
+     * @return a map from the PDF's fields to their selected values' descriptions
+     */
+    public Map <String, String> getTemplateFieldsToDescriptions()
+    {
+        Map<String, String> retVal = new HashMap<String, String>();
+        Map<String, String> preDefFields = getPredifinedFields();
 
-		CertificateDefinition certDef = getCertificateDefinition();
-		if (certDef == null)
-		{
-			LOG.error("certDef is null!");
-			return null;
-		}
-		Set<String> keys = certDef.getFieldValues().keySet();
-		if (keys == null || keys.isEmpty())
-		{
-			//this is fine - just means it's a new cert def
-			return null;
-		}
+        if (preDefFields == null || preDefFields.isEmpty())
+        {
+            LOG.error("preDefFields is null or empty!");
+            return null;
+        }
 
-		Iterator<String> itKeys = keys.iterator();
-		while (itKeys.hasNext())
-		{
-			String key = itKeys.next();
-			retVal.put(key, preDefFields.get(certDef.getFieldValues().get(key)));
-		}
-		return retVal;
-	}
+        CertificateDefinition certDef = getCertificateDefinition();
+        if (certDef == null)
+        {
+            LOG.error("certDef is null!");
+            return null;
+        }
+        Set<String> keys = certDef.getFieldValues().keySet();
+        if (keys == null || keys.isEmpty())
+        {
+            //this is fine - just means it's a new cert def
+            return null;
+        }
 
-	/**
-	 * 
-	 * @return a map of PDF field names to ${} format
-	 */
-	public Map<String, String> getEscapedFieldValues()
-	{
-		Map<String, String> retVal = null;
-		CertificateDefinition certDef = getCertificateDefinition();
-		if (certDef == null)
-		{
-			LOG.error("certDef is null");
-			return retVal;
-		}
-		Map<String, String> fieldValues = certDef.getFieldValues();
-		if (fieldValues == null || fieldValues.isEmpty())
-		{
-			//this is fine, just means it's a new cert def
-			return getTemplateFields();
-		}
-		retVal = new HashMap<String, String>();
-		Iterator<String> itKeys = fieldValues.keySet().iterator();
-		while (itKeys.hasNext())
-		{
-			String key = itKeys.next();
-			//passing something of the form ${} makes jsp treat it like a variable
-			//soln: remove the $ here and append it back in the jsp code
-			String value = fieldValues.get(key).substring(1);
-			retVal.put(key, value);
-		}
+        Iterator<String> itKeys = keys.iterator();
+        while (itKeys.hasNext())
+        {
+            String key = itKeys.next();
+            retVal.put(key, preDefFields.get(certDef.getFieldValues().get(key)));
+        }
 
-		return retVal;
-	}
+        return retVal;
+    }
 
-	public CertificateToolState ()
+    /**
+     *
+     * @return a map of PDF field names to ${} format
+     */
+    public Map<String, String> getEscapedFieldValues()
+    {
+        Map<String, String> retVal = null;
+        CertificateDefinition certDef = getCertificateDefinition();
+        if (certDef == null)
+        {
+            LOG.error("certDef is null");
+            return retVal;
+        }
+
+        Map<String, String> fieldValues = certDef.getFieldValues();
+        if (fieldValues == null || fieldValues.isEmpty())
+        {
+            //this is fine, just means it's a new cert def
+            return getTemplateFields();
+        }
+
+        retVal = new HashMap<String, String>();
+        Iterator<String> itKeys = fieldValues.keySet().iterator();
+        while (itKeys.hasNext())
+        {
+            String key = itKeys.next();
+            //passing something of the form ${} makes jsp treat it like a variable
+            //soln: remove the $ here and append it back in the jsp code
+            String value = fieldValues.get(key).substring(1);
+            retVal.put(key, value);
+        }
+
+        return retVal;
+    }
+
+    public CertificateToolState ()
     {
         reset();
     }
 
     public void reset()
     {
-    	certificateDefinition = new BaseCertificateDefinition();
-    	newDocumentTemplateName = null;
-    	submitValue = null;
-    	selectedCert = null;
-    	data = null;
-    	templateFields = null;
-    	predifinedFields = null;
+        certificateDefinition = new BaseCertificateDefinition();
+        newDocumentTemplateName = null;
+        submitValue = null;
+        selectedCert = null;
+        data = null;
+        templateFields = null;
+        predifinedFields = null;
         criteriaTemplates = null;
         selectedCriteriaTemplate = null;
         newDefinition = true;
     }
 
-   public void setTemplateFields(Set<String> templateFields)
-   {
-	   Map<String, String> newTemplateField = null;
-	   if(templateFields != null)
-	   {
-		   newTemplateField = new HashMap<String, String>();
-		   for(String val : templateFields)
-		   {
-			   newTemplateField.put(val, val);
-		   }
-	   }
-	   setTemplateFields(newTemplateField);
-   }
-   
-    private static final ToolSession session()
+    public void setTemplateFields(Set<String> templateFields)
     {
-        final ToolSession
-            session = SessionManager.getCurrentToolSession();
+       Map<String, String> newTemplateField = null;
+       if(templateFields != null)
+       {
+           newTemplateField = new HashMap<String, String>();
+           for(String val : templateFields)
+           {
+               newTemplateField.put(val, val);
+           }
+       }
 
+       setTemplateFields(newTemplateField);
+    }
+
+    private static ToolSession session()
+    {
+        final ToolSession session = SessionManager.getCurrentToolSession();
         if (session == null)
         {
             LOG.fatal("No tool session found; cannot manage CertificateToolState object");
@@ -299,23 +315,18 @@ public class CertificateToolState
         return session;
     }
 
-    public static final CertificateToolState getState()
+    public static CertificateToolState getState()
     {
-        final ToolSession
-            session = session();
-
+        final ToolSession session = session();
         if (session == null)
         {
             return null;
         }
 
-        CertificateToolState
-            state = (CertificateToolState) session.getAttribute(CERTIFICATE_TOOL_STATE);
-
+        CertificateToolState state = (CertificateToolState) session.getAttribute(CERTIFICATE_TOOL_STATE);
         if (state == null)
         {
             state = new CertificateToolState();
-
             session.setAttribute(CERTIFICATE_TOOL_STATE, state);
         }
 
@@ -324,9 +335,7 @@ public class CertificateToolState
 
     public static final void clear()
     {
-        final ToolSession
-            session = session();
-
+        final ToolSession session = session();
         if (session != null)
         {
             session.removeAttribute(CERTIFICATE_TOOL_STATE);

@@ -18,7 +18,7 @@
         </c:forEach>
 	    <c:if test="${errorMessage != null}" >
 	        <div id="errorMessage" class="alertMessage" >
-	            <spring:message code="${errorMessage}" />
+	            <spring:message code="${errorMessage}" arguments="${errorArgs}"/>
 	        </div>
 	    </c:if>
 		<div class="instruction">
@@ -81,22 +81,6 @@
                         ${cert.description}
                     </td>
             <c:choose>
-                <%-- 
-                    This needs to be redone. We need to pull the requirements and if applicable the view certificate url
-                --%>
-                <%--
-                <c:when test="${certAwardList[cert.id] != null}">
-
-                    <td>
-                        ${certAwardList[cert.id].formattedCertificationTimeStamp}
-                    </td>
-                    <td>
-                        <a href='<c:url value="printPreview.form"><c:param name="certId" value="${cert.id}" /></c:url>'>
-                            <spring:message code="form.label.printcert" />
-                        </a>
-                    </td>
-                </c:when>
-                --%>
                 <c:when test="${certRequirementList[cert.id] != null}">
                     <td>
                         <ul style="margin-top:0px;">
@@ -109,13 +93,9 @@
                         </ul>
                     </td>
                     <td>
-                    <%--
-                        <input type="hidden" id="certId" name="certId" value="${cert.id}"/>
-                        <input id="print" type="submit" value="<spring:message code="form.submit.print"/>"/>&nbsp;
-                    --%>
                     <c:choose>
                         <c:when test="${certIsAwarded[cert.id]}">
-                            <a id="viewCert${cert.id}" href="" certificate="${cert.id}"><spring:message code="form.submit.print"/></a>
+                            <a id="viewCert${cert.id}" href="print.form?certId=${cert.id}"><spring:message code="form.submit.print"/></a>
                         </c:when>
                         <c:otherwise>
                             <spring:message code="form.submit.na"/>
@@ -123,16 +103,7 @@
                     </c:choose>
                     </td>
                 </c:when>
-                <c:otherwise>
-                    <td></td>
-                    <td>
-                        <a href='<c:url value="checkstatus.form"><c:param name="certId" value="${cert.id}" /></c:url>'>
-                            <spring:message code="form.label.checkstatus" />
-                        </a>
-                    </td>
-                </c:otherwise>
             </c:choose>
-
 	          	</tr>
 	       		</c:forEach>
 			</tbody>
@@ -146,18 +117,6 @@
 		$(document).ready(function() {
 
 			loaded();
-
-			var anchors = document.getElementsByTagName("A");
-			for (var i = 0; i< anchors.length; i++)
-			{
-				if (anchors[i].id.indexOf('viewCert') === 0)
-				{
-					$(anchors[i]).click( function() {
-						location.href="print.form?certId="+this.getAttribute('certificate');
-						return false;
-					});
-				}
-			}
 
 			$("#first").click( function() {
 				location.href="list.form?page=first";

@@ -32,7 +32,6 @@
         <property name="createDate" type="timestamp" column="create_date" not-null="true"/>
         <property name="creatorUserId" type="java.lang.String" column="creator_id" not-null="true"/>
         <property name="siteId" type="java.lang.String" column="site_id" not-null="true"/>
-        <property name="shortUrl" type="java.lang.String" column="short_url" not-null="false"/>
         <property name="status" type="com.rsmart.certification.impl.hibernate.CertificateDefinitionStatusEnumUserType"
                   not-null="true"/>
         <set name="awardCriteria" lazy="false" cascade="save-update,delete">

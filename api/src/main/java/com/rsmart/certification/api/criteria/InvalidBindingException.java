@@ -5,8 +5,7 @@ package com.rsmart.certification.api.criteria;
  * Date: Jul 15, 2011
  * Time: 4:46:54 PM
  */
-public class InvalidBindingException
-    extends CriterionCreationException
+public class InvalidBindingException extends CriterionCreationException
 {
     private String
         bindingKey,
@@ -37,19 +36,23 @@ public class InvalidBindingException
         return bindingKey;
     }
 
-    public void setBindingKey(String bindingKey) {
+    public void setBindingKey(String bindingKey)
+    {
         this.bindingKey = bindingKey;
     }
 
-    public String getBindingValue() {
+    public String getBindingValue()
+    {
         return bindingValue;
     }
 
-    public void setBindingValue(String bindingValue) {
+    public void setBindingValue(String bindingValue)
+    {
         this.bindingValue = bindingValue;
     }
 
-    public String getLocalizedMessage() {
+    public String getLocalizedMessage()
+    {
         if (localizedMessage != null)
         {
             StringBuffer
@@ -62,7 +65,8 @@ public class InvalidBindingException
         return null;
     }
 
-    public void setLocalizedMessage(String localizedMessage) {
+    public void setLocalizedMessage(String localizedMessage)
+    {
         this.localizedMessage = localizedMessage;
     }
 }

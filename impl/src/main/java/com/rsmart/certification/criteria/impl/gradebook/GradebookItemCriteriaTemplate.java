@@ -3,30 +3,23 @@ package com.rsmart.certification.criteria.impl.gradebook;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
-import org.sakaiproject.util.ResourceLoader;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
  * Date: Jul 18, 2011
  * Time: 10:38:10 PM
  */
-public abstract class GradebookItemCriteriaTemplate
-    implements CriteriaTemplate
+public abstract class GradebookItemCriteriaTemplate implements CriteriaTemplate
 {
-    GradebookItemTemplateVariable
-        itemVariable = null;
-    ArrayList<CriteriaTemplateVariable>
-        variables = new ArrayList<CriteriaTemplateVariable>(1);
-    GradebookCriteriaFactory
-        factory = null;
-    ResourceLoader
-        rl = null;
+    GradebookItemTemplateVariable itemVariable = null;
+    ArrayList<CriteriaTemplateVariable> variables = new ArrayList<CriteriaTemplateVariable>(1);
+    GradebookCriteriaFactory factory = null;
+    ResourceLoader rl = null;
 
-    public GradebookItemCriteriaTemplate(GradebookCriteriaFactory factory, AssignmentFilter filter,
-                                         AssignmentLabeler labeler)
+    public GradebookItemCriteriaTemplate(GradebookCriteriaFactory factory, AssignmentFilter filter, AssignmentLabeler labeler)
     {
         this.factory = factory;
 

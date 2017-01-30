@@ -7,51 +7,64 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
  */
 public class CertGradebook
 {
-    private long
-        id;
-    private String
-        uid;
-    private int
-        category_type;
+    private long id;
+    private String uid;
+    private int category_type;
 
-    public int getCategory_type() {
+    public int getCategory_type()
+    {
         return category_type;
     }
 
-    public void setCategory_type(int category_type) {
+    public void setCategory_type(int category_type)
+    {
         this.category_type = category_type;
     }
 
-    public long getId() {
+    public long getId()
+    {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(long id)
+    {
         this.id = id;
     }
 
-    public String getUid() {
+    public String getUid()
+    {
         return uid;
     }
 
-    public void setUid(String uid) {
+    public void setUid(String uid)
+    {
         this.uid = uid;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CertGradebook)) return false;
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof CertGradebook))
+        {
+            return false;
+        }
 
         CertGradebook that = (CertGradebook) o;
-
-        if (id != that.id) return false;
+        if (id != that.id)
+        {
+            return false;
+        }
 
         return true;
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return (int) (id ^ (id >>> 32));
     }
 }

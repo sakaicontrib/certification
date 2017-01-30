@@ -6,15 +6,14 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
-import org.sakaiproject.util.ResourceLoader;
-
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.service.gradebook.shared.GradebookService;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
@@ -23,8 +22,7 @@ import java.util.Map;
  */
 public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
 {
-    private static Log
-        LOG = LogFactory.getLog(FinalGradeScoreCriteriaTemplate.class);
+    private static final Log LOG = LogFactory.getLog(FinalGradeScoreCriteriaTemplate.class);
     ScoreTemplateVariable scoreVariable = null;
     ArrayList<CriteriaTemplateVariable> variables = new ArrayList<CriteriaTemplateVariable>(1);
     GradebookCriteriaFactory factory = null;
@@ -34,14 +32,15 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
     ResourceLoader rl = null;
 
     private final String EXPRESSION_KEY = "final.grade.score.criteria.expression";
+    private final String VARIABLE_SCORE = "score";
 
     public FinalGradeScoreCriteriaTemplate(final GradebookCriteriaFactory factory)
     {
         this.factory = factory;
         gbService = factory.getGradebookService();
         certificateService = factory.getCertificateService();
-        
-        scoreVariable =  new ScoreTemplateVariable("score", factory);
+
+        scoreVariable =  new ScoreTemplateVariable(VARIABLE_SCORE, factory);
         addVariable(scoreVariable);
     }
 
@@ -136,7 +135,7 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
             {
             	assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
             }
-            
+
         }
         catch (Exception e)
         {
@@ -144,31 +143,7 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
             return rl.getString("error.cannotEvaluate");
         }
 
-        /*
-
-            calculate total possible points
-
-            switch (gb category type)
-
-                case CATEGORY_TYPE_NO_CATEGORY
-
-                    loop through assignments adding assignment points
-
-                case CATEGORY_TYPE_ONLY_CATEGORY
-
-                    loop through categories
-                        loop through assignments
-                            add assignment points
-
-                case CATEGORY_TYPE_WEIGHTED_CATEGORY
-
-                    total == 100
-
-         */
-
-        double
-            total = 0;
-
+        double total = 0;
         switch(categoryType)
         {
             case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
@@ -187,22 +162,19 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
             }
         }
 
-        DecimalFormat
-            df = new DecimalFormat("#0.00");
-        Object
-            vars[] = new String[2];
+        DecimalFormat df = new DecimalFormat("#0.00");
+        Object vars[] = new String[2];
 
         vars[0] = df.format(total);
 
-        FinalGradeScoreCriterionHibernateImpl
-           fgschi = (FinalGradeScoreCriterionHibernateImpl)criterion;
+        FinalGradeScoreCriterionHibernateImpl fgschi = (FinalGradeScoreCriterionHibernateImpl)criterion;
 
         vars[1] = fgschi.getScore();
 
         return rl.getFormattedMessage(FinalGradeScoreCriteriaTemplate.class.getName(), vars);
     }
 
-    @Override 
+    @Override
     public String getMessage()
     {
         return "";

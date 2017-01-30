@@ -21,11 +21,15 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
 
     private final String EXPRESSION_KEY = "will.expire.criteria.expression";
 
+    private final String MESSAGE_MONTH = "month";
+    private final String MESSAGE_MONTHS = "months";
+    private final String MESSAGE_NOITEMS = "message.noitems.willexpire";
+
     public WillExpireCriteriaTemplate(final GradebookCriteriaFactory factory)
     {
         this.factory = factory;
         certificateService = factory.getCertificateService();
-        expiryOffsetVariable =  new ExpiryOffsetTemplateVariable("expiry.offset", factory);
+        expiryOffsetVariable =  new ExpiryOffsetTemplateVariable(CriteriaFactory.KEY_EXPIRY_OFFSET, factory);
         addVariable(expiryOffsetVariable);
     }
 
@@ -82,15 +86,30 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
         }
         else
         {
+            ResourceLoader rl = getResourceLoader();
             Map<String, String> bindings = criterion.getVariableBindings();
-            String expiryOffset = bindings.get("expiry.offset");
-            return getResourceLoader().getFormattedMessage(WillExpireCriteriaTemplate.class.getName(), new Object[]{expiryOffset});
+            String expiryOffset = bindings.get(CriteriaFactory.KEY_EXPIRY_OFFSET);
+            if (expiryOffset != null)
+            {
+                Integer intExpiryOffset = new Integer(expiryOffset);
+                StringBuilder sbExpiryOffset = new StringBuilder(expiryOffset);
+                if (intExpiryOffset == 1)
+                {
+                    sbExpiryOffset.append(" ").append(rl.get(MESSAGE_MONTH));
+                }
+                else
+                {
+                    sbExpiryOffset.append(" ").append(rl.get(MESSAGE_MONTHS));
+                }
+                expiryOffset = sbExpiryOffset.toString();
+            }
+            return rl.getFormattedMessage(WillExpireCriteriaTemplate.class.getName(), new Object[]{expiryOffset});
         }
     }
 
     @Override
     public String getMessage()
     {
-        return getResourceLoader().getString("message.noitems.willexpire");
+        return getResourceLoader().getString(MESSAGE_NOITEMS);
     }
 }

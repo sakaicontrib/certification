@@ -11,16 +11,31 @@ package com.rsmart.certification.api;
  */
 public interface DocumentTemplate
 {
+    /**
+     * The resource directory in which the templates get stored
+     */
     public static final String COLLECTION_ID = "/certification/templates/";
 
+    /**
+     * The unique id of this document template
+     * @return
+     */
     public String getId();
 
+    /**
+     * The uploaded file name
+     * @return
+     */
     public String getName();
 
+    /**
+     * The mime type of the uploaded file
+     * @return
+     */
     public String getOutputMimeType();
 
     /**
-     * @return the raw template without populated fields
+     * @return the resource id of the raw template without populated fields
      */
     public String getResourceId();
 }

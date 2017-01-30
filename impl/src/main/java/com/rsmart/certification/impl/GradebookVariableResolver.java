@@ -1,29 +1,24 @@
 package com.rsmart.certification.impl;
 
-import com.rsmart.certification.api.CertificateAward;
 import com.rsmart.certification.api.CertificateDefinition;
-import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.VariableResolutionException;
+import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.GradebookItemCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
-
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.service.gradebook.shared.AssessmentNotFoundException;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.service.gradebook.shared.GradeDefinition;
+import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.tool.api.SessionManager;
-import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
 
@@ -40,10 +35,16 @@ public class GradebookVariableResolver extends AbstractVariableResolver
     public final String CERT_EXPIREDATE = "cert.expiredate";
     public final String CERT_AWARDDATE  = "cert.date";
 
+    private static final String MESSAGE_EXPIRATION = "variable.expiration";
+    private static final String MESSAGE_ISSUEDATE = "variable.issuedate";
+
+    private static final String PERM_VIEWOWNGRADES = "gradebook.viewOwnGrades";
+    private static final String PERM_EDITASSIGNMENT = "gradebook.editAssignments";
+
     public GradebookVariableResolver()
     {
-        String expirationDate = getMessages().getString("variable.expiration");
-        String awardDate = getMessages().getString("variable.issuedate");
+        String expirationDate = getMessages().getString(MESSAGE_EXPIRATION);
+        String awardDate = getMessages().getString(MESSAGE_ISSUEDATE);
         addVariable(CERT_EXPIREDATE, expirationDate);
         addVariable(CERT_AWARDDATE, awardDate);
     }
@@ -98,27 +99,6 @@ public class GradebookVariableResolver extends AbstractVariableResolver
         }
 
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");
-    }
-
-    private Set<Criterion> getAwardCriteriaFromAward(CertificateAward award) throws VariableResolutionException
-    {
-        if (award == null)
-        {
-            throw new VariableResolutionException("award is null");
-        }
-
-        CertificateDefinition certDef = award.getCertificateDefinition();
-        if (certDef == null)
-        {
-            throw new VariableResolutionException("certificate definition is null");
-        }
-
-        Set<Criterion> criteria = certDef.getAwardCriteria();
-        if (criteria == null)
-        {
-            throw new VariableResolutionException("no award criteria");
-        }
-        return criteria;
     }
 
     private Date getDateRecorded(GradebookItemCriterionHibernateImpl criterionImpl) throws VariableResolutionException, AssessmentNotFoundException
@@ -198,10 +178,7 @@ public class GradebookVariableResolver extends AbstractVariableResolver
 
     protected Object doSecureGradebookAction(SecureGradebookActionCallback callback) throws Exception
     {
-        final SessionManager sessionManager = getSessionManager();
         final SecurityService securityService = getSecurityService();
-
-        final Session sakaiSession = sessionManager.getCurrentSession();
         final String contextId = contextId();
 
         try
@@ -220,8 +197,8 @@ public class GradebookVariableResolver extends AbstractVariableResolver
                         compTo = "/site/" + contextId;
                     }
 
-                    if (reference.equals(compTo) && ("gradebook.viewOwnGrades".equals(function) ||
-                                                     "gradebook.editAssignments".equals(function)))
+                    if (reference.equals(compTo) && (PERM_VIEWOWNGRADES.equals(function) ||
+                                                     PERM_EDITASSIGNMENT.equals(function)))
                     {
                         return SecurityAdvice.ALLOWED;
                     }

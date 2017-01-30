@@ -7,61 +7,75 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
  */
 public class CertCategory
 {
-    private long
-        id;
-    private CertGradebook
-        gradebook;
-    private double
-        weight;
-    private boolean
-        removed;
+    private long id;
+    private CertGradebook gradebook;
+    private double weight;
+    private boolean removed;
 
-    public CertGradebook getGradebook() {
+    public CertGradebook getGradebook()
+    {
         return gradebook;
     }
 
-    public void setGradebook(CertGradebook gradebook) {
+    public void setGradebook(CertGradebook gradebook)
+    {
         this.gradebook = gradebook;
     }
 
-    public long getId() {
+    public long getId()
+    {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(long id)
+    {
         this.id = id;
     }
 
-    public boolean isRemoved() {
+    public boolean isRemoved()
+    {
         return removed;
     }
 
-    public void setRemoved(boolean removed) {
+    public void setRemoved(boolean removed)
+    {
         this.removed = removed;
     }
 
-    public double getWeight() {
+    public double getWeight()
+    {
         return weight;
     }
 
-    public void setWeight(double weight) {
+    public void setWeight(double weight)
+    {
         this.weight = weight;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof CertCategory)) return false;
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(o instanceof CertCategory))
+        {
+            return false;
+        }
 
         CertCategory that = (CertCategory) o;
-
-        if (id != that.id) return false;
+        if (id != that.id)
+        {
+            return false;
+        }
 
         return true;
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return (int) (id ^ (id >>> 32));
     }
 }

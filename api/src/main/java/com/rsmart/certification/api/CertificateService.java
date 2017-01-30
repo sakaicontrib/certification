@@ -1,25 +1,22 @@
 package com.rsmart.certification.api;
 
-import com.rsmart.certification.api.criteria.CriterionCreationException;
-import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
-
-import org.sakaiproject.content.api.ContentHostingService;
-import org.sakaiproject.exception.IdUnusedException;
-import org.sakaiproject.exception.IdUsedException;
-
+import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.exception.IdUsedException;
 
 /**
  * This service manages the creation, update, and retrieval of CertificateDefinitions as well as the award of
- * certificates to users through the management of CertificateAward objects.
+ * certificates to users.
  *
  * The CertificateService depends on two other services to complete its work:
  *
@@ -35,8 +32,20 @@ import java.util.Set;
  */
 public interface CertificateService
 {
+    /**
+     * Inserts the specified certificate definition into the database as UNPUBLISHED
+     * @param cd
+     * @return
+     * @throws IdUsedException
+     */
     public CertificateDefinition createCertificateDefinition (CertificateDefinition cd) throws IdUsedException;
 
+    /**
+     * Updates the specified certification definition in the database
+     * @param cd
+     * @return
+     * @throws IdUnusedException
+     */
     public CertificateDefinition updateCertificateDefinition (CertificateDefinition cd) throws IdUnusedException;
 
     public void setDocumentTemplateService (DocumentTemplateService dts);
@@ -45,13 +54,36 @@ public interface CertificateService
 
     public ContentHostingService getContentHostingService();
 
+    /**
+     * For i18n
+     * @param key
+     * @return internationalized string for the given key
+     */
+    public String getString(String key);
+
+    /**
+     * For i18n
+     * @param key
+     * @param values
+     * @return internationalized string for the given key and the substituted values
+     */
+    public String getFormattedMessage(String key, Object[] values);
+
+    /**
+     * Deletes the certificate definition as well as their associated document templates
+     * TODO: make this also delete the criteria and the field values
+     *
+     * @param certificateDefinitionId
+     * @throws IdUnusedException
+     * @throws DocumentTemplateException
+     */
     public void deleteCertificateDefinition (String certificateDefinitionId)
         throws IdUnusedException, DocumentTemplateException;
 
     /**
-     * Creates a CertificateDefinition with the minimal ammount of information required to store the object and
+     * Creates a CertificateDefinition with the minimal amount of information required to store the object and
      * ensure it is unique. The CertificateDefinition must have a unique (name, siteId) combination. It will be
-     * created in INCOMPLETE status. A call to activateCertificateDefinition(cd, true) will be required to validate
+     * created in UNPUBLISHED status. A call to activateCertificateDefinition(cd, true) will be required to validate
      * the final configuration of the CertificateDefinition and to set its status to ACTIVE.
      *
      * @param name
@@ -106,7 +138,7 @@ public interface CertificateService
     /**
      * Sets the values to be used when populating the fields for the template during rendering of the printable
      * certificate.
-     * 
+     *
      * @param certificateDefinitionId
      * @param fieldValues
      * @throws IdUnusedException
@@ -117,8 +149,8 @@ public interface CertificateService
     /**
      * This sets the CertificateDefinitionStatus to ACTIVE or INACTIVE depending on the value of the boolean 'active'
      * parameter passed in. This method will validate whether the CertificateDefinition is complete before setting its
-     * status. If the DocumentTemplate or AwardCriteria are null the status will be set to INCOMPLETE and an
-     * IncompleteCertificateDefinitionException will be thrown.
+     * status. If the DocumentTemplate or AwardCriteria are null an IncompleteCertificateDefinitionException will be
+     * thrown.
      *
      * @param certificateDefinitionId
      * @param active
@@ -157,12 +189,8 @@ public interface CertificateService
      * conditions Set can be populated with Conditions created by the ConditionService available from the
      * getConditionService() method.
      *
-     * If the CertificateDefinition already has AwardCriteria set this method has the side effect of incrementing the
-     * revision number so CertificateAward objects can be tracked to specific AwardCriteria.
-     *
      * @param certificateDefinitionId
      * @param conditions
-     * @return the new AwardCriteria object
      */
     public void setAwardCriteria (String certificateDefinitionId, Set<Criterion> conditions)
             throws IdUnusedException, UnmodifiableCertificateDefinitionException;
@@ -174,8 +202,7 @@ public interface CertificateService
             throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
     /**
-     * This checks the current user's progress on AwardCriteria for a CertificateDefinition without the side effect
-     * of actually awarding the certificate as would be the case with a call to getCertificateAward(...).
+     * This checks the current user's progress on AwardCriteria for a CertificateDefinition
      *
      * @param certificateDefinitionId
      * @return the Conditions which the current user has not met for the supplied CertificateDefinition ID.
@@ -184,77 +211,13 @@ public interface CertificateService
             throws IdUnusedException, UnknownCriterionTypeException;
 
     /**
-     * This checks the identified user's progress on AwardCriteria for a CertificateDefinition without the side effect
-     * of actually awarding the certificate as would be the case with a call to getCertificateAward(...).
+     * This checks the identified user's progress on AwardCriteria for a CertificateDefinition
      *
      * @param certificateDefinitionId
      * @return the Conditions which the current user has not met for the supplied CertificateDefinition ID.
      */
     public Set<Criterion> getUnmetAwardConditionsForUser (String certificateDefinitionId, String userId)
             throws IdUnusedException, UnknownCriterionTypeException;
-
-    public CertificateAward awardCertificate (String certificateDefinitionId)
-            throws IdUnusedException, UnmetCriteriaException, UnknownCriterionTypeException;
-
-    public CertificateAward awardCertificate (String certificateDefinitionId, String userId)
-            throws IdUnusedException, UnmetCriteriaException, UnknownCriterionTypeException;
-
-    /**
-     * This looks for an existing CertificateAward for the current user. If no CertificateAward is found the
-     * AwardCriteria are checked to see if the user has earned the certificate. If so a new CertificateAward is
-     * created and returned. If not an UnmetCriteriaException is thrown containing the Set of Conditions which
-     * failed.
-     *
-     * @param certificateDefinitionId
-     * @return
-     * @throws UnmetCriteriaException
-     */
-    public CertificateAward getCertificateAward (String certificateDefinitionId)
-        throws IdUnusedException;
-
-    /**
-     * @return All CertificateAward objects
-     */
-    public Set<CertificateAward> getCertificateAwards();
-
-    /**
-     * This looks for an existing CertificateAward for the given user. If no CertificateAward is found the
-     * AwardCriteria are checked to see if the user has earned the certificate. If so a new CertificateAward is
-     * created and returned. If not an UnmetCriteriaException is thrown containing the Set of Conditions which
-     * failed.
-     *
-     * @param certificateDefinitionId
-     * @param userId
-     * @return
-     * @throws UnmetCriteriaException
-     */
-    public CertificateAward getCertificateAwardForUser (String certificateDefinitionId, String userId)
-            throws IdUnusedException;
-
-    /**
-     * @return All CertificateAward objects for the given certificateDefinitionId
-     */
-    public Set<CertificateAward> getCertificateAwards(String certificateDefinitionId)
-        throws IdUnusedException;
-
-    /**
-     * This method queries for CertificateAward objects for the current user for all of
-     * the certificateDefinitionIds supplied. It will return a Map which relates those
-     * IDs to the CertificateAwards. If a user has not received a CertificateAward for
-     * a particular certificateDefinitionId that id <b>will not</b> appear in the returned
-     * Map.
-     *
-     * @param certificateDefinitionIds
-     * @return A Map from certificateDefinitionId to CertificateAward for the current user
-     * @throws IdUnusedException if one fo the certificateDefinitionIds is invalid
-     */
-    public Map<String, CertificateAward> getCertificateAwardsForUser (String certificateDefinitionIds[])
-        throws IdUnusedException;
-
-    /**
-     * @return All CertificateAward objects for the given userId
-     */
-    public Set<CertificateAward> getCertificateAwardsForUser (String userId);
 
     /**
      * Returns a Map whose key values are variable names that can be used to fill in template fields. The values in the
@@ -264,21 +227,20 @@ public interface CertificateService
      */
     public Map<String, String> getPredefinedTemplateVariables ();
 
-    public InputStream getPrintableCertificateRendering (String certificateAwardId) throws IdUnusedException;
-
+    /**
+     * Registers a new CriteriaFactory which can then be used to create (and manage) new criteria
+     * @param cFact
+     */
     public void registerCriteriaFactory (CriteriaFactory cFact);
 
     public Set<CriteriaTemplate> getCriteriaTemplates();
 
-    public CertificateDefinition duplicateCertificateDefinition (String certificateDefinitionId) 
-        throws IdUnusedException, IdUsedException, DocumentTemplateException, UnknownCriterionTypeException, CriterionCreationException;
-
     public CriteriaFactory getCriteriaFactory (String criteriaTemplateId);
 
     public int getCategoryType(final String gradebookId);
-    
+
     public Map<Long, Double> getCategoryWeights(final String gradebookId);
-    
+
     public Map<Long,Double> getAssignmentWeights(final String gradebookId);
 
     public Map<Long,Double> getAssignmentPoints(final String gradebookId);
@@ -291,16 +253,23 @@ public interface CertificateService
 
     /**
      * UNTESTED
-     * Returns a list of map entries where each key is a requirement and each value is the user's progress towards 
+     * Returns a list of map entries where each key is a requirement and each value is the user's progress towards
      * the requirement (both as human readable strings for the UI)
      * @param certId the certificate definition id from which we are pulling the requirements
      * @param userId the user whose progress we are checking
-     * @param siteId
+     * @param siteId the certificate's containing siteId
      * @return
      * @throws org.sakaiproject.exception.IdUnusedException
      */
-    public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId, String siteId) 
+    public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId, String siteId)
         throws IdUnusedException;
 
+    /**
+     * Gets all users who have earned grades in the site - regardless of whether they are still enrolled
+     * (for historical purposes)
+     *
+     * @param siteId
+     * @return
+     */
     public Collection<String> getGradedUserIds(String siteId);
 }

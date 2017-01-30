@@ -20,23 +20,32 @@
 			<form:hidden id="certId" path="certificateDefinition.id"/>
 			<div id="currentCriteria" style="margin-bottom:40px; ">
 				<h3><spring:message code="form.text.criteria.awardCriteria"/></h3>
-				<p><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
-				<div id="criteriaList" style="margin-left:20px;">
+				<c:choose>
+					<c:when test="${empty certificateToolState.certificateDefinition.awardCriteria}">
+						<p id="removeInstructions" style="display:none"><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
+						<p id="noCriteria"><spring:message code="form.text.criteria.awardCriteria.nocriteria"/></p>
+					</c:when>
+					<c:otherwise>
+						<p id="removeInstructions"><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
+						<p id="noCriteria" style="display:none"><spring:message code="form.text.criteria.awardCriteria.nocriteria"/></p>
+					</c:otherwise>
+				</c:choose>
+				<ul id="criteriaList" style="margin-left:20px;">
 				<c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criterion">
-					<div id="${criterion.id}" mergeItemCriteriaTemplate="${criterion.itemId}${criterion.currentCriteriaTemplate}" style="font-weight:bold; font-style:italic;">
+					<li id="crit_${criterion.id}" mergeItemCriteriaTemplate="${criterion.itemId}${criterion.currentCriteriaTemplate}" style="font-weight:bold; font-style:italic;">
 						${criterion.expression}&nbsp;&nbsp;&nbsp;&nbsp;
 						<a href="#" onclick="removeCriterion('${criterion.id}');">
 							<spring:message code="form.text.criteria.remove"/>
 						</a>
-					</div>
+					</li>
 				</c:forEach>
-				</div>
+				</ul>
 			</div>
 			<div id="newCriteriaForm" style="display:inline-block; background-color:#ddd; padding:10px">
 				<h3><spring:message code="form.text.criteria.selectTemplate"/></h3>
 				<select id="criteriaTemplate" onchange="completeCriterionForm(this.options[selectedIndex].value);">
 				<c:forEach items="${certificateToolState.criteriaTemplates}" var="template">
-					<option value="${template.class.name}">${template.expression}</option>
+					<option value="${template['class'].name}">${template.expression}</option>
 				</c:forEach>
 				</select>
 				<h3><spring:message code="form.text.criteria.selectParameters"/></h3>
@@ -131,18 +140,26 @@
 
 	function removeCriterionFromDiv(criterion)
 	{
-		$("#"+criterion).remove();
+		$("#crit_"+criterion).remove();
+		var $criteria = $("li[id^='crit_']");
+		if ($criteria.length === 0)
+		{
+			$("#removeInstructions").attr('style', 'display:none');
+			$("#noCriteria").attr('style', '');
+		}
 		resetHeight();
 	}
 
 	function appendCriterionToDiv (criterion)
 	{
 		mergeCriteriaItemCriteriaTemplate=checkCriterion();
-		var divContent = "<div id='" + criterion.id + "' mergeItemCriteriaTemplate='" + mergeCriteriaItemCriteriaTemplate + "'  style='font-weight:bold; font-style:italic;'>" + criterion.expression + "&nbsp;&nbsp;&nbsp;&nbsp;" +
+		var liContent = "<li id='crit_" + criterion.id + "' mergeItemCriteriaTemplate='" + mergeCriteriaItemCriteriaTemplate + "'  style='font-weight:bold; font-style:italic;'>" + criterion.expression + "&nbsp;&nbsp;&nbsp;&nbsp;" +
 						"<a href='#' onclick=\"removeCriterion('" + criterion.id +
-						"')\"><spring:message code="form.text.criteria.remove"/></a></div>\n";
+						"')\"><spring:message code="form.text.criteria.remove"/></a></li>\n";
 
-		$("#currentCriteria").append(divContent);
+		$("#currentCriteria").append(liContent);
+		$("#removeInstructions").attr('style', '');
+		$("#noCriteria").attr('style', 'display:none');
 		resetHeight();
 	}
 

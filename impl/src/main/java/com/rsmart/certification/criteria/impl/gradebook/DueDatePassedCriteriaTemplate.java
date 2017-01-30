@@ -3,11 +3,10 @@ package com.rsmart.certification.criteria.impl.gradebook;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
 import java.text.DateFormat;
-import org.sakaiproject.service.gradebook.shared.Assignment;
-import org.sakaiproject.util.ResourceLoader;
-
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import org.sakaiproject.service.gradebook.shared.Assignment;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
@@ -16,7 +15,12 @@ import java.util.Date;
  */
 public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
 {
-    private final String EXPRESSION_KEY="due.date.has.passed.criteria.expression";
+    private static final String MESSAGE_DUEDATE = "duedate";
+    private static final String MESSAGE_DUEDATE_NONE = "duedate.none";
+    private static final String MESSAGE_NOITEMS_DUEDATE = "message.noitems.duedate";
+
+    private final String EXPRESSION_KEY = "due.date.has.passed.criteria.expression";
+    private final DateFormat EXPRESSION_DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy");
 
     public DueDatePassedCriteriaTemplate(final GradebookCriteriaFactory factory)
     {
@@ -45,11 +49,11 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
 
                         if (due != null)
                         {
-                            dateStr = rl.getFormattedMessage("duedate", new Object[] { sdf.format(due) });
+                            dateStr = rl.getFormattedMessage(MESSAGE_DUEDATE, new Object[] { sdf.format(due) });
                         }
                         else
                         {
-                            dateStr = rl.getString("duedate.none");
+                            dateStr = rl.getString(MESSAGE_DUEDATE_NONE);
                         }
 
                         assnLabel.append(assignment.getName()).append(" (").append(dateStr).append(')');
@@ -76,16 +80,11 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
             return getResourceLoader().getFormattedMessage(EXPRESSION_KEY, new Object[]{});
         }
 
-        Object
-            vars[] = new String[2];
-
-        DueDatePassedCriterionHibernateImpl
-           gischi = (DueDatePassedCriterionHibernateImpl)criterion;
-
-        final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
+        Object vars[] = new String[2];
+        DueDatePassedCriterionHibernateImpl gischi = (DueDatePassedCriterionHibernateImpl)criterion;
 
         vars[0] = gischi.getItemName();
-        vars[1] = dateFormat.format(gischi.getDueDate());
+        vars[1] = EXPRESSION_DATE_FORMAT.format(gischi.getDueDate());
 
         return getResourceLoader().getFormattedMessage(DueDatePassedCriteriaTemplate.class.getName(), vars);
     }
@@ -93,6 +92,6 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
     @Override
     public String getMessage()
     {
-        return getResourceLoader().getString("message.noitems.duedate");
+        return getResourceLoader().getString(MESSAGE_NOITEMS_DUEDATE);
     }
 }

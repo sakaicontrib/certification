@@ -8,7 +8,8 @@ public class CertAssignmentScore extends CertGradeRecordObject {
     private Boolean excluded;
     private Date dateRecorded;
 
-    public CertAssignmentScore() {
+    public CertAssignmentScore()
+    {
         super();
     }
 
@@ -19,7 +20,8 @@ public class CertAssignmentScore extends CertGradeRecordObject {
      * @param studentId The student id for whom this grade record belongs
      * @param grade The grade, or points earned
      */
-    public CertAssignmentScore(CertAssignment assignment, String studentId, Double grade) {
+    public CertAssignmentScore(CertAssignment assignment, String studentId, Double grade)
+    {
         super();
         this.gradableObject = assignment;
         this.studentId = studentId;
@@ -29,38 +31,45 @@ public class CertAssignmentScore extends CertGradeRecordObject {
     /**
      * @return Returns the pointsEarned
      */
-    public Double getPointsEarned() {
+    public Double getPointsEarned()
+    {
         return pointsEarned;
     }
 
     /**
      * @param pointsEarned The pointsEarned to set.
      */
-    public void setPointsEarned(Double pointsEarned) {
+    public void setPointsEarned(Double pointsEarned)
+    {
         this.pointsEarned = pointsEarned;
     }
 
-    public Boolean isExcludedFromGrade() {
+    public Boolean isExcludedFromGrade()
+    {
         return excludedFromGrade;
     }
 
-    public Boolean getExcludedFromGrade() {
+    public Boolean getExcludedFromGrade()
+    {
         return excludedFromGrade;
     }
 
-    public void setExcludedFromGrade(Boolean isExcludedFromGrade) {
+    public void setExcludedFromGrade(Boolean isExcludedFromGrade)
+    {
         this.excludedFromGrade = isExcludedFromGrade;
     }
 
-    public Boolean isExcluded() {
+    public Boolean isExcluded()
+    {
         return this.excluded;
     }
 
-    public void setExcluded(Boolean excluded) {
+    public void setExcluded(Boolean excluded)
+    {
         this.excluded = excluded;
     }
 
-    public void setDateRecorded(Date dateRecorded) 
+    public void setDateRecorded(Date dateRecorded)
     {
         this.dateRecorded = dateRecorded;
     }

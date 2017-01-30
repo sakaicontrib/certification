@@ -6,7 +6,6 @@ import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 
-
 /**
  * User: duffy
  * Date: Jul 7, 2011
@@ -14,19 +13,21 @@ import org.sakaiproject.user.api.UserNotDefinedException;
  */
 public class RecipientVariableResolver extends AbstractVariableResolver
 {
-    private UserDirectoryService
-        uds = null;
+    private UserDirectoryService uds = null;
 
-    private static final String
-        FULL_NAME               =       "recipient.fullname",
-        FIRST_NAME              =       "recipient.firstname",
-        LAST_NAME               =       "recipient.lastname";
+    private static final String FULL_NAME = "recipient.fullname";
+    private static final String FIRST_NAME = "recipient.firstname";
+    private static final String LAST_NAME = "recipient.lastname";
+
+    private static final String MESSAGE_FULLNAME = "variable.fullname";
+    private static final String MESSAGE_FIRSTNAME = "variable.firstname";
+    private static final String MESSAGE_LASTNAME = "variable.lastname";
 
     public RecipientVariableResolver()
     {
-        String fullName = getMessages().getString("variable.fullname");
-        String firstName = getMessages().getString("variable.firstname");
-        String lastName = getMessages().getString("variable.lastname");
+        String fullName = getMessages().getString(MESSAGE_FULLNAME);
+        String firstName = getMessages().getString(MESSAGE_FIRSTNAME);
+        String lastName = getMessages().getString(MESSAGE_LASTNAME);
         addVariable(FULL_NAME, fullName);
         addVariable(FIRST_NAME, firstName);
         addVariable(LAST_NAME, lastName);
@@ -44,20 +45,19 @@ public class RecipientVariableResolver extends AbstractVariableResolver
 
     public String getValue(CertificateDefinition certDef, String key, String userId) throws VariableResolutionException
     {
-        User
-            user = null;
+        User user = null;
         try
         {
             user = getUserDirectoryService().getUser(userId);
         }
         catch (UserNotDefinedException e)
         {
-            throw new VariableResolutionException("could not resolve variable \"" + key + "\"", e);
+            throw new VariableResolutionException("could not resolve variable \"" + key + "\" due to UserNotDefinedException. userId: " + userId, e);
         }
 
         if (FULL_NAME.equals(key))
         {
-            return user.getFirstName() + " " + user.getLastName();
+            return user.getDisplayName();
         }
         else if (FIRST_NAME.equals(key))
         {

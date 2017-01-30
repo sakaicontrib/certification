@@ -23,7 +23,6 @@
           class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
         <property name="mappingResources">
             <list>
-                <value>com/rsmart/certification/impl/hibernate/CertificateAwardHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/CertificateDefinitionHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/DocumentTemplateHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/AbstractCriterionHibernateImpl.hbm.xml</value>
@@ -108,12 +107,12 @@
         <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
         <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
         <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
-        <property name="resourceLoader" ref="gradebook.criteriaResourceLoader"/>
+        <property name="resourceLoader" ref="certification.ResourceLoader"/>
     </bean>
 
-    <bean id="gradebook.criteriaResourceLoader"
+    <bean id="certification.ResourceLoader"
           class="org.sakaiproject.util.ResourceLoader">
-        <property name="baseName" value="com.rsmart.certification.criteria.impl.gradebook.Messages"/>   
+        <property name="baseName" value="com.rsmart.certification.Messages"/>
     </bean>
 
     <bean id="com.rsmart.certification.api.util.PortalParamManager"

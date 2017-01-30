@@ -1,6 +1,5 @@
 package com.rsmart.certification.impl;
 
-import com.rsmart.certification.api.CertificateAward;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateRenderEngine;
@@ -8,7 +7,6 @@ import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
 import com.rsmart.certification.api.VariableResolutionException;
 import com.rsmart.certification.api.VariableResolver;
-
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,13 +22,10 @@ import java.util.regex.Pattern;
  */
 public class DocumentTemplateServiceImpl implements DocumentTemplateService
 {
-    private final Pattern
-        varPattern = Pattern.compile("\\$\\{(.+)\\}");
+    private final Pattern varPattern = Pattern.compile("\\$\\{(.+)\\}");
 
-    private Map<String, DocumentTemplateRenderEngine>
-        renderers = new HashMap<String, DocumentTemplateRenderEngine>();
-    private HashMap<String, VariableResolver>
-        variableResolvers = new HashMap<String, VariableResolver>();
+    private Map<String, DocumentTemplateRenderEngine> renderers = new HashMap<String, DocumentTemplateRenderEngine>();
+    private HashMap<String, VariableResolver> variableResolvers = new HashMap<String, VariableResolver>();
 
     public void register(String mimeType, DocumentTemplateRenderEngine engine)
     {
@@ -40,9 +35,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
     public boolean isPreviewable(DocumentTemplate template)
         throws TemplateReadException
     {
-        DocumentTemplateRenderEngine
-            dtre = renderers.get(template.getOutputMimeType());
-
+        DocumentTemplateRenderEngine dtre = renderers.get(template.getOutputMimeType());
         if (dtre != null)
         {
             return dtre.supportsPreview(template);
@@ -54,26 +47,10 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
     public String getPreviewMimeType(DocumentTemplate template)
         throws TemplateReadException
     {
-        DocumentTemplateRenderEngine
-            dtre = renderers.get(template.getOutputMimeType());
-
+        DocumentTemplateRenderEngine dtre = renderers.get(template.getOutputMimeType());
         if (dtre != null)
         {
             return dtre.getPreviewMimeType(template);
-        }
-
-        return null;
-    }
-
-    public InputStream renderPreview(DocumentTemplate template, CertificateAward award, Map<String, String> bindings)
-            throws TemplateReadException, VariableResolutionException
-    {
-        DocumentTemplateRenderEngine
-            dtre = renderers.get(template.getOutputMimeType());
-
-        if (dtre != null)
-        {
-            return dtre.renderPreview(template, bindings);
         }
 
         return null;
@@ -97,9 +74,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
     public Set<String> getTemplateFields(DocumentTemplate template)
         throws TemplateReadException
     {
-        DocumentTemplateRenderEngine
-            engine = getRenderEngineForMimeType(template.getOutputMimeType());
-
+        DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(template.getOutputMimeType());
         if (engine != null)
         {
             return engine.getTemplateFields(template);
@@ -111,27 +86,22 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
     public InputStream render(DocumentTemplate template, CertificateDefinition certDef, String userId)
             throws TemplateReadException, VariableResolutionException
     {
+        // Maps key values to display messages (ie. expiry.offset -> "Expiration Date")
         Map<String, String> bindings = certDef.getFieldValues();
-        HashMap<String, String>
-            resolvedBindings = new HashMap<String, String> ();
-        DocumentTemplateRenderEngine
-            engine = getRenderEngineForMimeType(template.getOutputMimeType());
+
+        // Maps key values to substitution values (ie. expiry.offset -> "November 21, 2022")
+        HashMap<String, String> resolvedBindings = new HashMap<String, String> ();
+        DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(template.getOutputMimeType());
 
         for (String key : bindings.keySet())
         {
-            String
-                value = bindings.get(key);
-
-            Matcher
-                varMatch = varPattern.matcher(value);
+            String value = bindings.get(key);
+            Matcher varMatch = varPattern.matcher(value);
 
             if (varMatch.matches())
             {
-                String
-                    varName = varMatch.group(1);
-
-                VariableResolver
-                    resolver = variableResolvers.get(varName);
+                String varName = varMatch.group(1);
+                VariableResolver resolver = variableResolvers.get(varName);
 
                 if (resolver != null)
                 {
@@ -163,14 +133,11 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
             }
         }
     }
-    
+
     public Set<VariableResolver> getVariableResolvers()
     {
-        HashSet<VariableResolver>
-            resolvers = new HashSet<VariableResolver>();
-
+        HashSet<VariableResolver> resolvers = new HashSet<VariableResolver>();
         resolvers.addAll(variableResolvers.values());
-
         return resolvers;
     }
 

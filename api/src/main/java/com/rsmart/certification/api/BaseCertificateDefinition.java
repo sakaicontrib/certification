@@ -5,7 +5,6 @@ import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -13,58 +12,60 @@ import java.util.Map;
 import java.util.Set;
 
 /**
+ * Implementation for CertificateDefinition
+ * 
  * User: duffy
  * Date: Jun 29, 2011
  * Time: 2:54:55 PM
  */
 public class BaseCertificateDefinition implements CertificateDefinition
 {
-    protected String
-        id,
-        creatorUserId,
-        name,
-        description,
-        siteId,
-        shortUrl,
-        expiryOffset;
-    protected Date
-        createDate;
-    protected CertificateDefinitionStatus
-        status = CertificateDefinitionStatus.UNPUBLISHED;
-    protected DocumentTemplate
-        documentTemplate;
-    protected Map<String, String>
-        fieldValues = new HashMap<String, String>(0);
-    protected Set<Criterion>
-        awardCriteria = null;
+    protected String id;
+    protected String creatorUserId;
+    protected String name;
+    protected String description;
+    protected String siteId;
+    protected String expiryOffset;
+    protected Date createDate;
+    protected CertificateDefinitionStatus status = CertificateDefinitionStatus.UNPUBLISHED;
+    protected DocumentTemplate documentTemplate;
+    protected Map<String, String> fieldValues = new HashMap<String, String>(0);
+    protected Set<Criterion> awardCriteria = null;
 
-    public Date getCreateDate() {
+    private final DateFormat DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy hh:mm aa");
+
+    public Date getCreateDate()
+    {
         return createDate;
     }
 
-    public void setCreateDate(Date createDate) {
+    public void setCreateDate(Date createDate)
+    {
         this.createDate = createDate;
     }
 
     public String getFormattedCreateDate()
     {
-        DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy hh:mm aa");
-        return dateFormat.format(getCreateDate());
+        return DATE_FORMAT.format(getCreateDate());
     }
 
-    public String getCreatorUserId() {
+    public String getCreatorUserId()
+    {
         return creatorUserId;
     }
 
-    public void setCreatorUserId(String creatorUserId) {
+    public void setCreatorUserId(String creatorUserId)
+    {
         this.creatorUserId = creatorUserId;
     }
 
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         if (description!=null)
         {
             this.description = description.trim();
@@ -75,63 +76,68 @@ public class BaseCertificateDefinition implements CertificateDefinition
         }
     }
 
-    public DocumentTemplate getDocumentTemplate() {
+    public DocumentTemplate getDocumentTemplate()
+    {
         return documentTemplate;
     }
 
-    public void setDocumentTemplate(DocumentTemplate documentTemplate) {
+    public void setDocumentTemplate(DocumentTemplate documentTemplate)
+    {
         this.documentTemplate = documentTemplate;
     }
 
-    public Map<String, String> getFieldValues() {
+    public Map<String, String> getFieldValues()
+    {
         return fieldValues;
     }
 
-    public void setFieldValues(Map<String, String> fieldValues) {
+    public void setFieldValues(Map<String, String> fieldValues)
+    {
         this.fieldValues = fieldValues;
     }
 
-    public String getId() {
+    public String getId()
+    {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(String id)
+    {
         this.id = id.trim();
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name.trim();
     }
 
-    public String getSiteId() {
+    public String getSiteId()
+    {
         return siteId;
     }
 
-    public void setSiteId(String siteId) {
+    public void setSiteId(String siteId)
+    {
         this.siteId = siteId;
     }
 
-    public String getShortUrl() {
-		return shortUrl;
-	}
-
-	public void setShortUrl(String shortUrl) {
-		this.shortUrl = shortUrl;
-	}
-
-	public CertificateDefinitionStatus getStatus() {
+    public CertificateDefinitionStatus getStatus()
+    {
         return status;
     }
 
-    public void setStatus(CertificateDefinitionStatus status) {
+    public void setStatus(CertificateDefinitionStatus status)
+    {
         this.status = status;
     }
 
-    public Set<Criterion> getAwardCriteria() {
+    public Set<Criterion> getAwardCriteria()
+    {
         return awardCriteria;
     }
 
@@ -159,7 +165,8 @@ public class BaseCertificateDefinition implements CertificateDefinition
         return null;
     }
 
-    public void setAwardCriteria(Set<Criterion> awardCriteria) {
+    public void setAwardCriteria(Set<Criterion> awardCriteria)
+    {
         this.awardCriteria = awardCriteria;
     }
 

@@ -1,10 +1,10 @@
 package com.rsmart.certification.impl.hibernate.criteria;
 
+import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,15 +13,12 @@ import java.util.Map;
  * Date: Jun 28, 2011
  * Time: 10:25:44 AM
  */
-public abstract class AbstractCriterionHibernateImpl
-    implements Criterion
+public abstract class AbstractCriterionHibernateImpl implements Criterion
 {
-    private String
-        id = null;
-    private Map<String, String>
-        bindings = new HashMap<String, String>();
-    private CriteriaFactory
-        cFact = null;
+    private String id = null;
+    private Map<String, String> bindings = new HashMap<String, String>();
+    private CriteriaFactory cFact = null;
+    private CertificateService certServ = null;
 
     public String getId()
     {
@@ -52,11 +49,20 @@ public abstract class AbstractCriterionHibernateImpl
     {
         return cFact;
     }
-   
+
+    public void setCertificateService(CertificateService certServ)
+    {
+        this.certServ = certServ;
+    }
+
+    public CertificateService getCertificateService()
+    {
+        return certServ;
+    }
+
     public String getExpression()
     {
-        String
-            expression = null;
+        String expression = null;
 
         try
         {
@@ -77,29 +83,37 @@ public abstract class AbstractCriterionHibernateImpl
     public boolean equals(Object o)
     {
         if (this == o)
+        {
             return true;
+        }
 
-        if (!(AbstractCriterionHibernateImpl.class.isAssignableFrom(o.getClass()))) return false;
+        if (!(AbstractCriterionHibernateImpl.class.isAssignableFrom(o.getClass())))
+        {
+            return false;
+        }
 
         AbstractCriterionHibernateImpl that = (AbstractCriterionHibernateImpl) o;
-
         return (id != null && id.equals(that.id));
     }
 
     @Override
-    public int hashCode() {
+    public int hashCode()
+    {
         return id != null ? id.hashCode() : super.hashCode();
     }
-    
-    public String getCurrentCriteriaTemplate() {
-    	CriteriaTemplate criteriaTemplate=null;
-		try {
-			criteriaTemplate = getCriteriaFactory().getCriteriaTemplate(this);
-		} catch (UnknownCriterionTypeException e) {
-			// TODO Auto-generated catch block
-		}
-    	return criteriaTemplate.getClass().getName();
-    	
-    	
+
+    public String getCurrentCriteriaTemplate()
+    {
+        CriteriaTemplate criteriaTemplate = null;
+        try
+        {
+            criteriaTemplate = getCriteriaFactory().getCriteriaTemplate(this);
+        }
+        catch (UnknownCriterionTypeException e)
+        {
+            // TODO Auto-generated catch block
+        }
+
+        return criteriaTemplate.getClass().getName();
     }
 }
