@@ -3,15 +3,15 @@
 	<form:form id="certList" method="POST">
 		<c:choose>
 		<c:when test="${certList.nrOfElements == 0}">
-		<div class="navIntraTool">
-			<a href="" id="Add"><spring:message code="form.menu.add"/></a>
-		</div>
-		<p class="instruction">
-			<spring:message code="instructions.admin"/>
-		</p>
-		<p class="instruction">
-			<spring:message code="form.text.emptycertlist.instruct"/></br>
-		</p>
+			<div class="navIntraTool">
+				<a href="" id="Add"><spring:message code="form.menu.add"/></a>
+			</div>
+			<p class="instruction">
+				<spring:message code="instructions.admin"/>
+			</p>
+			<p class="instruction">
+				<spring:message code="form.text.emptycertlist.instruct"/></br>
+			</p>
 		</c:when>
 		<c:otherwise>
 			<div class="navIntraTool">
@@ -28,6 +28,9 @@
 			<div class="instruction">
 				<p>
 					<spring:message code="instructions.admin"/>
+					<c:if test="${highMembers}">
+						<spring:message code="instructions.high.members"/>
+					</c:if>
 				</p>
 			</div>
 			<div class="listNav">
