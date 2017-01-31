@@ -50,8 +50,8 @@
 				</select>
 				<h3><spring:message code="form.text.criteria.selectParameters"/></h3>
 				<div id="criteriaOptions" style="margin-left:10%;"></div>
-				<div id="addDiv" style="float:right">
-					<input id="add" type="button" value="<spring:message code="form.submit.add"/>" onclick="addCriterion()"/>
+				<div id="createDiv" style="float:right">
+					<input id="create" type="button" value="<spring:message code="form.submit.add"/>" onclick="addCriterion()"/>
 				</div>
 			</div>
 		</div>

@@ -341,7 +341,10 @@ public class CertificateEditController extends BaseCertificateController
             {
                 //clear the field values
                 certDef.getFieldValues().clear();
-                certificateToolState.getTemplateFields().clear();
+                if (certificateToolState.getTemplateFields() != null)
+                {
+                    certificateToolState.getTemplateFields().clear();
+                }
 
                 certificateToolState.setTemplateByteArray(newTemplate.getBytes());
                 certificateToolState.setTemplateFilename(newTemplate.getOriginalFilename());

@@ -9,8 +9,11 @@
       <meta http-equiv="Content-Style-Type" content="text/css" />
       <link href="<c:out value="${sakai_skin_base}" />" type="text/css" rel="stylesheet" media="all" />
       <link href="<c:out value="${sakai_skin}" />" type="text/css" rel="stylesheet" media="all" />
+      <link href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" rel="stylesheet" type="text/css" media="all" />
       <script type="text/javascript" language="JavaScript" src="/library/js/headscripts.js"></script>
       <script type="text/javascript" src="/library/js/jquery/1.4.2/jquery-1.4.2.min.js"></script>
+      <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.3.js"></script>
+      <script type="text/javascript" src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
       <%
           String panelId = request.getParameter("panel");
           if (panelId == null) {

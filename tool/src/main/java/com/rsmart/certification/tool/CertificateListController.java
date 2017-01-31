@@ -16,11 +16,14 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.NumberFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +67,13 @@ public class CertificateListController extends BaseCertificateController
 	public static final String PARAM_CERT_ID = "certId";
 	public static final String PARAM_EXPORT = "export";
 
+	//Request params to filter the report view
+	public static final String PARAM_DISPLAY_FILTER_TYPE = "filterType";
+	public static final String PARAM_DISPLAY_FILTER_DATE_TYPE = "filterDateType";
+	public static final String PARAM_DISPLAY_FILTER_START_DATE = "filterStartDate";
+	public static final String PARAM_DISPLAY_FILTER_END_DATE = "filterEndDate";
+	public static final String PARAM_DISPLAY_FILTER_HISTORICAL = "filterHistorical";
+
 	//sakai.properties
 	private final String MAIL_SUPPORT_SAKAI_PROPERTY =  "mail.support";
 	private final String MAIL_SUPPORT = ServerConfigurationService.getString(MAIL_SUPPORT_SAKAI_PROPERTY);
@@ -85,6 +95,7 @@ public class CertificateListController extends BaseCertificateController
 	private final String SESSION_REPORT_LIST_ATTRIBUTE = "reportList";
 	private final String SESSION_REQUIREMENT_LIST_ATTRIBUTE = "certRequirementList";
 	private final String SESSION_IS_AWARDED_ATTRIBUTE = "certIsAwarded";
+	private final String SESSION_ORDERED_CRITERIA = "orderedCriteria";
 
 	//Keys for mav models
 	private final String MODEL_KEY_CERTIFICATE_LIST = "certList";
@@ -98,6 +109,7 @@ public class CertificateListController extends BaseCertificateController
 	private final String MODEL_KEY_IS_AWARDED_ATTRIBUTE = "certIsAwarded";
 	private final String MODEL_KEY_ERROR_ARGUMENTS_ATTRIBUTE = "errorArgs";
 	private final String MODEL_KEY_ERRORS_ATTRIBUTE = "errors";
+	private final String MODEL_KEY_USE_DEFAULT_DISPLAY_OPTIONS = "useDefaultDisplayOptions";
 	private final String MODEL_KEY_REQUIREMENTS_ATTRIBUTE = "requirements";
 	private final String MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
 	private final String MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE = "userPropHeaders";
@@ -591,6 +603,12 @@ public class CertificateListController extends BaseCertificateController
             {
                 return null;
             }
+
+            if ( !siteId().equals(definition.getSiteId()) )
+            {
+                logger.warn(userId() + " is trying to access a certificate outside of their site");
+                return null;
+            }
         }
         catch (IdUnusedException e)
         {
@@ -615,10 +633,11 @@ public class CertificateListController extends BaseCertificateController
         List<String> requirements = new ArrayList<String>();
         Integer expiryOffset = null;
 
-        if(page==null && export==null)
+        if(page == null && export == null && pageSize == null)
         {
             //It's their first time hitting the page or they changed the page size
             // -we'll load/refresh all the data
+            model.put(MODEL_KEY_USE_DEFAULT_DISPLAY_OPTIONS, new Boolean(true));
 
             //get the requirements for the current user
             Iterator<Criterion> itCriterion = definition.getAwardCriteria().iterator();
@@ -697,98 +716,17 @@ public class CertificateListController extends BaseCertificateController
                     //all other criteria go at the back
                     orderedCriteria.add(crit);
                 }
-
             }
+
+            session.setAttribute(SESSION_ORDERED_CRITERIA, orderedCriteria);
 
             //Prepare the Report table's contents
             List<ReportRow> reportRows = new ArrayList<ReportRow>();
 
             /* Iterate through the list of users who have the ability to be awarded certificates,
              * populate each row of the table accordingly*/
-            Set<String> userIds = getHistoricalGradedUserIds();
-            userIds.addAll(getAwardableUserIds());
-            Iterator<String> itUser = userIds.iterator();
-            while (itUser.hasNext())
-            {
-                String userId = itUser.next();
-                try
-                {
-                    //get their user object
-                    User currentUser = getUserDirectoryService().getUser(userId);
-
-                    //The user exists, so create their row
-                    ReportRow currentRow = new ReportRow();
-
-                    //set the name
-                    String firstName = currentUser.getFirstName();
-                    String lastName = currentUser.getLastName();
-                    //do it in an appropriate format
-                    setNameFieldForReportRow(currentRow, firstName, lastName);
-
-                    currentRow.setUserId(currentUser.getEid());
-                    currentRow.setRole(getRole(userId));
-                    ArrayList<String> extraProps = new ArrayList<String>();
-                    if (canShowUserProps)
-                    {
-                        Map<String, String> extraPropsMap = extraPropsUtil.getExtraPropertiesMapForUser(currentUser);
-                        Iterator<String> itKeys = propKeys.iterator();
-                        while (itKeys.hasNext())
-                        {
-                            String key = itKeys.next();
-                            extraProps.add(extraPropsMap.get(key));
-                        }
-                    }
-                    currentRow.setExtraProps(extraProps);
-
-                    //Get the issue date
-                    Date issueDate = definition.getIssueDate(userId);
-                    if (issueDate == null)
-                    {
-                        //certificate was not awarded to this user
-                        currentRow.setIssueDate(null);
-                    }
-                    else
-                    {
-                        //format the date
-                        String formatted = dateFormat.format(issueDate);
-                        currentRow.setIssueDate(formatted);
-                    }
-
-                    //Now populate the criterionCells by iterating through the criteria (in the order that they appear)
-                    List<String> criterionCells = new ArrayList<String>();
-                    Iterator<Criterion> itCriteria = orderedCriteria.iterator();
-                    while (itCriteria.hasNext())
-                    {
-                        Criterion crit = itCriteria.next();
-                        if (logIfNull(crit, "null criterion in orderedCriteria for certId: " + certId))
-                        {
-                            return null;
-                        }
-
-                        criterionCells.addAll(crit.getReportData(userId, siteId(), issueDate));
-                    }
-                    currentRow.setCriterionCells(criterionCells);
-
-                    //show whether the certificate was awarded
-                    //certificate is awarded iff the issue date is null
-                    if (issueDate == null)
-                    {
-                        String no = messages.getString(MESSAGE_NO);
-                        currentRow.setAwarded(no);
-                    }
-                    else
-                    {
-                        String yes = messages.getString(MESSAGE_YES);
-                        currentRow.setAwarded(yes);
-                    }
-
-                    reportRows.add(currentRow);
-                }
-                catch (UserNotDefinedException e)
-                {
-                    //user's not in the system anymore. Ignore
-                }
-            }
+            List<String> userIds = getAwardableUserIds();
+            reportRows = getReportRows(definition, "all", null, null, null, userIds, session);
 
             //set up the paging navigator
             //the 'if' surrounding this scope: page == null && export == null
@@ -860,6 +798,10 @@ public class CertificateListController extends BaseCertificateController
             else if(PAGINATION_FIRST.equals(page))
             {
                 reportList.setPage(reportList.getFirstLinkedPage());
+            }
+            else if (pageSize != null)
+            {
+                reportList.setPageSize(pageSize);
             }
         }   // export == null
         else if (export)
@@ -1102,6 +1044,335 @@ public class CertificateListController extends BaseCertificateController
             model.put(MODEL_KEY_LAST_ELEMENT, plh.getLastElementOnPage() + 1);
         }
         return new ModelAndView(REPORT_VIEW, model);
+    }
+
+    @RequestMapping("/reportViewFilter.form")
+    public ModelAndView certAdminReportFilterHandler(@RequestParam(PARAM_CERT_ID) String certId,
+        @RequestParam(PARAM_DISPLAY_FILTER_TYPE) String filterType,
+        @RequestParam(PARAM_DISPLAY_FILTER_DATE_TYPE) String filterDateType,
+        @RequestParam(PARAM_DISPLAY_FILTER_START_DATE) String filterStartDate,
+        @RequestParam(PARAM_DISPLAY_FILTER_END_DATE) String filterEndDate,
+        @RequestParam(PARAM_DISPLAY_FILTER_HISTORICAL) Boolean includeHistorical,
+        HttpServletRequest request, HttpServletResponse response) throws Exception
+    {
+        CertificateService certServ = getCertificateService();
+        CertificateDefinition definition = null;
+
+        try
+        {
+            definition = certServ.getCertificateDefinition(certId);
+        }
+        catch (IdUnusedException iue)
+        {
+            //TODO
+            return null;
+        }
+
+        Map<String, Object> model = new HashMap<String, Object>();
+        HttpSession session = request.getSession();
+
+        //use a set to avoid duplicates
+        Set<String> setUserIds = new HashSet<String>();
+        setUserIds.addAll(getAwardableUserIds());
+        if (includeHistorical)
+        {
+            setUserIds.addAll(getHistoricalGradedUserIds());
+        }
+
+        List<String> userIds = new ArrayList<String>();
+        userIds.addAll(setUserIds);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+        Date startDate = null;
+        Date endDate = null;
+        try
+        {
+            startDate = sdf.parse(filterStartDate);
+        }
+        catch (ParseException e)
+        {
+            //leave the value as null - getReportRows will show everything up to the end date
+        }
+        try
+        {
+            endDate = sdf.parse(filterEndDate);
+            if (endDate != null)
+            {
+                //Add a day to the end date to make it inclusive
+                Calendar calEnd = Calendar.getInstance();
+                calEnd.setTime(endDate);
+                calEnd.add(Calendar.DATE, 1);
+                endDate = calEnd.getTime();
+            }
+        }
+        catch (ParseException e)
+        {
+            //leave the value as null - getReportRows will show everything after the start date
+            //if they're both null it will display everything
+        }
+
+        List<ReportRow> reportRows = getReportRows(definition, filterType, filterDateType, startDate, endDate, userIds, session);
+
+        //set up the paging navigator
+        //the 'if' surrounding this scope: page == null && export == null
+        //this happens when freshly arriving on this page or when changing the page size
+        PagedListHolder reportList = new PagedListHolder(reportRows);
+
+        //fresh arival, set the default page size
+        //set default to 100
+        int pageSize = PAGE_SIZE_LIST.get(3);
+        reportList.setPageSize(pageSize);
+        reportList.setSort(new SortDefinition()
+        {
+            public String getProperty()
+            {
+                //sort by the getName() method
+                return CERTIFICATE_NAME_PROPERTY;
+            }
+
+            public boolean isIgnoreCase()
+            {
+                return true;
+            }
+
+            public boolean isAscending()
+            {
+                return true;
+            }
+        });
+
+        reportList.resort();
+        session.setAttribute(SESSION_REPORT_LIST_ATTRIBUTE, reportList);
+        model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
+
+        List<String> requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
+        Integer expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
+        List<String> propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+        List<Object> criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
+
+        //handle plurals when appropriate
+        String strExpiryOffset = null;
+        if (expiryOffset != null && expiryOffset == 1)
+        {
+            strExpiryOffset = "1 " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTH);
+        }
+        else if (expiryOffset != null)
+        {
+            strExpiryOffset = expiryOffset + " " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTHS);
+        }
+
+        model.put(MODEL_KEY_CERTIFICATE, definition);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
+        model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
+        model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
+        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
+
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, reportList.getPage());
+        model.put(MODEL_KEY_PAGE_SIZE, reportList.getPageSize());
+        model.put(MODEL_KEY_FIRST_ELEMENT, (reportList.getFirstElementOnPage()+1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (reportList.getLastElementOnPage()+1));
+
+        ModelAndView mav = new ModelAndView(REPORT_VIEW, model);
+        return mav;
+    }
+
+    /**
+     * Generates rows for the reportView
+     * @param definition the certificate we are reporting on
+     * @param filterType possible values - all, unawarded, awarded.
+     * all - includes awarded and unawarded users
+     * unawarded - removes all awarded users from the report
+     * awarded - removes all unawarded users from the report, and (optionally?) filters to a specified date range on the issue date or the expiry date
+     * @param filterDateType when filterType is 'awarded', this determines which date type to filter on. Possible values are "issue date" or "expiry date"
+     * @param startDate when filterType is 'awarded', all dates of the filterDateType before this date will be excluded
+     * @param endDate when filterType is 'awarded', all dates of the filterDateType after this date will be excluded
+     * @param userIds the users to display in the report
+     * @param session the session which stores data we'll need (ie. orderedCriteria - the order of the criterion columns)
+     * @return a list of ReportRows representing the rows in the report
+     */
+    public List<ReportRow> getReportRows(CertificateDefinition definition, String filterType, String filterDateType, Date startDate, Date endDate,
+            List<String> userIds, HttpSession session)
+    {
+        //Verify they're not hacking to view results from another site
+        if ( !siteId().equals(definition.getSiteId()) )
+        {
+            logger.warn(userId() + " is trying to access a certificate outside of their site");
+            //TODO
+            return null;
+        }
+
+        boolean showUnawarded = false;
+        if ("all".equals(filterType))
+        {
+            showUnawarded = true;
+        }
+        else if ("unawarded".equals(filterType))
+        {
+            showUnawarded = true;
+        }
+
+        List<ReportRow> reportRows = new ArrayList<ReportRow>();
+        ResourceLoader messages = getMessages();
+
+        //we'll need this to get additional user properties
+        ExtraUserPropertyUtility extraPropsUtil = ExtraUserPropertyUtility.getInstance();
+        //determines if the current user has permission to view extra properties
+        boolean canShowUserProps = extraPropsUtil.isExtraUserPropertiesEnabled() && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
+
+        //Get the headers for the additional user properties
+        //keeps track of the order of the keys so that we know that the headers and the cells line up
+        Map<String, String> propKeysTitles = extraPropsUtil.getExtraUserPropertiesKeyAndTitleMap();
+        List<String> propKeys = new ArrayList<String>(propKeysTitles.keySet());
+
+        //Get the criteria in the order of the displayed columns
+        List<Criterion> orderedCriteria = (List<Criterion>) session.getAttribute(SESSION_ORDERED_CRITERIA);
+        WillExpireCriterionHibernateImpl wechi = null;
+        Iterator<Criterion> itOrderedCriteria = orderedCriteria.iterator();
+        while (itOrderedCriteria.hasNext())
+        {
+            Criterion crit = itOrderedCriteria.next();
+            if (crit instanceof WillExpireCriterionHibernateImpl)
+            {
+                wechi = (WillExpireCriterionHibernateImpl) crit;
+                break;
+            }
+        }
+
+        Iterator<String> itUser = userIds.iterator();
+        while (itUser.hasNext())
+        {
+            String userId = itUser.next();
+            Date issueDate = definition.getIssueDate(userId);
+
+            //Determine whether this row should be included in the report
+            boolean includeRow = true;
+            if (issueDate == null)
+            {
+                //they are unawarded
+                if (!showUnawarded)
+                {
+                    includeRow = false;
+                }
+            }
+            else
+            {
+                //they are awarded
+                if ("unawarded".equals(filterType))
+                {
+                    includeRow = false;
+                }
+                else if ("awarded".equals(filterType))
+                {
+                    if ("issueDate".equals(filterDateType))
+                    {
+                        if (startDate != null && issueDate.before(startDate))
+                        {
+                            includeRow = false;
+                        }
+                        if (endDate != null && issueDate.after(endDate))
+                        {
+                            includeRow = false;
+                        }
+                    }
+                    else if ("expiryDate".equals(filterDateType) && wechi != null)
+                    {
+                        Date expiryDate = wechi.getExpiryDate(issueDate);
+                        if (startDate != null && expiryDate.before(startDate))
+                        {
+                            includeRow = false;
+                        }
+                        if (endDate != null && expiryDate.after(endDate))
+                        {
+                            includeRow = false;
+                        }
+                    }
+                }
+            }
+
+            if ( includeRow )
+            {
+                try
+                {
+                    //get their user object
+                    User currentUser = getUserDirectoryService().getUser(userId);
+
+                    //The user exists, so create their row
+                    ReportRow currentRow = new ReportRow();
+
+                    //set the name
+                    String firstName = currentUser.getFirstName();
+                    String lastName = currentUser.getLastName();
+                    //do it in an appropriate format
+                    setNameFieldForReportRow(currentRow, firstName, lastName);
+                    currentRow.setUserId(currentUser.getEid());
+                    currentRow.setRole(getRole(userId));
+
+                    ArrayList<String> extraProps = new ArrayList<String>();
+                    if (canShowUserProps)
+                    {
+                        Map<String, String> extraPropsMap = extraPropsUtil.getExtraPropertiesMapForUser(currentUser);
+                        Iterator<String> itKeys = propKeys.iterator();
+                        while (itKeys.hasNext())
+                        {
+                            String key = itKeys.next();
+                            extraProps.add(extraPropsMap.get(key));
+                        }
+                    }
+
+                    currentRow.setExtraProps(extraProps);
+                    if (issueDate == null)
+                    {
+                        //certificate was not awarded to this user
+                        currentRow.setIssueDate(null);
+                    }
+                    else
+                    {
+                        //format the date
+                        String formatted = dateFormat.format(issueDate);
+                        currentRow.setIssueDate(formatted);
+                    }
+
+                    //Now populate the criterionCells by iterating through the criteria (in the order that they appear)
+                    List<String> criterionCells = new ArrayList<String>();
+                    Iterator<Criterion> itCriteria = orderedCriteria.iterator();
+                    while (itCriteria.hasNext())
+                    {
+                        Criterion crit = itCriteria.next();
+                        if (logIfNull(crit, "null criterion in orderedCriteria for certId: " + definition.getId()))
+                        {
+                            return null;
+                        }
+
+                        criterionCells.addAll(crit.getReportData(userId, siteId(), issueDate));
+                    }
+
+                    currentRow.setCriterionCells(criterionCells);
+
+                    //show whether the certificate was awarded
+                    //certificate is awarded iff the issue date is null
+                    if (issueDate == null)
+                    {
+                        String no = messages.getString(MESSAGE_NO);
+                        currentRow.setAwarded(no);
+                    }
+                    else
+                    {
+                        String yes = messages.getString(MESSAGE_YES);
+                        currentRow.setAwarded(yes);
+                    }
+
+                    reportRows.add(currentRow);
+                }
+                catch (UserNotDefinedException e)
+                {
+                    //user's not in the system anymore. Ignore
+                }
+            }
+        }
+
+        return reportRows;
     }
 
     /**

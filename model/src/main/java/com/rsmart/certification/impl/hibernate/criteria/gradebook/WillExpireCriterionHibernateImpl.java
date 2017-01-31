@@ -46,22 +46,36 @@ public class WillExpireCriterionHibernateImpl extends GradebookItemCriterionHibe
     public List<String> getReportData(String userId, String siteId, Date issueDate)
     {
         List<String> reportData = new ArrayList<String>();
-
         String datum = "";
 
-        if (issueDate != null)
+        Date expiryDate = getExpiryDate(issueDate);
+        if (expiryDate != null)
         {
-            Integer expiryOffset = new Integer(getExpiryOffset());
-
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(issueDate);
-            cal.add(Calendar.MONTH, expiryOffset);
-            Date expiryDate = cal.getTime();
             datum = REPORT_DATE_FORMAT.format(expiryDate);
         }
 
         reportData.add(datum);
         return reportData;
+    }
+
+    /**
+     * Calculates the expiry date from the specified issue date
+     * @param issueDate
+     * @return
+     */
+    public Date getExpiryDate(Date issueDate)
+    {
+        Date expiryDate = null;
+        if (issueDate != null)
+        {
+            Integer expiryOffset = new Integer(getExpiryOffset());
+            Calendar cal = Calendar.getInstance();
+            cal.setTime(issueDate);
+            cal.add(Calendar.MONTH, expiryOffset);
+            expiryDate = cal.getTime();
+        }
+
+        return expiryDate;
     }
 
     @Override
