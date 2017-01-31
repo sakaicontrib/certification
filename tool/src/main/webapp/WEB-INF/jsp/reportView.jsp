@@ -34,6 +34,7 @@
     <div id="displayOptionsPanel">
         <div style="display:inline-block; background-color:#ddd; padding:10px">
             <span style="float:left;"> <spring:message code="report.filter.show"/>  </span>
+            <img id="spinner" style="visibility:hidden; float:right" src="WEB-INF/images/indicator.gif">
             <div style="display:inline-block; margin-left: 1em;">
                 <input id="rdAll" type="radio" name="show" value="all" onclick="$('#dateRange').css('display','none');" checked><spring:message code="report.filter.all"/></input><br/>
                 <input id="idUnawarded" type="radio" name="show" value="unawarded" onclick="$('#dateRange').css('display','none');"><spring:message code="report.filter.unawarded"/></input><br/>
@@ -294,6 +295,8 @@
         });
 
         $("#filterApply").click( function() {
+            $("#spinner").css('visibility', 'visible');
+            $("#filterReset").attr('disabled', 'disabled');
             var filterType = $("input[name='show']:checked").val();
             <c:choose>
                 <c:when test="${expiryOffset != null}">
@@ -316,6 +319,8 @@
         });
 
         $("#filterReset").click( function() {
+            $("#resetSpinner").css('display', 'inline');
+            $("#filterApply").attr('disabled', 'disabled');
             location.href="reportView.form?certId=" + id;
             return false;
         });

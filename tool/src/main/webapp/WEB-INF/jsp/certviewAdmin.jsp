@@ -99,9 +99,10 @@
 			         	</td>
 			         	<td>
 							<c:if test="${cert.status == 'ACTIVE'}" >
-								<a href="" id="Report${cert.id}" certificate="${cert.id}"><spring:message code="form.label.report.cell"/></a>
+								<a href="" id="Report${cert.id}" ><spring:message code="form.label.report.cell"/></a>
+								<img id="Spinner${cert.id}" src="WEB-INF/images/indicator.gif" style="visibility:hidden; vertical-align:middle">
 							</c:if>
-			         	</td> 
+			         	</td>
 		          	</tr>
 		       		</c:forEach>
 				</tbody>
@@ -110,13 +111,13 @@
 		</c:choose>
 	</form:form>
 	<script type="text/javascript">
-	
+
 		$(document).ready(function() {
 
 			loaded();
 
 			eval($("#copyStatusUrl")).click(function() {
-				
+
 			});
 
 			$("#first").click( function() {
@@ -150,7 +151,7 @@
 			});
 
 			$("#Edit").click( function() {
-				
+
 				if(singleChecked())
 				{
 						location.href="first.form?certId="+$("input:checked").val();
@@ -162,10 +163,12 @@
 			var anchors = document.getElementsByTagName("A");
 			for (var i = 0; i < anchors.length; i++)
 			{
-				if (anchors[i].id.indexOf('Report') === 0) 
+				if (anchors[i].id.indexOf('Report') === 0)
 				{
 					$(anchors[i]).click( function() {
-						location.href="reportView.form?certId="+this.getAttribute('certificate');
+						var certId = this.id.slice(6);
+						$("#Spinner" + certId).css("visibility", "visible");
+						location.href="reportView.form?certId="+certId;
 						return false;
 					});
 				}
