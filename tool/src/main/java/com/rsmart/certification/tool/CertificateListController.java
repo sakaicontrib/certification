@@ -1140,19 +1140,32 @@ public class CertificateListController extends BaseCertificateController
         try
         {
             endDate = sdf.parse(filterEndDate);
-            if (endDate != null)
-            {
-                //Add a day to the end date to make it inclusive
-                Calendar calEnd = Calendar.getInstance();
-                calEnd.setTime(endDate);
-                calEnd.add(Calendar.DATE, 1);
-                endDate = calEnd.getTime();
-            }
         }
         catch (ParseException e)
         {
             //leave the value as null - getReportRows will show everything after the start date
             //if they're both null it will display everything
+        }
+
+        if (endDate != null)
+        {
+            if (startDate != null)
+            {
+                //order them correctly
+                if (endDate.before(startDate))
+                {
+                    //swap
+                    Date temp = endDate;
+                    endDate = startDate;
+                    startDate = temp;
+                }
+            }
+
+            //Add a day to the end date to make it inclusive
+            Calendar calEnd = Calendar.getInstance();
+            calEnd.setTime(endDate);
+            calEnd.add(Calendar.DATE, 1);
+            endDate = calEnd.getTime();
         }
 
         List<ReportRow> reportRows = getReportRows(definition, filterType, filterDateType, startDate, endDate, userIds, session);
