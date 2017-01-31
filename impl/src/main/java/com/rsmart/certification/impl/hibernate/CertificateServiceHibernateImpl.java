@@ -17,10 +17,10 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.impl.security.AllowMapSecurityAdvisor;
-import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -1293,28 +1293,27 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
          * (for historical purposes)*/
 
         /*
-        SELECT	UNIQUE map.eid
-        FROM	  gb_grading_event_t gbe
-        INNER JOIN	  sakai_user_id_map map
-        ON		  gbe.student_id = map.user_id
-        WHERE	  gbe.gradable_object_id IN (
-            SELECT  gbo.id
-            FROM	  gb_gradable_object_t gbo
-            INNER JOIN	  gb_gradebook_t gb
-            ON		  gb.id = gbo.gradebook_id
-            WHERE	  gb.gradebook_uid = '<site_id>'
-        );
-         */
+        The query would translate to this (minus the the sakai_user_id_map part):
+        SELECT map.eid from sakai_user_id_map map
+        WHERE map.user_id in (
+            SELECT distinct gr.student_id from gb_grade_record_t gr
+            WHERE gr.gradable_object_id in (
+            SELECT gbo.id from gb_gradable_object_t gbo
+            WHERE gbo.gradebook_id in (
+                SELECT gb.id from gb_gradebook_t gb
+                WHERE gb.gradebook_uid = '<siteId>')));
+        */
 
         HibernateCallback callback = new HibernateCallback()
         {
             public Object doInHibernate(Session session) throws HibernateException
             {
-                String query = "select distinct gbe.studentId from CertGradingEvent as gbe "
-                        + "where gbe.gradableObject in ( "
-                        + "select gbo.id from CertGradebookObject as gbo "
-                        + "where gbo.gradebook.uid = :siteId "
-                        + ")";
+                //We need to get people from gb_grade_record_t, grading event only gives us people graded from the gradebook tool
+                String query = 	"select distinct gr.studentId from CertGradeRecordObject as gr " +
+                        "where gr.gradableObject in ( " +
+                            "select gbo.id from CertGradebookObject as gbo " +
+                            "where gbo.gradebook.uid = :siteId " +
+                        ")";
                 return session.createQuery(query).setParameter(PARAM_SITE_ID, siteId).list();
             }
         };

@@ -34,7 +34,6 @@
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertCategory.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradebook.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradeRecord.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradingEvent.hbm.xml</value>
             </list>
         </property>
     </bean>
