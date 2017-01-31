@@ -35,12 +35,12 @@
                                 <c:out value="${certificateToolState.templateFilename}"/><br/>
                                 <form:hidden id="currentTemplate" path="templateFilename" />
                         </c:if>
-                        <input type="file" name="newTemplate" accept="application/pdf"/>
+                        <input id="templateFile" type="file" name="newTemplate" accept="application/pdf"/>
                         <span style="font-size : xx-small;"><spring:message code="form.label.mimeTypes" arguments="${certificateToolState.mimeTypes}"/></span>
                     </td>
 				</tr>
 			</tbody>
-			
+
 		</table>
 		</div>
 		<div style="margin:5px">
@@ -48,43 +48,43 @@
 			<input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
 			<form:hidden path="submitValue" />
 		</div>
-	</form:form>	
+	</form:form>
 <script type="text/javascript">
 
 	$(document).ready(function() {
 
 		loaded();
-	
+
 		$("#next").click(function() {
 			next();
 		});
-		
+
 		$("#cancel").click(function() {
 			cancel();
 		});
-		
+
 		$("textarea").resize(function() {
 			loaded();
 		});
 	});
-	
+
 	function cancel() {
 		$("#submitValue").val("cancel");
 		$("#createCertFormOne").submit();
 	}
-	
+
 	function next() {
 		if(validateForm()) {
 			$("#submitValue").val("next");
 			$("#createCertFormOne").submit();
 		}
 	}
-	
+
 	function validateForm() {
 		$(".alertMessage").hide();
 		var error = false;
 		var errHtml = "";
-		
+
 		if(!$("#name").val()) {
 			errHtml = errHtml + "<spring:message code="form.error.namefield"/>" + "</br>" ;
 			error = true;
@@ -94,7 +94,7 @@
 			errHtml = errHtml + "<spring:message code="form.error.templateField"/>" + "</br>" ;
 			error = true;
 		}
-		
+
 		if(error)
 		{
 			$("#submitError").html(errHtml).show();
@@ -106,6 +106,25 @@
 			return true;
 		}
 	}
+
+	String.prototype.endsWith = function(suffix)
+	{
+		return this.indexOf(suffix, this.length - suffix.length) !== -1;
+	};
+
+	$("#templateFile").change( function()
+	{
+		if ( !$(this).val().toLowerCase().endsWith(".pdf") )
+		{
+			if ($("#errorMessage").length == 0)
+			{
+				var templateMessage = "<div id=\"submitError\" class=\"alertMessage\"> \n " +
+							"<spring:message code="form.error.templateField"/> \n" +
+						"</div>";
+				$("#submitError").replaceWith( templateMessage );
+			}
+		}
+	});
 
 </script>
 <jsp:include page="/WEB-INF/jsp/footer.jsp"/>
