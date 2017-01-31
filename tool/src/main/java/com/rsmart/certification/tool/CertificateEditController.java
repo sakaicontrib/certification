@@ -165,7 +165,7 @@ public class CertificateEditController extends BaseCertificateController
         {
             try
             {
-                certificateDefinitionValidator.validateFirst(certificateToolState, result);
+                certificateDefinitionValidator.validateFirst(certificateToolState, result, getCertificateService());
                 if(!result.hasErrors())
                 {
                     certificateToolState = persistFirstFormData(certificateToolState);
