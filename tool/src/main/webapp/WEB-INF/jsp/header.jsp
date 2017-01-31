@@ -25,8 +25,34 @@
       <script language="javascript">
          function resetHeight()
          {
-            setMainFrameHeightWithMax('<%= org.sakaiproject.util.Validator.escapeJavascript(panelId)%>', -1);
+            resizeFrame("grow");
          }
+
+        function resizeFrame(updown)
+        {
+            var frame;
+            if (top.location !== self.location)
+            {
+                frame = parent.document.getElementById(window.name);
+            }
+            if( frame )
+            {
+                var clientH;
+                if(updown === 'shrink')
+                {
+                    clientH = document.body.clientHeight;
+                }
+                else
+                {
+                    clientH = document.body.clientHeight + 30;
+                }
+                $( frame ).height( clientH );
+            }
+            else
+            {
+                // throw( "resizeFrame did not get the frame (using name=" + window.name + ")" );
+            }
+        }
 
          function loaded() {
             resetHeight();

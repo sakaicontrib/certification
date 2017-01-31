@@ -121,6 +121,16 @@
                 <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
                 </configuration>
             </plugin>
+            <plugin>
+            <artifactId>maven-clean-plugin</artifactId>
+            <configuration>
+                <filesets>
+                    <fileset>
+                        <directory>src/main/webapp/WEB-INF/lib</directory>
+                    </fileset>
+                </filesets>
+            </configuration>
+        </plugin>
         </plugins>
     </build>
 </project>
