@@ -487,8 +487,16 @@ public class CertificateListController extends BaseCertificateController
 
         Date issueDate = definition.getIssueDate(userId());
 
-        //they've been awarded iff issueDate != null and they're awardable
-        if (issueDate != null && isAwardable())
+        boolean awarded = false;
+        try
+        {
+            awarded = definition.isAwarded(userId());
+        }
+        catch (Exception e)
+        {
+        }
+
+        if (awarded && isAwardable())
         {
             DocumentTemplate template = definition.getDocumentTemplate();
             DocumentTemplateService dts = getDocumentTemplateService();
@@ -516,7 +524,11 @@ public class CertificateListController extends BaseCertificateController
 
                 certName = certName.replaceAll("[^a-zA-Z0-9]+","-");
 
-                String strIssueDate = sdf.format(issueDate);
+                String strIssueDate = "";
+                if (issueDate != null)
+                {
+                    strIssueDate = sdf.format(issueDate);
+                }
 
                 fNameBuff.append (certName);
                 fNameBuff.append('_').append(strIssueDate);
@@ -1383,16 +1395,24 @@ public class CertificateListController extends BaseCertificateController
                     currentRow.setCriterionCells(criterionCells);
 
                     //show whether the certificate was awarded
-                    //certificate is awarded iff the issue date is null
-                    if (issueDate == null)
+                    boolean awarded = false;
+                    try
                     {
-                        String no = messages.getString(MESSAGE_NO);
-                        currentRow.setAwarded(no);
+                        awarded = definition.isAwarded(userId);
                     }
-                    else
+                    catch (Exception e)
+                    {
+                    }
+
+                    if (awarded)
                     {
                         String yes = messages.getString(MESSAGE_YES);
                         currentRow.setAwarded(yes);
+                    }
+                    else
+                    {
+                        String no = messages.getString(MESSAGE_NO);
+                        currentRow.setAwarded(no);
                     }
 
                     reportRows.add(currentRow);

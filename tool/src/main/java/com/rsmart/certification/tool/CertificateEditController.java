@@ -486,9 +486,10 @@ public class CertificateEditController extends BaseCertificateController
             }
             else
             {
+                /*This shouldn't happen (this page is always valid
+                 * except in the cases that are already handled above)*/
                 viewName = VIEW_CREATE_CERTIFICATE_THREE;
                 model.put(STATUS_MESSAGE_KEY, FORM_ERR);
-                model.put(ERROR_MESSAGE, CRITERION_EXCEPTION);
             }
         }
         else
