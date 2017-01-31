@@ -699,9 +699,10 @@ public class CertificateListController extends BaseCertificateController
         ResourceLoader messages = getMessages();
 
         //we'll need this to get additional user properties
-        ExtraUserPropertyUtility extraPropsUtil = ExtraUserPropertyUtility.getInstance();
+        ExtraUserPropertyUtility extraPropsUtil = getExtraUserPropertyUtility();
+        boolean extraPropsEnabled = extraPropsUtil.isExtraUserPropertiesEnabled();
         //determines if the current user has permission to view extra properties
-        boolean canShowUserProps = extraPropsUtil.isExtraUserPropertiesEnabled() && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
+        boolean canShowUserProps = extraPropsEnabled && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
         List<String> propHeaders = new ArrayList<String>();
         List<String> requirements = new ArrayList<String>();
         Integer expiryOffset = null;

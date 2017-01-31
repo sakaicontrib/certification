@@ -2,6 +2,7 @@ package com.rsmart.certification.tool;
 
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplateService;
+import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.tool.validator.CertificateDefinitionValidator;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -156,6 +157,11 @@ public class BaseCertificateController
     protected boolean isAwardable()
     {
         return isAwardable(userId());
+    }
+
+    public ExtraUserPropertyUtility getExtraUserPropertyUtility()
+    {
+        return (ExtraUserPropertyUtility) ComponentManager.get(ExtraUserPropertyUtility.class);
     }
 
     protected SiteService getSiteService()

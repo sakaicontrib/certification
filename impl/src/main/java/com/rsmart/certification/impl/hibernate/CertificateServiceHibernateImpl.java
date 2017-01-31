@@ -17,10 +17,10 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
-import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.impl.security.AllowMapSecurityAdvisor;
+import com.rsmart.certification.impl.util.ExtraUserPropertyUtilityImpl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -1342,7 +1342,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         List<ReportRow> reportRows = new ArrayList<ReportRow>();
 
         //we'll need this to get additional user properties
-        ExtraUserPropertyUtility extraPropsUtil = ExtraUserPropertyUtility.getInstance();
+        ExtraUserPropertyUtilityImpl extraPropsUtil = new ExtraUserPropertyUtilityImpl();
         //determines if the current user has permission to view extra properties
         boolean canShowUserProps = extraPropsUtil.isExtraUserPropertiesEnabled() && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
 
