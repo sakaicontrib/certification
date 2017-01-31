@@ -17,6 +17,7 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+import com.rsmart.certification.api.criteria.UserProgress;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.impl.security.AllowMapSecurityAdvisor;
@@ -73,7 +74,6 @@ import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
-import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.util.ResourceLoader;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.hibernate3.HibernateCallback;
@@ -1351,8 +1351,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         Map<String, String> propKeysTitles = extraPropsUtil.getExtraUserPropertiesKeyAndTitleMap();
         List<String> propKeys = new ArrayList<String>(propKeysTitles.keySet());
 
-        //TODO - get a map of criteria to gradebook items, then don't let anything fetch gradebook items again
-
         //Get the criteria in the order of the displayed columns
         WillExpireCriterionHibernateImpl wechi = null;
         Iterator<Criterion> itOrderedCriteria = orderedCriteria.iterator();
@@ -1373,164 +1371,250 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             critFact.clearCaches();
         }
 
-        Iterator<String> itUser = userIds.iterator();
-        while (itUser.hasNext())
-        {
-            String userId = itUser.next();
-            Date issueDate = null;
-            boolean issueDateCalculated = false;
+        /*
+         * Focus on retriving data per column rather than per row, and try to combine multiple columns into single queries when possible
+         * For instance, we can get all the scores and all the dates for the greater than score criteria using something like:
+         *
+         * select student_id, points_earned, date_recorded, gradable_object_id from gb_grade_record_t
+         * where gradable_object_id in (<gradableObject1.id>, <gradableObject2.id>, ... <gradableObjectN.id>) order by student_id;
+         *
+         * This reduces the number of queries from:
+         * #students * 2 * #greater than score critieria
+         * to 1 query. So if your site has 5000 users, then we're reducing 10,000 queries to 1
+         */
+       // If we have all criteria, here are the headers:
+       // Name (sorts by lname; default sort), userId, Role, Employee Number, Issue Date, Expires, Gb Item, Final Course Grade, Due Date for Gb Item2, Awarded
+       List<User> users = getUserDirectoryService().getUsers(userIds);
 
-            //define the issue date; avoid alculating it if we don't have to
-            boolean awarded = false;
-            try
-            {
-                awarded = definition.isAwarded(userId, true);
-            }
-            catch (Exception e)
-            {
-            }
+       /*
+        * Iterate over criteria; grab any that are of the same type
+        * (ie. 5 different 'Greater than Score' criteria would go into the same collection).
+        * Invoke a method in the factory for that type of criterion called:
+        * getProgressForCriteriaForUsers(List<Criterion>, List<userId>) which returns Map<userId, Map<Criterion, UserProgress>>
+        * UserProgress is a class contaning userId, criterion, String progress, boolean passed, Date datePassed.
+        */
 
-            //Determine whether this row should be included in the report
-            boolean includeRow = true;
-            if (!awarded)
-            {
-                //they are unawarded
-                if (!showUnawarded)
-                {
-                    includeRow = false;
-                }
-            }
-            else
-            {
-                //they are unawarded
-                if ("unawarded".equals(filterType))
-                {
-                    includeRow = false;
-                }
-                else if ("awarded".equals(filterType))
-                {
-                    //calculate the issue date to determine if it fits in our filter
-                    issueDate = definition.getIssueDate(userId, true);
-                    issueDateCalculated = true;
-                    if (issueDate == null)
-                    {
-                        includeRow = false;
-                    }
-                    else
-                    {
-                        if ("issueDate".equals(filterDateType))
-                        {
-                            if (startDate != null && issueDate.before(startDate))
-                            {
-                                includeRow = false;
-                            }
-                            if (endDate != null && issueDate.after(endDate))
-                            {
-                                includeRow = false;
-                            }
-                        }
-                        else if ("expiryDate".equals(filterDateType) && wechi != null)
-                        {
-                            Date expiryDate = wechi.getExpiryDate(issueDate);
-                            if (startDate != null && expiryDate.before(startDate))
-                            {
-                                includeRow = false;
-                            }
-                            if (endDate != null && expiryDate.after(endDate))
-                            {
-                                includeRow = false;
-                            }
-                        }
-                    }
-                }
-            }
+       // Maps users to their progress on all criteria
+       Map<String, Map<Criterion, UserProgress>> allUserProgress = new HashMap<String, Map<Criterion, UserProgress>>();
 
-            if (includeRow)
-            {
-                try
-                {
-                    //get the issue date if we haven't already got it
-                    if (!issueDateCalculated)
-                    {
-                        issueDate = definition.getIssueDate(userId, true);
-                        issueDateCalculated = true;
-                    }
+       Set<Criterion> criteria = definition.getAwardCriteria();
+       String siteId = definition.getSiteId();
 
-                    //get their user object
-                    User currentUser = getUserDirectoryService().getUser(userId);
+       /*
+        * To get the UserProgress towards the criteria later, we'll be invoking the CriteriaFactories once for each criterion type
+        * (this is how we'll minimize the number of queries).
+        * So we need a mapping of CriteriaFactories to the criterion types, and the criterion types need to be mapped to the criteria that match each criterion type.
+        * Ie. CriteriaFactory -> (Criterion type managed by CriteriaFactory -> Criteria of key'd Criterion type)
+        */
+       Map<CriteriaFactory, Map<Class, List<Criterion>>> critFactToCritCollectionMap = new HashMap<CriteriaFactory, Map<Class, List<Criterion>>>();
+       for (Criterion criterion : criteria)
+       {
+           CriteriaFactory critFact = criterion.getCriteriaFactory();
+           // Get the mapping of Criterion Type -> List<Criteria> that is associated with the current criterion's CriteriaFactory
+           Map<Class, List<Criterion>> critTypeToCollectionMap = critFactToCritCollectionMap.get(critFact);
+           if (critTypeToCollectionMap == null)
+           {
+               // The mapping of Criterion Type -> List<Criteria> for this CriterionFactory doesn't exist yet, so create one
+               critTypeToCollectionMap = new HashMap<Class, List<Criterion>>();
+               critFactToCritCollectionMap.put(critFact, critTypeToCollectionMap);
+           }
 
-                    //the user exists, so create their row
-                    ReportRow currentRow = new ReportRow();
+           // Get the collection of criteria associated with this criterion's type
+           Class criterionType = criterion.getClass();
+           List<Criterion> critCollection = critTypeToCollectionMap.get(criterionType);
+           if (critCollection == null)
+           {
+               // There is no collection of criteria associated with this criterion's type yet. Create one.
+               critCollection = new ArrayList<Criterion>();
+               critTypeToCollectionMap.put(criterionType, critCollection);
+           }
 
-                    //set the name
-                    String firstName = currentUser.getFirstName();
-                    String lastName = currentUser.getLastName();
-                    //do it in an appropriate formate
-                    setNameFieldForReportRow(currentRow, firstName, lastName);
+           // associate this criterion with the criterion's type which is associated with the criterion's CriteriaFactory
+           critCollection.add(criterion);
+       }
 
-                    currentRow.setUserId(currentUser.getEid());
-                    currentRow.setRole(getRole(userId, definition.getSiteId()));
+       // Now execute the minimum number of queries to calculate each user's progress toward the criteria
+       // Upon executing the queries, populate allUserProgress, which maps users -> (criteria -> user's progress on key'd criterion)
+       for (Map.Entry<CriteriaFactory, Map<Class, List<Criterion>>> critFactToCritCollectionEntry: critFactToCritCollectionMap.entrySet())
+       {
+           CriteriaFactory critFact = critFactToCritCollectionEntry.getKey();
+           Map<Class, List<Criterion>> critTypeToCollectionMap = critFactToCritCollectionEntry.getValue();
+           for (Map.Entry<Class, List<Criterion>> classToCritListEntry : critTypeToCollectionMap.entrySet())
+           {
+               Class type = classToCritListEntry.getKey();
+               List<Criterion> critCollection = classToCritListEntry.getValue();
+               Map<String, Map<Criterion, UserProgress>> currentUserProgress = critFact.getProgressForUsers(siteId, userIds, type, critCollection);
 
-                    ArrayList<String> extraProps = new ArrayList<String>();
-                    if (canShowUserProps)
-                    {
-                        Map<String, String> extraPropsMap = extraPropsUtil.getExtraPropertiesMapForUser(currentUser);
-                        Iterator<String> itKeys = propKeys.iterator();
-                        while (itKeys.hasNext())
-                        {
-                            String key = itKeys.next();
-                            extraProps.add(extraPropsMap.get(key));
-                        }
-                    }
+               /*
+                * The key is User, so invoking putAll would replace the values of the parent map.
+                * For instance, if allUserProgress.get(userId) contains mappings of DueDatePassed -> UserProgress,
+                * and we are currently looking at GreaterThanScore, then if we invoked
+                * allUserProgress.putAll(currentUserProgress), this would not merge in the GreaterThanScore -> UserProgress mappings,
+                * but rather it would replace the entire sub map, and we would lose our DueDatePassed -> UserProgress.
+                * So we need to iterate through the userIds and merge the currentUserProgress.get(userId) results into allUserProgress.get(userId)
+                */
 
-                    currentRow.setExtraProps(extraProps);
-                    if (issueDate == null)
-                    {
-                        //issue date is undefined for this user
-                        currentRow.setIssueDate(null);
-                    }
-                    else
-                    {
-                        //format the date
-                        String formatted = dateFormat.format(issueDate);
-                        currentRow.setIssueDate(formatted);
-                    }
+               for (String userId : userIds)
+               {
+                   Map<Criterion, UserProgress> currentCriterionMap = currentUserProgress.get(userId);
+                   if (currentCriterionMap != null)
+                   {
+                       Map<Criterion, UserProgress> allCriteriaMap = allUserProgress.get(userId);
+                       if (allCriteriaMap == null)
+                       {
+                           // the current user doesn't have a mapping of Criterion -> UserProgress yet. Create one.
+                           allCriteriaMap = new HashMap<Criterion, UserProgress>();
+                           allUserProgress.put(userId, allCriteriaMap);
+                       }
 
-                    //Now populate the criterionCells by iterating through the criteria (in the order that they appear)
-                    List<CriterionProgress> criterionCells = new ArrayList<CriterionProgress>();
-                    Iterator<Criterion> itCriteria = orderedCriteria.iterator();
-                    while (itCriteria.hasNext())
-                    {
-                        Criterion crit = itCriteria.next();
-                        if (crit == null)
-                        {
-                            LOG.warn("null criterion in orderedCriteria for certId: " + definition.getId());
-                            return null;
-                        }
+                       allCriteriaMap.putAll(currentCriterionMap);
+                   }
+               }
+           }
+       }
 
-                        criterionCells.addAll(crit.getReportData(userId, definition.getSiteId(), issueDate, true));
-                    }
+       // populate the report rows
+       for (User user : users)
+       {
+           ReportRow row = new ReportRow();
 
-                    currentRow.setCriterionCells(criterionCells);
-                    String strAwarded;
-                    if (awarded)
-                    {
-                        strAwarded = messages.getString(MESSAGE_YES);
-                    }
-                    else
-                    {
-                        strAwarded = messages.getString(MESSAGE_NO);
-                    }
+           // populate the name fields
+           String firstName = user.getFirstName();
+           String lastName = user.getLastName();
+           setNameFieldForReportRow(row, firstName, lastName);
 
-                    currentRow.setAwarded(strAwarded);
-                    reportRows.add(currentRow);
-                }
-                catch (UserNotDefinedException e)
-                {
-                    //user's not in the system anymore. Ignore
-                }
-            }
-        }
+           // userId for later use with our maps
+           String userId = user.getId();
+           // populate the userEid
+           String userEid = user.getEid();
+           // row's userId is the eid
+           row.setUserId(userEid);
+
+           // populate the role
+           String role = getRole(userId, siteId);
+           row.setRole(role);
+
+           // populate the extra user properties
+           ArrayList<String> extraProps = new ArrayList<String>();
+           if (canShowUserProps)
+           {
+               Map<String, String> extraPropsMap = extraPropsUtil.getExtraPropertiesMapForUser(user);
+               Iterator<String> itKeys = propKeys.iterator();
+               while (itKeys.hasNext())
+               {
+                   String key = itKeys.next();
+                   extraProps.add(extraPropsMap.get(key));
+               }
+           }
+           row.setExtraProps(extraProps);
+
+           // Determine the awarded status and the issue date using the UserProgress objects we previously retrieved
+           Map<Criterion, UserProgress> critProgressMap = allUserProgress.get(userId);
+           // assume this user is awarded until we find a criterion on which the user has failed
+           boolean awarded = true;
+           Date dateAwarded = null;
+           if (criteria.isEmpty())
+           {
+               //TODO: ??? they're awarded, but when?
+           }
+           else if (critProgressMap == null)
+           {
+               // There are criteria, but this user doesn't have any mappings of Criterion -> UserProgress.
+               // This means they have not made progress toward any criteria, hence they have failed.
+               awarded = false;
+           }
+           else
+           {
+               for (Criterion criterion : criteria)
+               {
+                   UserProgress progress = critProgressMap.get(criterion);
+                   if (progress == null || !progress.isPassed())
+                   {
+                       // null progress implies failure
+                       awarded = false;
+                       // date could have been set in previous iterations, so clear it
+                       dateAwarded = null;
+                       break;
+                   }
+                   else
+                   {
+                       // The user has passed all criteria so far
+                       // Update the dateAwarded if the date that this user has met this criterion is later than all previous criteria
+                       Date dateCritAwarded = progress.getDateAwarded();
+                       if (dateAwarded == null)
+                       {
+                           // This is the first iteration; initialize dateAwarded
+                           dateAwarded = dateCritAwarded;
+                       }
+                       else if (dateCritAwarded != null && dateAwarded.before(dateCritAwarded))
+                       {
+                           // The user was awarded on this criterion later than all previous criteria. Update the date awarded
+                           dateAwarded = dateCritAwarded;
+                       }
+                   }
+               }
+           }
+
+           // populate the awarded status
+           String strAwarded = awarded ? messages.getString(MESSAGE_YES) : messages.getString(MESSAGE_NO);
+           row.setAwarded(strAwarded);
+
+           // populate the issue date
+           String strIssueDate = dateAwarded == null ? null : dateFormat.format(dateAwarded);
+           row.setIssueDate(strIssueDate);
+
+           // populate the criterion cells
+           List<CriterionProgress> criterionCells = new ArrayList<CriterionProgress>();
+           if (critProgressMap == null)
+           {
+               // User made no progress on any criteria. Create placeholders
+               for (int i = 0; i < orderedCriteria.size(); i++)
+               {
+                   CriterionProgress critProg = new CriterionProgress("", false);
+                   criterionCells.add(critProg);
+               }
+           }
+           else
+           {
+               // add the criterion cells in order (orderedCriteria is the order of the headers)
+               for (Criterion criterion : orderedCriteria)
+               {
+                   CriterionProgress critProg;
+                   if (criterion instanceof WillExpireCriterionHibernateImpl)
+                   {
+                       // populate the expiry date
+                       String strExpiryDate = "";
+                       if (awarded)
+                       {
+                           // it's awarded. The WillExpireCriterionHibernateImpl instance can do the expiry date calculation for us
+                           Date expiryDate = wechi.getExpiryDate(dateAwarded);
+                           strExpiryDate = dateFormat.format(expiryDate);
+                       }
+
+                       // wechi always passes
+                       critProg = new CriterionProgress(strExpiryDate, true);
+                   }
+                   else
+                   {
+                       UserProgress userProg = critProgressMap.get(criterion);
+                       if (userProg == null)
+                       {
+                           // no progress here, create placeholder
+                           critProg = new CriterionProgress("", false);
+                       }
+                       else
+                       {
+                           critProg = new CriterionProgress(userProg.getProgress(), userProg.isPassed());
+                       }
+                   }
+
+                   criterionCells.add(critProg);
+               }
+           }
+
+           row.setCriterionCells(criterionCells);
+           reportRows.add(row);
+       }
 
         return reportRows;
     }

@@ -19,7 +19,7 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     private final String MESSAGE_CERT_AVAILABLE = "cert.available";
     private final String MESSAGE_CERT_UNAVAILABLE = "cert.unavailable";
 
-    private final DateFormat REPORT_DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy");
+    public static final DateFormat REPORT_DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy");
 
     @Override
     public List<String> getReportHeaders()

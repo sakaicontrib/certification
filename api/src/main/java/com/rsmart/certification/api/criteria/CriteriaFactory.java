@@ -2,6 +2,7 @@ package com.rsmart.certification.api.criteria;
 
 import com.rsmart.certification.api.CertificateDefinition;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -85,4 +86,21 @@ public interface CriteriaFactory
      * Data gets cached in the criteria factories to speed up performance, this method clears the cache
      */
     public void clearCaches();
+
+    /**
+     * Gets the progress of multiple users toward each criterion in the specified collection of criteria.
+     * The class of each Criterion in 'critCollection' must match the class specified by 'type'.
+     * The progress will be stored as a UserProgress object;
+     * all such UserProgress objects will be associated with their respective criterion in a map,
+     * and all such maps will be associated to their respective users in a parent map.
+     * Ie. getProgressForUsers(...).get(myUser.getId()).get(myCriterion) will give us myUser's progress on myCriterion
+     * If a UserProgress is null, it means the user made no progress toward the criterion, and therefore has failed.
+     * @param contextId the siteId/gradebookUid for this site
+     * @param userIds list of userIds to get the progress for
+     * @param type the implemented type of the collection
+     * @param critCollection list of criteria on which to assess the users' progress
+     * @return Mapping of userId -> (mapping of Criterion -> UserProgress)
+     * @throws IllegalArgumentException if a member of criteria's type doesn't match type
+     */
+   public Map<String, Map<Criterion, UserProgress>> getProgressForUsers(String contextId, List<String> userIds, Class type, List<Criterion> critCollection);
 }
