@@ -100,7 +100,7 @@
 			         	<td>
 							<c:if test="${cert.status == 'ACTIVE'}" >
 								<a href="" id="Report${cert.id}" ><spring:message code="form.label.report.cell"/></a>
-								<img id="Spinner${cert.id}" src="WEB-INF/images/indicator.gif" style="visibility:hidden; vertical-align:middle">
+								<div id="Spinner${cert.id}"></div>
 							</c:if>
 			         	</td>
 		          	</tr>
@@ -112,6 +112,7 @@
 	</form:form>
 	<script type="text/javascript">
 
+		var redirecting = false;
 		$(document).ready(function() {
 
 			loaded();
@@ -165,10 +166,21 @@
 			{
 				if (anchors[i].id.indexOf('Report') === 0)
 				{
-					$(anchors[i]).click( function() {
-						var certId = this.id.slice(6);
-						$("#Spinner" + certId).css("visibility", "visible");
-						location.href="reportView.form?certId="+certId;
+					$(anchors[i]).click( function()
+					{
+						if (!redirecting)
+						{
+							redirecting = true;
+							var certId = this.id.slice(6);
+							var spinner = createSpinner();
+							var toReplace = document.getElementById("Spinner" + certId);
+							if (toReplace)
+							{
+								toReplace.parentNode.replaceChild(spinner, toReplace);
+							}
+							spinner.setAttribute("onload", "location.href='reportView.form?certId=" + certId + "';");
+						}
+
 						return false;
 					});
 				}
