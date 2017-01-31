@@ -21,5 +21,5 @@ public interface VariableResolver
 
     public String getVariableDescription(String varLabel);
 
-    public String getValue(CertificateDefinition certDef, String varLabel, String userId) throws VariableResolutionException;
+    public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException;
 }

@@ -68,8 +68,6 @@
           class="com.rsmart.certification.mock.MockUserDirectoryService"/>
     <bean id="com.rsmart.certification.mock.MockGradebookService"
           class="com.rsmart.certification.mock.MockGradebookService"/>
-	<bean id="com.rsmart.certification.mock.MockShortenedUrlService"
-          class="com.rsmart.certification.mock.MockShortenedUrlService"/>
 
     <bean id="com.rsmart.certification.api.DocumentTemplateService"
           class="com.rsmart.certification.impl.DocumentTemplateServiceImpl">
@@ -102,7 +100,6 @@
         <property name="toolManager" ref="com.rsmart.certification.mock.MockToolManager"/>
         <property name="userDirectoryService" ref="com.rsmart.certification.mock.MockUserDirectoryService"/>
         <property name="templateDirectory" value="templates"/>
-		<property name="shortenedUrlService" ref="com.rsmart.certification.mock.MockShortenedUrlService"/>
     </bean>
 
     <bean id="com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory"

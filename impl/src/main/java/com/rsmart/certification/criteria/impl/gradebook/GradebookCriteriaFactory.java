@@ -54,6 +54,13 @@ public class GradebookCriteriaFactory implements CriteriaFactory
     private DueDatePassedCriteriaTemplate gbDueDatePassedTemplate = null;
     private FinalGradeScoreCriteriaTemplate gbFinalGradeScoreTemplate = null;
     private WillExpireCriteriaTemplate gbWillExpireTemplate = null;
+
+    //Caces a map of gradebook item ids to gradebook items so they don't have to be queried multiple times (speeds up performance). Stored as map(gradebook id, gradebook item)
+    private Map<Long, Assignment> cachedAssignments = new HashMap<Long, Assignment>();
+    //Caches grades. Stored as map(gradebook item ids, map(user ids, grades))
+    private Map<Long, Map<String, Double>> itemToUserToGradeMap = new HashMap<Long, Map<String, Double>>();
+    private Map<Long, Map<String, Date>> itemToUserToDateRecordedMap = new HashMap<Long, Map<String, Date>>();
+
     private ResourceLoader resourceLoader = null;
 
     private static final String PERM_VIEW_OWN_GRADES = "gradebook.viewOwnGrades";
@@ -212,7 +219,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         if (!criterionClasses.contains(criterion.getClass()))
             throw new UnknownCriterionTypeException (criterion.getClass().getName());
 
-        return isCriterionMet (criterion, userId(), contextId());
+        return isCriterionMet (criterion, userId(), contextId(), false);
     }
 
     protected Object doSecureGradebookAction(SecureGradebookActionCallback callback) throws Exception
@@ -257,7 +264,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         }
     }
 
-    public boolean isCriterionMet(final Criterion criterion, final String userId, final String contextId)
+    public boolean isCriterionMet(final Criterion criterion, final String userId, final String contextId, final boolean useCaching)
         throws UnknownCriterionTypeException
     {
         if (!criterionClasses.contains(criterion.getClass()))
@@ -277,33 +284,79 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                 return false;
             }
 
-            String score;
-
-            try
+            Double score = null;
+            //grab from the cache if available
+            Map<String, Double> userToGradeMap = null;
+            boolean cached = false;
+            if (useCaching)
             {
-                score = (String) doSecureGradebookAction (new SecureGradebookActionCallback()
+                userToGradeMap = itemToUserToGradeMap.get(itemId);
+                if (userToGradeMap != null && userToGradeMap.containsKey(userId))
                 {
-                    public Object doSecureAction()
-                    {
-                        // pull the assignment from the gradebook to check the score
-                        Assignment assn = gbs.getAssignment(contextId, itemId);
-                        if (assn == null || !assn.isReleased())
-                        {
-                            logger.error("isCriterionMet couldn't retrieve the assignment; itemId = " + itemId);
-                            return null;
-                        }
-
-                        return gbs.getAssignmentScoreString(contextId, itemId, userId);
-                    }
-                });
+                    cached = true;
+                    score = userToGradeMap.get(userId);
+                }
+                else
+                {
+                    userToGradeMap = new HashMap<String, Double>();
+                    itemToUserToGradeMap.put(itemId, userToGradeMap);
+                }
             }
-            catch (Exception e)
+
+            if (!useCaching || !cached)
             {
-                logger.error("isCriterionMet on GreatherThanScoreCriterion - An exception was thrown while retrieving " + userId+"'s score for itemId: " + itemId, e);
-                return false;
+                try
+                {
+                    score = (Double) doSecureGradebookAction (new SecureGradebookActionCallback()
+                    {
+                        public Object doSecureAction()
+                        {
+                            // pull the assignment from the gradebook to check the score
+                            Assignment assn = cachedAssignments.get(itemId);
+                            if (assn == null)
+                            {
+                                assn = gbs.getAssignment(contextId, itemId);
+                                if (useCaching)
+                                {
+                                    cachedAssignments.put(itemId, assn);
+                                }
+                            }
+
+                            if (assn == null)
+                            {
+                                logger.error("isCriterionMet couldn't retrieve the assignment; itemId = " + itemId);
+                                //if we returned null, the cache would think we missed this entry. -1 means we hit the entry, but there's no grade
+                                return null;
+                            }
+                            else if (!assn.isReleased())
+                            {
+                                return null;
+                            }
+
+                            String assignmentScoreString = gbs.getAssignmentScoreString (contextId, itemId, userId);
+                            if (assignmentScoreString == null)
+                            {
+                                return null;
+                            }
+                            return Double.parseDouble(assignmentScoreString);
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    //log
+                    logger.error("isCriterionMet on GreatherThanScoreCriterion - An exception was thrown while retrieving " + userId+"'s score for itemId: " + itemId, e);
+                    return false;
+                }
+
+                if (useCaching)
+                {
+                    //cache the score
+                    itemToUserToGradeMap.get(itemId).put(userId, score);
+                }
             }
 
-            return (score != null && Math.round(Double.parseDouble(score)*100.0)/100.0 >= Double.parseDouble(gischi.getScore()));
+            return (score != null && score >= Double.parseDouble(gischi.getScore()));
         }
         else if (FinalGradeScoreCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
         {
@@ -764,12 +817,28 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         return template;
     }
 
-    public Double getScore(final Long itemId, final String userId, final String contextId)
+    public Double getScore(final Long itemId, final String userId, final String contextId, boolean useCaching)
     {
+        //grab from the cache if available
+        Map<String, Double> userToGradeMap = null;
+        if (useCaching)
+        {
+            userToGradeMap = itemToUserToGradeMap.get(itemId);
+            if (userToGradeMap != null && userToGradeMap.containsKey(userId))
+            {
+                return userToGradeMap.get(userId);
+            }
+            else
+            {
+                userToGradeMap = new HashMap<String, Double>();
+                itemToUserToGradeMap.put(itemId, userToGradeMap);
+            }
+        }
+
         final GradebookService gbs = getGradebookService();
         try
         {
-            return (Double) doSecureGradebookAction (new SecureGradebookActionCallback()
+            Double score = (Double) doSecureGradebookAction (new SecureGradebookActionCallback()
             {
                 public Object doSecureAction()
                 {
@@ -785,6 +854,13 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                     return gbs.getAssignmentScore (contextId, itemId, userId);
                 }
             });
+
+            if (useCaching)
+            {
+                userToGradeMap.put(userId, score);
+            }
+
+            return score;
         }
         catch (Exception e)
         {
@@ -879,19 +955,50 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         }
     }
 
-    public Date getDateRecorded(final Long itemId, final String userId, final String contextId)
+    public Date getDateRecorded(final Long itemId, final String userId, final String contextId, boolean useCaching)
     {
-        final GradebookService gbs = getGradebookService();
+        boolean cached = false;
+        Date dateRecorded = null;
+        Map<String, Date> userToDateRecorded = null;
+        if (useCaching)
+        {
+            userToDateRecorded = itemToUserToDateRecordedMap.get(itemId);
+            if (userToDateRecorded == null)
+            {
+                userToDateRecorded = new HashMap<String, Date>();
+                itemToUserToDateRecordedMap.put(itemId, userToDateRecorded);
+            }
+            else
+            {
+                if (userToDateRecorded.containsKey(userId))
+                {
+                    cached = true;
+                    dateRecorded = userToDateRecorded.get(userId);
+                }
+            }
+        }
 
-        try
+        //retrieve it every time if we're not using caching. If we are using caching, we retrieve it if it's not cached
+        if (!useCaching || !cached)
         {
-            GradeDefinition gradeDefn = gbs.getGradeDefinitionForStudentForItem(contextId, itemId, userId);
-            return gradeDefn.getDateRecorded();
+            final GradebookService gbs = getGradebookService();
+
+            try
+            {
+                GradeDefinition gradeDefn = gbs.getGradeDefinitionForStudentForItem(contextId, itemId, userId);
+                dateRecorded = gradeDefn.getDateRecorded();
+            }
+            catch(Exception e)
+            {
+                dateRecorded = null;
+            }
+            if (useCaching)
+            {
+                userToDateRecorded.put(userId, dateRecorded);
+            }
         }
-        catch(Exception e)
-        {
-            return null;
-        }
+
+    return dateRecorded;
     }
 
     public Date getFinalGradeDateRecorded(final String userId,final String contextId)
@@ -986,7 +1093,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         }
     }
 
-    public Date getDateIssued(final String userId, final String contextId, CertificateDefinition certDef)
+    public Date getDateIssued(final String userId, final String contextId, CertificateDefinition certDef, boolean useCaching)
     {
         Set<Criterion> criteria = certDef.getAwardCriteria();
 
@@ -999,7 +1106,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
             Criterion crit = itCriteria.next();
             try
             {
-                if (!isCriterionMet(crit, userId, contextId))
+                if (!isCriterionMet(crit, userId, contextId, useCaching))
                 {
                     return null;
                 }
@@ -1009,7 +1116,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                 return null;
             }
 
-            Date date = crit.getDateMet(userId, contextId);
+            Date date = crit.getDateMet(userId, contextId, useCaching);
             if (lastDate == null)
             {
                 lastDate = date;
@@ -1021,5 +1128,12 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         }
 
         return lastDate;
+    }
+
+    public void clearCaches()
+    {
+        cachedAssignments.clear();
+        itemToUserToGradeMap.clear();
+        itemToUserToDateRecordedMap.clear();
     }
 }

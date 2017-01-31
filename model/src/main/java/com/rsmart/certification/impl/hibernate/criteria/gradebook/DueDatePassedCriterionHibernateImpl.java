@@ -34,14 +34,14 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     }
 
     @Override
-    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate)
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching)
     {
         List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
 
         boolean met = false;
         try
         {
-            met = getCriteriaFactory().isCriterionMet(this, userId, siteId);
+            met = getCriteriaFactory().isCriterionMet(this, userId, siteId, useCaching);
         }
         catch (UnknownCriterionTypeException e)
         {
@@ -55,11 +55,11 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     }
 
     @Override
-    public Date getDateMet(String userId, String siteId)
+    public Date getDateMet(String userId, String siteId, boolean useCaching)
     {
         try
         {
-            if (!getCriteriaFactory().isCriterionMet(this, userId, siteId))
+            if (!getCriteriaFactory().isCriterionMet(this, userId, siteId, useCaching))
             {
                 return null;
             }
@@ -74,7 +74,7 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     }
 
     @Override
-    public String getProgress(String userId, String siteId)
+    public String getProgress(String userId, String siteId, boolean useCaching)
     {
         Date dueDate = getDueDate();
         Date today = new Date();

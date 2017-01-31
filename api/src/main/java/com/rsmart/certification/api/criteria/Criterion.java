@@ -39,7 +39,7 @@ public interface Criterion
      * @param issueDate
      * @return
      */
-    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate);
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching);
 
     /**
      * Returns the first date on which this criterion was met. For example, if this is a DueDatePassed criterion,
@@ -51,7 +51,7 @@ public interface Criterion
      * @param siteId
      * @return
      */
-    public Date getDateMet(String userId, String siteId);
+    public Date getDateMet(String userId, String siteId, boolean useCaching);
 
     /**
      * Returns a message for the UI to indicate the specified user's progress towards meeting this criterion.
@@ -62,5 +62,5 @@ public interface Criterion
      * @param siteId
      * @return
      */
-    public String getProgress(String userId, String siteId);
+    public String getProgress(String userId, String siteId, boolean useCaching);
 }

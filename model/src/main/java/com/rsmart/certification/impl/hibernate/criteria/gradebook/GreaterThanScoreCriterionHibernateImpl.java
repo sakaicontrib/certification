@@ -42,21 +42,21 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
     }
 
     @Override
-    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate)
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching)
     {
         List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
 
         boolean met = false;
         try
         {
-            met = getCriteriaFactory().isCriterionMet(this, userId, siteId);
+            met = getCriteriaFactory().isCriterionMet(this, userId, siteId, useCaching);
         }
         catch (UnknownCriterionTypeException e)
         {
             //impossible
         }
 
-        Double score = getCriteriaFactory().getScore(getItemId(), userId, siteId);
+        Double score = getCriteriaFactory().getScore(getItemId(), userId, siteId, useCaching);
         String progress = "";
         if (score == null)
         {
@@ -74,11 +74,11 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
     }
 
     @Override
-    public Date getDateMet(String userId, String siteId)
+    public Date getDateMet(String userId, String siteId, boolean useCaching)
     {
         try
         {
-            if (!getCriteriaFactory().isCriterionMet(this, userId, siteId))
+            if (!getCriteriaFactory().isCriterionMet(this, userId, siteId, useCaching))
             {
                 return null;
             }
@@ -88,16 +88,16 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
             return null;
         }
 
-        return getCriteriaFactory().getDateRecorded(getItemId(), userId, siteId);
+        return getCriteriaFactory().getDateRecorded(getItemId(), userId, siteId, useCaching);
     }
 
     @Override
-    public String getProgress(String userId, String siteId)
+    public String getProgress(String userId, String siteId, boolean useCaching)
     {
         CertificateService certServ = getCertificateService();
         NumberFormat numberFormat = NumberFormat.getInstance();
 
-        Double dblScore = getCriteriaFactory().getScore(getItemId(), userId, siteId);
+        Double dblScore = getCriteriaFactory().getScore(getItemId(), userId, siteId, useCaching);
         if (dblScore  == null)
         {
             return certServ.getString(MESSAGE_ITEM_INCOMPLETE);

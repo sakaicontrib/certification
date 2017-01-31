@@ -39,7 +39,7 @@ public class RecipientVariableResolver extends AbstractVariableResolver
         return uds;
     }
 
-    public String getValue(CertificateDefinition certDef, String key, String userId) throws VariableResolutionException
+    public String getValue(CertificateDefinition certDef, String key, String userId, boolean useCaching) throws VariableResolutionException
     {
         User user = null;
         try

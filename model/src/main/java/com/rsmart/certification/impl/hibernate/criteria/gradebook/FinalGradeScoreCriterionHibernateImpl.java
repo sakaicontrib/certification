@@ -44,14 +44,14 @@ public class FinalGradeScoreCriterionHibernateImpl extends GradebookItemCriterio
     }
 
     @Override
-    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate)
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching)
     {
         List<CriterionProgress> reportHeaders = new ArrayList<CriterionProgress>();
 
         boolean met = false;
         try
         {
-            met = getCriteriaFactory().isCriterionMet(this, userId, siteId);
+            met = getCriteriaFactory().isCriterionMet(this, userId, siteId, useCaching);
         }
         catch (UnknownCriterionTypeException e)
         {
@@ -76,11 +76,11 @@ public class FinalGradeScoreCriterionHibernateImpl extends GradebookItemCriterio
     }
 
     @Override
-    public Date getDateMet(String userId, String siteId)
+    public Date getDateMet(String userId, String siteId, boolean useCaching)
     {
         try
         {
-            if (!getCriteriaFactory().isCriterionMet(this, userId, siteId))
+            if (!getCriteriaFactory().isCriterionMet(this, userId, siteId, useCaching))
             {
                 return null;
             }
@@ -95,7 +95,7 @@ public class FinalGradeScoreCriterionHibernateImpl extends GradebookItemCriterio
     }
 
     @Override
-    public String getProgress(String userId, String siteId)
+    public String getProgress(String userId, String siteId, boolean useCaching)
     {
         CertificateService certServ = getCertificateService();
         NumberFormat numberFormat = NumberFormat.getInstance();

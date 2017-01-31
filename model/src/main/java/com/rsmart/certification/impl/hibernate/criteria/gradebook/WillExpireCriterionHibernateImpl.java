@@ -45,14 +45,14 @@ public class WillExpireCriterionHibernateImpl extends GradebookItemCriterionHibe
      * @return
      */
     @Override
-    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate)
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching)
     {
         List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
 
         boolean met = false;
         try
         {
-            met = getCriteriaFactory().isCriterionMet(this, userId, siteId);
+            met = getCriteriaFactory().isCriterionMet(this, userId, siteId, useCaching);
         }
         catch (UnknownCriterionTypeException e)
         {
@@ -92,14 +92,14 @@ public class WillExpireCriterionHibernateImpl extends GradebookItemCriterionHibe
     }
 
     @Override
-    public Date getDateMet(String userId, String siteId)
+    public Date getDateMet(String userId, String siteId, boolean useCaching)
     {
         //For this criterion, date met is undefined
         return null;
     }
 
     @Override
-    public String getProgress(String userId, String siteId)
+    public String getProgress(String userId, String siteId, boolean useCaching)
     {
         //For this criterion, progress is undefined
         return "";

@@ -89,7 +89,7 @@ public interface CertificateDefinition
      * @param userId
      * @return
      */
-    public Date getIssueDate(String userId);
+    public Date getIssueDate(String userId, boolean useCaching);
 
     /**
      * Determines whether the the certificate was awarded to the given user
@@ -97,7 +97,7 @@ public interface CertificateDefinition
      * @return
      * @throws UnknownCriterionTypeException
      */
-    public boolean isAwarded(String userId) throws UnknownCriterionTypeException;
+    public boolean isAwarded(String userId, boolean useCaching) throws UnknownCriterionTypeException;
 
     public void addAwardCriterion(Criterion criterion);
 

@@ -29,7 +29,7 @@ public interface CriteriaFactory
 
     public boolean isCriterionMet (Criterion criterion) throws UnknownCriterionTypeException;
 
-    public boolean isCriterionMet (Criterion criterion, String userId, String contextId) throws UnknownCriterionTypeException;
+    public boolean isCriterionMet (Criterion criterion, String userId, String contextId, boolean useCaching) throws UnknownCriterionTypeException;
 
     public Criterion createCriterion (CriteriaTemplate template, Map<String, String> bindings)
         throws InvalidBindingException, CriterionCreationException, UnknownCriterionTypeException;
@@ -41,7 +41,7 @@ public interface CriteriaFactory
      * @param contextId
      * @return the score on a gradebook item (if not applicable, returns null)
      */
-    public Double getScore(Long itemId, String userId, String contextId);
+    public Double getScore(Long itemId, String userId, String contextId, boolean useCaching);
 
     /**
      * @param userId the user's id
@@ -57,7 +57,7 @@ public interface CriteriaFactory
      * @param contextId
      * @return the date that the gradebook item's score was entered (if applicable)
      */
-    public Date getDateRecorded(Long itemId, String userId, String contextId);
+    public Date getDateRecorded(Long itemId, String userId, String contextId, boolean useCaching);
 
      /**
      * @param userId
@@ -79,5 +79,10 @@ public interface CriteriaFactory
      * @param certDef
      * @return
      */
-    public Date getDateIssued(String userId, String contextId, CertificateDefinition certDef);
+    public Date getDateIssued(String userId, String contextId, CertificateDefinition certDef, boolean useCaching);
+
+    /**
+     * Data gets cached in the criteria factories to speed up performance, this method clears the cache
+     */
+    public void clearCaches();
 }

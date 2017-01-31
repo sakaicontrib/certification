@@ -205,7 +205,7 @@ public interface CertificateService
      * @param certificateDefinitionId
      * @return the Conditions which the current user has not met for the supplied CertificateDefinition ID.
      */
-    public Set<Criterion> getUnmetAwardConditions (String certificateDefinitionId)
+    public Set<Criterion> getUnmetAwardConditions (String certificateDefinitionId, boolean useCaching)
             throws IdUnusedException, UnknownCriterionTypeException;
 
     /**
@@ -214,7 +214,7 @@ public interface CertificateService
      * @param certificateDefinitionId
      * @return the Conditions which the current user has not met for the supplied CertificateDefinition ID.
      */
-    public Set<Criterion> getUnmetAwardConditionsForUser (String certificateDefinitionId, String userId)
+    public Set<Criterion> getUnmetAwardConditionsForUser (String certificateDefinitionId, String userId, boolean useCaching)
             throws IdUnusedException, UnknownCriterionTypeException;
 
     /**
@@ -259,7 +259,7 @@ public interface CertificateService
      * @return
      * @throws org.sakaiproject.exception.IdUnusedException
      */
-    public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId, String siteId)
+    public List<Map.Entry<String, String>> getCertificateRequirementsForUser(String certId, String userId, String siteId, boolean useCaching)
         throws IdUnusedException;
 
     /**
@@ -272,4 +272,11 @@ public interface CertificateService
     public Collection<String> getGradedUserIds(String siteId);
 
     public String getMimeType(byte[] toCheck) throws DocumentTemplateException;
+
+    /**
+     * Gets the report rows for the users specified in userIds and the certificate definition specified by definition,
+     * and filters by the filter type (all, awarded, unawarded), the filter date type (issue date, expiry date),
+     * between the start date and the end date, and the progress of the criteria will be ordered according to orderedCriteria
+     **/
+   public List<ReportRow> getReportRows(List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate, Date endDate, List<Criterion> orderedCriteria);
 }

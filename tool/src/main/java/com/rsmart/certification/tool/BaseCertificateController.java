@@ -7,12 +7,10 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.authz.api.Member;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -195,26 +193,7 @@ public class BaseCertificateController
             return null;
         }
 
-        Set<Member> members = currentSite.getMembers();
-        if (members == null)
-        {
-            //impossible, a site must always have at least one instructor/maintainer
-            return null;
-        }
-
-        Iterator<Member> itMembers = members.iterator();
-        while (itMembers.hasNext())
-        {
-            Member currentMember = itMembers.next();
-            String userId = currentMember.getUserId();
-
-            if (isAwardable(userId))
-            {
-                //user can't add/edit a certificate, hence this person is awardable
-                userIds.add(userId);
-            }
-        }
-
+        userIds.addAll(currentSite.getUsersIsAllowed(AWARDABLE_FN));
         return userIds;
     }
 

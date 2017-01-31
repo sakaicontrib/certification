@@ -37,7 +37,7 @@
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradingEvent.hbm.xml</value>
             </list>
         </property>
-    </bean>    
+    </bean>
 
     <bean id="com.rsmart.certification.api.CertificateService"
           class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
@@ -93,9 +93,8 @@
         <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
         <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
         <property name="templateDirectory" value="${sakai.home}/templates"/>
-        <property name="shortenedUrlService" ref="org.sakaiproject.shortenedurl.api.ShortenedUrlService"/>
         <property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
-        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />        
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
     </bean>
 
     <bean id="com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory"

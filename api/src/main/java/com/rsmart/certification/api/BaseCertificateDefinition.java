@@ -153,7 +153,7 @@ public class BaseCertificateDefinition implements CertificateDefinition
         awardCriteria.add(criterion);
     }
 
-    public Date getIssueDate(String userId)
+    public Date getIssueDate(String userId, boolean useCaching)
     {
         if (awardCriteria.isEmpty())
         {
@@ -169,7 +169,7 @@ public class BaseCertificateDefinition implements CertificateDefinition
                 CriteriaFactory critFact = crit.getCriteriaFactory();
                 if (critFact != null)
                 {
-                    return critFact.getDateIssued(userId, siteId, this);
+                    return critFact.getDateIssued(userId, siteId, this, useCaching);
                 }
             }
         }
@@ -192,7 +192,7 @@ public class BaseCertificateDefinition implements CertificateDefinition
         this.expiryOffset = expiryOffset;
     }
 
-    public boolean isAwarded(String userId) throws UnknownCriterionTypeException
+    public boolean isAwarded(String userId, boolean useCaching) throws UnknownCriterionTypeException
     {
         Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
         boolean awarded = true;
@@ -200,7 +200,7 @@ public class BaseCertificateDefinition implements CertificateDefinition
         {
             Criterion crit = itAwardCriteria.next();
             CriteriaFactory critFact = crit.getCriteriaFactory();
-            if (!critFact.isCriterionMet(crit, userId, siteId))
+            if (!critFact.isCriterionMet(crit, userId, siteId, useCaching))
             {
                 awarded = false;
             }
