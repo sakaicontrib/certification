@@ -118,17 +118,43 @@
             <tr>
                 <!-- the columns need to be in a c:for -->
                 <!-- create the headers in an array from java code -->
-                <th><spring:message code="report.table.header.name"/></th>
-                <th><spring:message code="report.table.header.userid"/></th>
-                <th><spring:message code="report.table.header.role"/></th>
+                <th>
+                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=name" id="sortByName">
+                        <spring:message code="report.table.header.name"/>
+                    </a>
+                </th>
+                <th>
+                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=userId" id="sortByUserId">
+                        <spring:message code="report.table.header.userid"/>
+                    </a>
+                </th>
+                <th>
+                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=role" id="sortByRole">
+                        <spring:message code="report.table.header.role"/>
+                    </a>
+                </th>
                 <c:forEach items="${userPropHeaders}" var="prop">
-                    <th>${prop}</th>
+                    <th>
+                        <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=prop&prop=${prop}" id="sortBy${prop}">
+                            ${prop}
+                        </a>
+                    </th>
                 </c:forEach>
-                <th><spring:message code="report.table.header.issuedate"/></th>
+                <th>
+                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=issueDate" id="sortByIssueDate">
+                        <spring:message code="report.table.header.issuedate"/>
+                    </a>
+                </th>
                 <c:forEach items="${critHeaders}" var="crit">
-                    <th>${crit}</th>
+                    <th>
+                        ${crit}
+                    </th>
                 </c:forEach>
-                <th><spring:message code="report.table.header.awarded"/></th>
+                <th>
+                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=awarded" id="sortByAwarded">
+                        <spring:message code="report.table.header.awarded"/>
+                    </a>
+                </th>
             </tr>
         </thead>
         <tbody align="left">
