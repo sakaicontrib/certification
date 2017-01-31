@@ -25,7 +25,7 @@
       <script language="javascript">
          function resetHeight()
          {
-            setMainFrameHeight('<%= org.sakaiproject.util.Validator.escapeJavascript(panelId)%>');
+            setMainFrameHeightWithMax('<%= org.sakaiproject.util.Validator.escapeJavascript(panelId)%>', -1);
          }
 
          function loaded() {
