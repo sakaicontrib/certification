@@ -432,7 +432,11 @@ public class CertificateEditController extends BaseCertificateController
         {
             //The certificate definition's award criteria will be changed in memory.
             //Reloading will overwrite the changes
-            certSvc.getCertificateDefinition(certDef.getId());
+            String id = certDef.getId();
+            if (id != null && !"".equals(id))
+            {
+                certSvc.getCertificateDefinition(id);
+            }
 
             CertificateToolState.clear();
             status.setComplete();
@@ -643,7 +647,8 @@ public class CertificateEditController extends BaseCertificateController
                 {
                     //create a hibernate impl
                     certificateService.createCertificateDefinition(certDef.getName(), certDef.getDescription(),
-                            siteId(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(), certificateToolState.getTemplateInputStream());
+                            siteId(), certDef.getProgressHidden(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(),
+                            certificateToolState.getTemplateInputStream());
 
                     //gets the hibernateImpl
                     certDef = certificateService.getCertificateDefinitionByName(siteId(), certDef.getName());

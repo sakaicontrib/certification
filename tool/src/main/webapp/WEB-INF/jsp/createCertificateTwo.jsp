@@ -53,9 +53,14 @@
 				<h3><spring:message code="form.text.criteria.selectParameters"/></h3>
 				<div id="criteriaOptions" style="margin-left:10%;"></div>
 				<div id="createDiv" style="float:right">
-					<input id="create" type="button" value="<spring:message code="form.submit.add"/>" onclick="addCriterion()"/>
+					<input id="create" type="button" value='<spring:message code="form.submit.add"/>' onclick="addCriterion()"/>
 				</div>
 			</div>
+			<br/>
+			<br/>
+			<form:checkbox path="certificateDefinition.progressShown"/><spring:message code="form.label.showRequirements"/>
+			<br/>
+			<br/>
 		</div>
 		<div style="margin:5px">
 			<input id="back" type="button" value="<spring:message code="form.submit.back"/>"/>&nbsp;
@@ -336,4 +341,4 @@
 	}
 
 </script>
-<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>

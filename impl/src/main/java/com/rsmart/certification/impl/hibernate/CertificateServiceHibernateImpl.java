@@ -366,31 +366,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         return retVal;
     }
 
-    public CertificateDefinition createCertificateDefinition(String name, String description, String siteId) throws IdUsedException
-    {
-        CertificateDefinitionHibernateImpl certificateDefinition = new CertificateDefinitionHibernateImpl();
-
-        certificateDefinition.setCreateDate(new Date());
-        certificateDefinition.setCreatorUserId(userId());
-        certificateDefinition.setDescription(description);
-        certificateDefinition.setName(name);
-        certificateDefinition.setSiteId(siteId);
-        certificateDefinition.setStatus(CertificateDefinitionStatus.UNPUBLISHED);
-
-        try
-        {
-            getHibernateTemplate().save(certificateDefinition);
-        }
-        catch (DataIntegrityViolationException dive)
-        {
-            throw new IdUsedException("name: " + name + " siteId: " + siteId);
-        }
-
-        return certificateDefinition;
-    }
-
     public CertificateDefinition createCertificateDefinition (final String name, final String description,
-                                                              final String siteId, final String fileName,
+                                                              final String siteId, final Boolean progressHidden, final String fileName,
                                                               final String mimeType, final InputStream template)
         throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException
     {
@@ -408,6 +385,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     certificateDefinition.setDescription(description);
                     certificateDefinition.setName(name);
                     certificateDefinition.setSiteId(siteId);
+                    certificateDefinition.setProgressHidden(progressHidden);
                     certificateDefinition.setStatus(CertificateDefinitionStatus.UNPUBLISHED);
                     session.save(certificateDefinition);
 

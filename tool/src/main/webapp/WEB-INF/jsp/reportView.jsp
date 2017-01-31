@@ -35,9 +35,9 @@
         <div style="display:inline-block; background-color:#ddd; padding:10px">
             <span style="float:left;"> <spring:message code="report.filter.show"/>  </span>
             <div style="display:inline-block; margin-left: 1em;">
-                <input id="rdAll" type="radio" name="show" value="all" onchange="$('#dateRange').css('display','none');" checked><spring:message code="report.filter.all"/></input><br/>
-                <input id="idUnawarded" type="radio" name="show" value="unawarded" onchange="$('#dateRange').css('display','none');"><spring:message code="report.filter.unawarded"/></input><br/>
-                <input id="idAwarded" type="radio" name="show" value="awarded" onchange="$('#dateRange').css('display','inline');"><spring:message code="report.filter.awarded"/></input><br/>
+                <input id="rdAll" type="radio" name="show" value="all" onclick="$('#dateRange').css('display','none');" checked><spring:message code="report.filter.all"/></input><br/>
+                <input id="idUnawarded" type="radio" name="show" value="unawarded" onclick="$('#dateRange').css('display','none');"><spring:message code="report.filter.unawarded"/></input><br/>
+                <input id="idAwarded" type="radio" name="show" value="awarded" onclick="$('#dateRange').css('display','inline');"><spring:message code="report.filter.awarded"/></input><br/>
                 <div id="dateRange" style="display:none;">
                     <br/>
                     <spring:message code="report.filter.awarded.1"/>
@@ -52,8 +52,8 @@
                             <spring:message code="report.filter.issuedate.lower"/>
                         </c:otherwise>
                     </c:choose>
-                    <spring:message code="report.filter.awarded.2"/> 
-                    <input id="startDate" type="text" style="background: url(WEB-INF/images/calendar.gif) #FFF no-repeat right; padding-right: 17px; width: 10em"/> 
+                    <spring:message code="report.filter.awarded.2"/>
+                    <input id="startDate" type="text" style="background: url(WEB-INF/images/calendar.gif) #FFF no-repeat right; padding-right: 17px; width: 10em"/>
                     <spring:message code="report.filter.awarded.3"/>
                     <input id="endDate" type="text" style="background: url(WEB-INF/images/calendar.gif) #FFF no-repeat right; padding-right: 17px; width: 10em"/>
                 </div>
@@ -157,7 +157,7 @@
     --%>
 </form:form>
 <script type="text/javascript">
-    $(document).ready(function() 
+    $(document).ready(function()
     {
         loaded();
 
@@ -231,7 +231,7 @@
                 var filterEndDate = $("#endDate").val();
                 var filterHistorical = $("#historical").prop('checked');
 
-                $.cookie("filterType", filterType);
+            $.cookie("filterType", filterType);
                 $.cookie("filterDateType", filterDateType);
                 $.cookie("filterStartDate", filterStartDate);
                 $.cookie("filterEndDate", filterEndDate);
@@ -319,4 +319,4 @@
         });
     });
 </script>
-<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>

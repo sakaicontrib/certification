@@ -81,24 +81,22 @@ public interface CertificateService
         throws IdUnusedException, DocumentTemplateException;
 
     /**
-     * Creates a CertificateDefinition with the minimal amount of information required to store the object and
-     * ensure it is unique. The CertificateDefinition must have a unique (name, siteId) combination. It will be
-     * created in UNPUBLISHED status. A call to activateCertificateDefinition(cd, true) will be required to validate
-     * the final configuration of the CertificateDefinition and to set its status to ACTIVE.
-     *
-     * @param name
-     * @param description
-     * @param siteId
-     *
-     * @throws IdUsedException if the name is already in use for the given site.
-     *
-     * @return a new CertificateDefinition object
+     * Creates a new certificate definition
+     * @param name the name of the certificate
+     * @param description a description of the certificate
+     * @param siteId the containing site
+     * @param progressHidden specifies whether site members can view their progress towards earning this certificate
+     * @param fileName the filename associated with the template file
+     * @param mimeType the mimetype for the template file
+     * @param template an input stream containing the contents of the template file
+     * @return
+     * @throws IdUsedException
+     * @throws UnsupportedTemplateTypeException
+     * @throws DocumentTemplateException
      */
-    public CertificateDefinition createCertificateDefinition (String name, String description, String siteId)
-        throws IdUsedException;
-
     public CertificateDefinition createCertificateDefinition (String name, String description, String siteId,
-                                                              String fileName, String mimeType, InputStream template)
+                                                              Boolean progressHidden, String fileName,
+                                                              String mimeType, InputStream template)
         throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException;
 
     /**

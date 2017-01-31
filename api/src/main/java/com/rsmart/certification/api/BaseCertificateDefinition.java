@@ -29,6 +29,7 @@ public class BaseCertificateDefinition implements CertificateDefinition
     protected String expiryOffset;
     protected Date createDate;
     protected CertificateDefinitionStatus status = CertificateDefinitionStatus.UNPUBLISHED;
+    protected Boolean hidden;
     protected DocumentTemplate documentTemplate;
     protected Map<String, String> fieldValues = new HashMap<String, String>(0);
     protected Set<Criterion> awardCriteria = new HashSet<Criterion>();
@@ -206,5 +207,45 @@ public class BaseCertificateDefinition implements CertificateDefinition
         }
 
         return awarded;
+    }
+
+    public void setProgressShown( Boolean show )
+    {
+        if( show == null )
+        {
+            hidden = Boolean.TRUE;
+        }
+
+        this.hidden = !show;
+    }
+
+    public Boolean getProgressShown()
+    {
+        if( hidden == null )
+        {
+            return Boolean.FALSE;
+        }
+
+        return !hidden;
+    }
+
+    public void setProgressHidden(Boolean hidden)
+    {
+        if (hidden == null)
+        {
+            hidden = Boolean.FALSE;
+        }
+
+        this.hidden = hidden;
+    }
+
+    public Boolean getProgressHidden()
+    {
+        if (hidden == null)
+        {
+            hidden = Boolean.TRUE;
+        }
+
+        return hidden;
     }
 }

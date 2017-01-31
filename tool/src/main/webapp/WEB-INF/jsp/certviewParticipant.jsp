@@ -83,14 +83,23 @@
             <c:choose>
                 <c:when test="${certRequirementList[cert.id] != null}">
                     <td>
-                        <ul style="margin-top:0px;">
-                            <c:forEach items="${certRequirementList[cert.id]}" var="req">
-                                <li>${req.key}</li>
-                                <ul>
-                                    <li>${req.value}</li>
+                        <c:choose>
+                            <c:when test="${cert.progressHidden}">
+                                <span class="instruction">
+                                    <spring:message code="form.label.requirements.hidden"/>
+                                </span>
+                            </c:when>
+                            <c:otherwise>
+                                <ul style="margin-top:0px; padding-left:14px">
+                                    <c:forEach items="${certRequirementList[cert.id]}" var="req">
+                                        <li>${req.key}</li>
+                                        <ul>
+                                            <li>${req.value}</li>
+                                        </ul>
+                                    </c:forEach>
                                 </ul>
-                            </c:forEach>
-                        </ul>
+                            </c:otherwise>
+                        </c:choose>
                     </td>
                     <td>
                     <c:choose>
@@ -122,27 +131,27 @@
 				location.href="list.form?page=first";
 				return false;
 			});
-			
+
 			$("#prev").click( function() {
 				location.href="list.form?page=previous";
 				return false;
 			});
-			
+
 			$("#next").click( function() {
 				location.href="list.form?page=next";
 				return false;
 			});
-			
+
 			$("#last").click( function() {
 				location.href="list.form?page=last";
 				return false;
 			});
-			
+
 			$("#pageSize").change( function() {
 				location.href="list.form?pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
 				return false;
 			});
 		});
-		
+
 	</script>
-<jsp:include page="/WEB-INF/jsp/footer.jsp"/>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>

@@ -55,6 +55,29 @@
 		</form:label>
 		</tr>
 		<tr>
+			<form:label path="certificateDefinition.awardCriteria">
+				<td><h6><spring:message code="form.label.criteria" /></h6></hd>
+				<td>
+					<c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criteria">
+						${criteria.expression}</br>
+					</c:forEach>
+				</td>
+			</form:label>
+		</tr>
+		<tr>
+			<td><h6><spring:message code="form.label.hideRequirements" /></h6></td>
+			<td>
+				<c:choose>
+					<c:when test="${certificateToolState.certificateDefinition.progressHidden}">
+						<spring:message code="form.label.hideRequirements.yes" />
+					</c:when>
+					<c:otherwise>
+						<spring:message code="form.label.hideRequirements.no" />
+					</c:otherwise>
+				</c:choose>
+			</td>
+		</tr>
+		<tr>
 		<form:label path="certificateDefinition.fieldValues">
 			<td><h6><spring:message code="form.label.fieldValues" /></h6></td>
 			<td>
@@ -79,16 +102,6 @@
 			</td>
 		</form:label>
 		</tr>
-		<tr>
-			<form:label path="certificateDefinition.awardCriteria">
-				<td><h6><spring:message code="form.label.criteria" /></h6></td>
-				<td>
-					<c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criteria">
-						${criteria.expression}</br>
-					</c:forEach>
-				</td>
-			</form:label>
-		</tr>
 	</table>
 	</div>
 	<div style="display:block; position:relative; margin:5px">
@@ -101,29 +114,29 @@
 <script type="text/javascript">
 
 	$(document).ready(function() {
-	
+
 		loaded();
-		
+
 		$("#back").click(function(){
 			back();
 		});
-		
+
 		$("#save").click(function() {
 			save();
 		});
-	
+
 		$("#cancel").click(function() {
 			cancel();
 		});
-	
+
 	});
-	
+
 	function back()
 	{
 		$("#submitValue").val("back");
 		$("#createCertFormFour").submit();
 	}
-	
+
 	function save()
 	{
 		if(validateForm())
@@ -132,16 +145,17 @@
 			$("#createCertFormFour").submit();
 		}
 	}
-	
+
 	function cancel()
 	{
 		$("#submitValue").val("cancel");
 		$("#createCertFormFour").submit();
 	}
-	
-	function validateForm() 
+
+	function validateForm()
 	{
 		return true
 	}
 
 </script>
+<%@ include file="/WEB-INF/jsp/footer.jsp" %>
