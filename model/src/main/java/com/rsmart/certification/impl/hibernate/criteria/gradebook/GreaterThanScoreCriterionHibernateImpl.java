@@ -2,6 +2,7 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
 
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
+import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import java.text.NumberFormat;
 import java.util.ArrayList;
@@ -41,22 +42,33 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
     }
 
     @Override
-    public List<String> getReportData(String userId, String siteId, Date issueDate)
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate)
     {
-        List<String> reportData = new ArrayList<String>();
+        List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
+
+        boolean met = false;
+        try
+        {
+            met = getCriteriaFactory().isCriterionMet(this, userId, siteId);
+        }
+        catch (UnknownCriterionTypeException e)
+        {
+            //impossible
+        }
 
         Double score = getCriteriaFactory().getScore(getItemId(), userId, siteId);
-        String datum = "";
+        String progress = "";
         if (score == null)
         {
-            datum = getCertificateService().getString(MESSAGE_REPORT_TABLE_INCOMPLETE);
+            progress = getCertificateService().getString(MESSAGE_REPORT_TABLE_INCOMPLETE);
         }
         else
         {
             NumberFormat numberFormat = NumberFormat.getInstance();
-            datum = numberFormat.format(score);
+            progress = numberFormat.format(score);
         }
 
+        CriterionProgress datum = new CriterionProgress(progress, met);
         reportData.add(datum);
         return reportData;
     }

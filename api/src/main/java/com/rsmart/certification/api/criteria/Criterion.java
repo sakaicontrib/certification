@@ -39,7 +39,7 @@ public interface Criterion
      * @param issueDate
      * @return
      */
-    public List<String> getReportData(String userId, String siteId, Date issueDate);
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate);
 
     /**
      * Returns the first date on which this criterion was met. For example, if this is a DueDatePassed criterion,

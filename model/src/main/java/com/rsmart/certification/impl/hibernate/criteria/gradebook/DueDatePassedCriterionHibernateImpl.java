@@ -1,5 +1,6 @@
 package com.rsmart.certification.impl.hibernate.criteria.gradebook;
 
+import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -33,12 +34,22 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     }
 
     @Override
-    public List<String> getReportData(String userId, String siteId, Date issueDate)
+    public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate)
     {
-        List<String> reportData = new ArrayList<String>();
+        List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
 
-        String datum = REPORT_DATE_FORMAT.format(getDueDate());
+        boolean met = false;
+        try
+        {
+            met = getCriteriaFactory().isCriterionMet(this, userId, siteId);
+        }
+        catch (UnknownCriterionTypeException e)
+        {
+            //impossible
+        }
 
+        String progress = REPORT_DATE_FORMAT.format(getDueDate());
+        CriterionProgress datum = new CriterionProgress(progress, met);
         reportData.add(datum);
         return reportData;
     }

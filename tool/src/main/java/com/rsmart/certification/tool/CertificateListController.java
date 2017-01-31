@@ -9,6 +9,7 @@ import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
 import com.rsmart.certification.api.VariableResolutionException;
 import com.rsmart.certification.api.criteria.Criterion;
+import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.tool.utils.ExtraUserPropertyUtility;
 import java.io.IOException;
@@ -940,10 +941,11 @@ public class CertificateListController extends BaseCertificateController
                     }
                     appendItem(contents, row.getIssueDate(), false);
 
-                    Iterator<String> itCriterionCells = row.getCriterionCells().iterator();
+                    Iterator<CriterionProgress> itCriterionCells = row.getCriterionCells().iterator();
                     while (itCriterionCells.hasNext())
                     {
-                        appendItem(contents, itCriterionCells.next(), false);
+                        //TODO: null check?
+                        appendItem(contents, itCriterionCells.next().getProgress(), false);
                     }
 
                     appendItem(contents, row.getAwarded(), true);
@@ -1434,7 +1436,7 @@ public class CertificateListController extends BaseCertificateController
                     }
 
                     //Now populate the criterionCells by iterating through the criteria (in the order that they appear)
-                    List<String> criterionCells = new ArrayList<String>();
+                    List<CriterionProgress> criterionCells = new ArrayList<CriterionProgress>();
                     Iterator<Criterion> itCriteria = orderedCriteria.iterator();
                     while (itCriteria.hasNext())
                     {
@@ -1576,7 +1578,7 @@ public class CertificateListController extends BaseCertificateController
         private String role = "";
         private List<String> extraProps = new ArrayList<String>();
         private String issueDate = "";
-        private List<String> criterionCells = new ArrayList<String>();
+        private List<CriterionProgress> criterionCells = new ArrayList<CriterionProgress>();
         private String awarded = "";
 
         public void setName(String name)
@@ -1629,12 +1631,12 @@ public class CertificateListController extends BaseCertificateController
             return issueDate;
         }
 
-        public void setCriterionCells (List<String> criterionCells)
+        public void setCriterionCells (List<CriterionProgress> criterionCells)
         {
             this.criterionCells = criterionCells;
         }
 
-        public List<String> getCriterionCells()
+        public List<CriterionProgress> getCriterionCells()
         {
             return criterionCells;
         }

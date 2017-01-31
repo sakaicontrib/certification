@@ -142,7 +142,15 @@
                     </c:forEach>
                     <td>${row.issueDate}</td>
                     <c:forEach var="criterionCell" items="${row.criterionCells}">
-                        <td>${criterionCell}</td>
+                        <c:choose>
+                            <c:when test="${criterionCell.met}">
+                                <td>${criterionCell.progress}</td>
+                            </c:when>
+                            <c:otherwise>
+                                <%--OWLTODO - use a css class--%>
+                                <td style="color:red;">${criterionCell.progress}</td>
+                            </c:otherwise>
+                        </c:choose>
                     </c:forEach>
                     <td>${row.awarded}</td>
                 </tr>
