@@ -78,6 +78,23 @@ public class CertificateListController extends BaseCertificateController
 	private final String MAIL_SUPPORT_SAKAI_PROPERTY =  "mail.support";
 	private final String MAIL_SUPPORT = ServerConfigurationService.getString(MAIL_SUPPORT_SAKAI_PROPERTY);
 
+	private static final int DEFAULT_FILTER_DAYS;
+	static
+	{
+		String strDefaultFilterDays = ServerConfigurationService.getString("certification.reportFilter.defaultFilterDays");
+		int intDefaultFilterDays;
+		try
+		{
+			intDefaultFilterDays = Integer.parseInt(strDefaultFilterDays);
+		}
+		catch (Exception e)
+		{
+			//default is 1 year
+			intDefaultFilterDays = 365;
+		}
+		DEFAULT_FILTER_DAYS = intDefaultFilterDays;
+	}
+
 	// JSP views
 	private final String ADMIN_VIEW = "certviewAdmin";
 	private final String PARTICIPANT_VIEW = "certviewParticipant";
@@ -110,6 +127,8 @@ public class CertificateListController extends BaseCertificateController
 	private final String MODEL_KEY_ERROR_ARGUMENTS_ATTRIBUTE = "errorArgs";
 	private final String MODEL_KEY_ERRORS_ATTRIBUTE = "errors";
 	private final String MODEL_KEY_USE_DEFAULT_DISPLAY_OPTIONS = "useDefaultDisplayOptions";
+	private final String MODEL_KEY_FILTER_START_DATE = "filterStartDate";
+	private final String MODEL_KEY_FILTER_END_DATE = "filterEndDate";
 	private final String MODEL_KEY_REQUIREMENTS_ATTRIBUTE = "requirements";
 	private final String MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
 	private final String MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE = "userPropHeaders";
@@ -145,6 +164,7 @@ public class CertificateListController extends BaseCertificateController
     //Date Formats
     private final String PDF_FILE_NAME_DATE_FORMAT = "yyyy_MM_dd";
     private final String CSV_FILE_NAME_FORMAT = "yyyy-MM-dd";
+    private final String FILTER_DATE_FORMAT = "MM-dd-yyyy";
 
     //Mime types
     private static final String PDF_MIME_TYPE = "application/octet-stream";
@@ -622,6 +642,18 @@ public class CertificateListController extends BaseCertificateController
         model.put(MODEL_KEY_CERTIFICATE, definition);
         model.put(MODEL_KEY_TOOL_URL, getToolUrl());
 
+        //Prepare the default filter start and end dates
+        //start date is specified by sakai.properties
+        Calendar filterStartDate = Calendar.getInstance();
+        filterStartDate.add(Calendar.DATE, -1 * DEFAULT_FILTER_DAYS);
+        SimpleDateFormat sdf = new SimpleDateFormat(FILTER_DATE_FORMAT);
+        String strFilterStartDate = sdf.format(filterStartDate.getTime());
+        model.put(MODEL_KEY_FILTER_START_DATE, strFilterStartDate);
+        //end date is always the current date
+        Calendar filterEndDate = Calendar.getInstance();
+        String strFilterEndDate = sdf.format(filterEndDate.getTime());
+        model.put(MODEL_KEY_FILTER_END_DATE, strFilterEndDate);
+
         //for internationalization - loads Messages.properties
         ResourceLoader messages = getMessages();
 
@@ -1082,7 +1114,7 @@ public class CertificateListController extends BaseCertificateController
         List<String> userIds = new ArrayList<String>();
         userIds.addAll(setUserIds);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("MM-dd-yyyy");
+        SimpleDateFormat sdf = new SimpleDateFormat(FILTER_DATE_FORMAT);
         Date startDate = null;
         Date endDate = null;
         try

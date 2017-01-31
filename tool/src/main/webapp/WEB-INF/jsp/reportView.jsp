@@ -213,6 +213,8 @@
         $("#endDate").datepicker();
         $("#startDate").datepicker( "option", "dateFormat", "mm-dd-yy" );
         $("#endDate").datepicker( "option", "dateFormat", "mm-dd-yy" );
+        $("#startDate").val("${filterStartDate}");
+        $("#endDate").val("${filterEndDate}");
 
         /*Use cookies to keep track of the user's display options*/
         <c:choose>
