@@ -290,7 +290,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                         if (assn == null || !assn.isReleased())
                         {
                             logger.error("isCriterionMet couldn't retrieve the assignment; itemId = " + itemId);
-                            return false;
+                            return null;
                         }
 
                         return gbs.getAssignmentScoreString(contextId, itemId, userId);
@@ -776,15 +776,10 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                     // pull the assignment from the gradebook to check the score
                     Assignment assn = gbs.getAssignment(contextId, itemId);
 
-                    if (assn == null)
+                    if (assn == null || !assn.isReleased())
                     {
                         logger.error("getScore - could not retrieve assignment for " + userId +"; itemId: " + itemId);
-                        return false;
-                    }
-
-                    if (!assn.isReleased())
-                    {
-                        return false;
+                        return null;
                     }
 
                     return gbs.getAssignmentScore (contextId, itemId, userId);

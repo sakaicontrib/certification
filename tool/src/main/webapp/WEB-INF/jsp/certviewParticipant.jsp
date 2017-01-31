@@ -104,7 +104,9 @@
                     <td>
                     <c:choose>
                         <c:when test="${certIsAwarded[cert.id]}">
-                            <a id="viewCert${cert.id}" href="${toolUrl}/print.form?certId=${cert.id}"><spring:message code="form.submit.print"/></a>
+                            <a id="viewCert${cert.id}" href="#" onclick="printCertificate('${cert.id}');">
+                                <spring:message code="form.submit.print"/>
+                            </a>
                         </c:when>
                         <c:otherwise>
                             <spring:message code="form.submit.na"/>
@@ -128,30 +130,36 @@
 			loaded();
 
 			$("#first").click( function() {
-				location.href="list.form?page=first";
+				location.href = "list.form?page=first";
 				return false;
 			});
 
 			$("#prev").click( function() {
-				location.href="list.form?page=previous";
+				location.href = "list.form?page=previous";
 				return false;
 			});
 
 			$("#next").click( function() {
-				location.href="list.form?page=next";
+				location.href = "list.form?page=next";
 				return false;
 			});
 
 			$("#last").click( function() {
-				location.href="list.form?page=last";
+				location.href = "list.form?page=last";
 				return false;
 			});
 
 			$("#pageSize").change( function() {
-				location.href="list.form?pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
+				location.href = "list.form?pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
 				return false;
 			});
 		});
+
+		function printCertificate(certId)
+		{
+			parent.document.getElementsByTagName("iframe")[0].style.height = "900px";
+			location.href = "${toolUrl}/print.form?certId=" + certId;
+		}
 
 	</script>
 <%@ include file="/WEB-INF/jsp/footer.jsp" %>
