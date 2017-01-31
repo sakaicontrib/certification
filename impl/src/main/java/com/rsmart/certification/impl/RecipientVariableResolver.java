@@ -15,10 +15,6 @@ public class RecipientVariableResolver extends AbstractVariableResolver
 {
     private UserDirectoryService uds = null;
 
-    private static final String FULL_NAME = "recipient.fullname";
-    private static final String FIRST_NAME = "recipient.firstname";
-    private static final String LAST_NAME = "recipient.lastname";
-
     private static final String MESSAGE_FULLNAME = "variable.fullname";
     private static final String MESSAGE_FIRSTNAME = "variable.firstname";
     private static final String MESSAGE_LASTNAME = "variable.lastname";

@@ -31,7 +31,7 @@
         <groupId>com.rsmart</groupId>
         <artifactId>certification-api</artifactId>
         <version>${sakai.version}</version>
-        <scope>provided</scope>
+        <type>jar</type>
       </dependency>
       <dependency>
           <groupId>com.rsmart</groupId>

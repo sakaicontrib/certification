@@ -84,7 +84,7 @@
 
     function next()
     {
-        if(validateForm())
+        if(validateForm() && checkUnassigned())
         {
             $("#submitValue").val("next");
             $("#createCertFormThree").submit();
@@ -118,5 +118,26 @@
         {
             return true;
         }
+    }
+
+    function checkUnassigned()
+    {
+        var unassignedVals = false;
+        var elements = $('select[name^="templateFields"]');
+
+        for (var i = 0; i < elements.length; i++)
+        {
+            if (elements[i].value === "${certificateToolState.unassignedValue}")
+            {
+                unassignedVals = true;
+            }
+        }
+
+        if (unassignedVals)
+        {
+            return confirm("<spring:message code="form.text.unassigned.confirm" />");
+        }
+
+        return true;
     }
 </script>

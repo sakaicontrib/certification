@@ -10,8 +10,6 @@ import com.rsmart.certification.api.VariableResolutionException;
  */
 public class AwardVariableResolver extends AbstractVariableResolver
 {
-    private static final String CERT_NAME = "cert.name";
-    private static final String UNASSIGNED = "unassigned";
     private static final String MESSAGE_NAMEOFCERT = "variable.nameOfCert";
     private static final String MESSAGE_UNASSIGNED = "variable.unassigned";
 

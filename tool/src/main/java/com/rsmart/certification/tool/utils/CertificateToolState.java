@@ -18,6 +18,7 @@ package com.rsmart.certification.tool.utils;
 
 import com.rsmart.certification.api.BaseCertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinition;
+import com.rsmart.certification.api.VariableResolver;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
@@ -385,6 +386,11 @@ public class CertificateToolState
         }
 
         return retVal;
+    }
+
+    public String getUnassignedValue()
+    {
+        return "{" + VariableResolver.UNASSIGNED + "}";
     }
 
     public CertificateToolState ()

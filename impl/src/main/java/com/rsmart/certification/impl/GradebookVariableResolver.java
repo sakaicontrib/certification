@@ -32,9 +32,6 @@ public class GradebookVariableResolver extends AbstractVariableResolver
     private SecurityService securityService = null;
     private SessionManager sessionManager = null;
 
-    public final String CERT_EXPIREDATE = "cert.expiredate";
-    public final String CERT_AWARDDATE  = "cert.date";
-
     private static final String MESSAGE_EXPIRATION = "variable.expiration";
     private static final String MESSAGE_ISSUEDATE = "variable.issuedate";
 
