@@ -5,6 +5,7 @@ import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.InvalidCertificateDefinitionException;
+import com.rsmart.certification.api.VariableResolver;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
@@ -825,6 +826,7 @@ public class CertificateEditController extends BaseCertificateController
     @RequestMapping(value="/removeCriterion.form")
     protected void removeCertCriteria(HttpServletRequest request, HttpServletResponse response) throws Exception
     {
+        CertificateDefinition certDef = CertificateToolState.getState().getCertificateDefinition();
         String paramCritId = "criterionId";
         if (!isAdministrator())
         {
@@ -836,7 +838,7 @@ public class CertificateEditController extends BaseCertificateController
         String certId[] = params.get(ATTR_CERT_ID);
         String criterionId[] = params.get(paramCritId);
 
-        Set<Criterion> awardCriteria = CertificateToolState.getState().getCertificateDefinition().getAwardCriteria();
+        Set<Criterion> awardCriteria = certDef.getAwardCriteria();
         Criterion match = null;
         Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
         while (itAwardCriteria.hasNext())
@@ -849,6 +851,33 @@ public class CertificateEditController extends BaseCertificateController
         }
         if (match != null)
         {
+            if (match instanceof WillExpireCriterionHibernateImpl)
+            {
+                //expiry date field values are meaningless if the certificate will not expire.
+                //switch any expiry date field values to unassigned
+                Map<String, String> fieldValues = certDef.getFieldValues();
+
+                String expireDate = "${" + VariableResolver.CERT_EXPIREDATE + "}";
+                List<String> keysToReplace = new ArrayList<String>();
+
+                Set<String> keySet = fieldValues.keySet();
+                for (String key : keySet)
+                {
+                    String value = fieldValues.get(key);
+                    if ( expireDate.equals(value) )
+                    {
+                        keysToReplace.add(key);
+                    }
+                }
+
+                String unassigned = "${" + VariableResolver.UNASSIGNED + "}";
+                for (String key : keysToReplace)
+                {
+                    fieldValues.remove(key);
+                    fieldValues.put(key, unassigned);
+                }
+            }
+
             awardCriteria.remove(match);
         }
 
