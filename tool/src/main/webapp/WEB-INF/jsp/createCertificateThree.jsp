@@ -34,27 +34,12 @@
                                                 <form:option value="${tField.value}" label="${predefDefault.value}"/>
                                             </c:if>
                                         </c:forEach>
-                                        <c:forEach items="${certificateToolState.escapedPredifinedFields}" var="escapedPredefField" varStatus="index">
-                                            <c:if test="${tField.value ne escapedPredefField.key}">
-                                                <form:option value="${escapedPredefField.key}" label="${escapedPredefField.value}"/>
+                                        <c:forEach items="${certificateToolState.orderedEscapedPredifinedFields}" var="escapedPredefField" varStatus="index">
+                                            <c:if test="${tField.value ne escapedPredefField[0]}">
+                                                <form:option value="${escapedPredefField[0]}" label="${escapedPredefField[1]}"/>
                                             </c:if>
                                         </c:forEach>
                                     </form:select>
-                                    <%--for debugging
-                                    <ul>
-                                    <c:forEach items="${certificateToolState.templateFieldsToDescriptions}" var="predefDefault" varStatus="index">
-                                        <c:if test="${tField.key eq predefDefault.key}">
-                                            <li>${tField.key}: ${tField.value}, ${predefDefault.key}: ${predefDefault.value}</li>
-                                        </c:if>
-                                    </c:forEach>
-                                    </ul
-                                    <ul>
-                                    <c:forEach items="${certificateToolState.escapedPredifinedFields}" var="escapedPredefField" varStatus="index">
-                                        <c:if test="${tField.value ne escapedPredefField.key}">
-                                            <li>${escapedPredefField.key}: ${escapedPredefField.value}</li>
-                                        </c:if>
-                                    </c:forEach>
-                                    </ul>--%>
                                 </td>
                             </tr>
                         </c:forEach>
@@ -112,7 +97,7 @@
         $("#createCertFormThree").submit();
     }
 
-    function validateForm() 
+    function validateForm()
     {
         $(".alertMessage").hide();
         var error = false;

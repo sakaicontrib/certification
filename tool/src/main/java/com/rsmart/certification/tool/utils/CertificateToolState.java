@@ -20,11 +20,14 @@ import com.rsmart.certification.api.BaseCertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.apache.commons.logging.Log;
@@ -204,6 +207,36 @@ public class CertificateToolState
         return predifinedFields;
     }
 
+    public List<String[]> getOrderedEscapedPredifinedFields()
+    {
+        List<String[]> retVal = new ArrayList<String[]>();
+        Map<String, String> predefFields = getPredifinedFields();
+        if (predefFields==null || predefFields.isEmpty())
+        {
+            //TODO: log it
+            return retVal;
+        }
+
+        Iterator<String> itPredefFields = predefFields.keySet().iterator();
+        while (itPredefFields.hasNext())
+        {
+            String key = itPredefFields.next();
+
+            //passing something of the form ${} makes jsp treat it like a variable
+            //soln: remove the $ here and append it back in the jsp code
+            if ("${unassigned}".equals(key))
+            {
+                retVal.add(0, new String[] { key.substring(1), predefFields.get(key) });
+            }
+            else
+            {
+                retVal.add(new String[] { key.substring(1), predefFields.get(key) });
+            }
+        }
+
+        return retVal;
+    }
+
     public Map<String, String> getEscapedPredifinedFields()
     {
         Map<String, String> retVal = new HashMap<String, String>();
@@ -238,6 +271,21 @@ public class CertificateToolState
 
     public void setPredifinedFields(Map<String, String> predifinedFields)
     {
+        boolean criteriaContainWechi = false;
+        CertificateDefinition certDef = getCertificateDefinition();
+        Set<Criterion> awardCriteria = certDef.getAwardCriteria();
+        for (Criterion criterion : awardCriteria)
+        {
+            if (criterion instanceof WillExpireCriterionHibernateImpl)
+            {
+                criteriaContainWechi = true;
+            }
+        }
+
+        //hate to hard code this. I'd grab it from GradebookVariableResolver, but we can't access impl
+        String expireDate = "${cert.expiredate}";
+        boolean fieldValuesContainWechi = certDef.getFieldValues().values().contains(expireDate);
+
         Map<String, String> temp = null;
         if(predifinedFields != null)
         {
@@ -249,7 +297,18 @@ public class CertificateToolState
                 {
                     newKey = "${"+key+"}";
                 }
-                temp.put(newKey, predifinedFields.get(key));
+
+                //if the award criteria don't contain a wechi and the key is the expiry date, skip it
+
+                /* Anything other than the expiry date gets added.
+                 * If the key is the expiry date, we only add it if the award criteria contain wechi
+                 * or if the field values contain wechi (for whatever reason).
+                 * So we add it if
+                 * key != expiry date OR criteriacontainswechi OR fieldvaluescontainwechi*/
+                if (!expireDate.equals(newKey) || criteriaContainWechi || fieldValuesContainWechi)
+                {
+                    temp.put(newKey, predifinedFields.get(key));
+                }
             }
         }
 

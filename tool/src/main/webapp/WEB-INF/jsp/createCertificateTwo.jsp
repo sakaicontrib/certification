@@ -18,28 +18,30 @@
 	<form:form id="createCertFormTwo" modelAttribute="certificateToolState" method="POST" action="second.form">
 		<div id="criteria" style="position:relative; margin-left:20px;  max-width:50%; display:inline-block;">
 			<form:hidden id="certId" path="certificateDefinition.id"/>
-			<div id="currentCriteria" style="margin-bottom:40px; ">
+			<div id="currentCriteria" style="margin-bottom:30px;">
 				<h3><spring:message code="form.text.criteria.awardCriteria"/></h3>
-				<c:choose>
-					<c:when test="${empty certificateToolState.certificateDefinition.awardCriteria}">
-						<p id="removeInstructions" style="display:none"><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
-						<p id="noCriteria"><spring:message code="form.text.criteria.awardCriteria.nocriteria"/></p>
-					</c:when>
-					<c:otherwise>
-						<p id="removeInstructions"><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
-						<p id="noCriteria" style="display:none"><spring:message code="form.text.criteria.awardCriteria.nocriteria"/></p>
-					</c:otherwise>
-				</c:choose>
-				<ul id="criteriaList" style="margin-left:20px;">
-				<c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criterion">
-					<li id="crit_${criterion.id}" mergeItemCriteriaTemplate="${criterion.itemId}${criterion.currentCriteriaTemplate}" style="font-weight:bold; font-style:italic;">
-						${criterion.expression}&nbsp;&nbsp;&nbsp;&nbsp;
-						<a href="#" onclick="removeCriterion('${criterion.id}');">
-							<spring:message code="form.text.criteria.remove"/>
-						</a>
-					</li>
-				</c:forEach>
-				</ul>
+				<div id="currentCriteriaBox" style="border: 1px solid #000000; margin-top: 10px; padding: 0 10px;">
+					<c:choose>
+						<c:when test="${empty certificateToolState.certificateDefinition.awardCriteria}">
+							<p id="removeInstructions" style="display:none"><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
+							<p id="noCriteria"><spring:message code="form.text.criteria.awardCriteria.nocriteria"/></p>
+						</c:when>
+						<c:otherwise>
+							<p id="removeInstructions"><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
+							<p id="noCriteria" style="display:none"><spring:message code="form.text.criteria.awardCriteria.nocriteria"/></p>
+						</c:otherwise>
+					</c:choose>
+					<ul id="criteriaList" style="margin-left:20px;">
+					<c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criterion">
+						<li id="crit_${criterion.id}" mergeItemCriteriaTemplate="${criterion.itemId}${criterion.currentCriteriaTemplate}">
+							${criterion.expression}&nbsp;&nbsp;&nbsp;&nbsp;
+							<a href="#" onclick="removeCriterion('${criterion.id}');">
+								<spring:message code="form.text.criteria.remove"/>
+							</a>
+						</li>
+					</c:forEach>
+					</ul>
+				</div>
 			</div>
 			<div id="newCriteriaForm" style="display:inline-block; background-color:#ddd; padding:10px">
 				<h3><spring:message code="form.text.criteria.selectTemplate"/></h3>
@@ -153,17 +155,17 @@
 	function appendCriterionToDiv (criterion)
 	{
 		mergeCriteriaItemCriteriaTemplate=checkCriterion();
-		var liContent = "<li id='crit_" + criterion.id + "' mergeItemCriteriaTemplate='" + mergeCriteriaItemCriteriaTemplate + "'  style='font-weight:bold; font-style:italic;'>" + criterion.expression + "&nbsp;&nbsp;&nbsp;&nbsp;" +
+		var liContent = "<li id='crit_" + criterion.id + "' mergeItemCriteriaTemplate='" + mergeCriteriaItemCriteriaTemplate + "'>" + criterion.expression + "&nbsp;&nbsp;&nbsp;&nbsp;" +
 						"<a href='#' onclick=\"removeCriterion('" + criterion.id +
 						"')\"><spring:message code="form.text.criteria.remove"/></a></li>\n";
 
-		$("#currentCriteria").append(liContent);
+		$("#criteriaList").append(liContent);
 		$("#removeInstructions").attr('style', '');
 		$("#noCriteria").attr('style', 'display:none');
 		resetHeight();
 	}
 
-	function checkCriterion() 
+	function checkCriterion()
 	{
 		var selectedCreteriaItem=jQuery("#criteriaOptions > p > select :selected").val();
 		var selectedCreteriaTemplate=jQuery("#criteriaTemplate").val();
