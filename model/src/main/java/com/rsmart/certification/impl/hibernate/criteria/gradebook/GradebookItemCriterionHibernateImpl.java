@@ -1,5 +1,6 @@
 package com.rsmart.certification.impl.hibernate.criteria.gradebook;
 
+import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -49,7 +50,7 @@ public class GradebookItemCriterionHibernateImpl extends AbstractCriterionHibern
         }
     }
 
-    public void setDueDate (Date due)
+    public void setDueDate(Date due)
     {
         if (due == null)
         {
@@ -99,19 +100,29 @@ public class GradebookItemCriterionHibernateImpl extends AbstractCriterionHibern
     }
 
     @Override
+    public String getProgress( String userId, String siteId, boolean useCaching )
+    {
+        throw new UnsupportedOperationException( "Not supported yet. GradebookItemCriterionHibernateImpl:105" );
+    }
+
+    @Override
+    public List<CriterionProgress> getReportData( String userId, String siteId, Date issueDate, boolean useCaching )
+    {
+        throw new UnsupportedOperationException( "Not supported yet. GradebookItemCriterionHibernateImpl:111" );
+    }
+
+    @Override
+    public Date getDateMet( String userId, String siteId, boolean useCaching )
+    {
+        throw new UnsupportedOperationException( "Not supported yet. GradebookItemCriterionHibernateImpl:117" );
+    }
+
+    @Override
     public List<String> getReportHeaders()
     {
         List<String> reportHeaders = new ArrayList<String>();
         String header = getItemName();
         reportHeaders.add(header);
         return reportHeaders;
-    }
-
-    //OWLTODO: Implement
-    @Override
-    public List<String> getReportData()
-    {
-        // TODO Auto-generated method stub
-        return null;
     }
 }

@@ -1,11 +1,10 @@
 package com.rsmart.certification.mock;
 
+import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateRenderEngine;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
-import com.rsmart.certification.api.CertificateService;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -45,6 +44,12 @@ public class MockDocumentTemplateRenderEngine
     public void setCertificateService(CertificateService certificateService)
     {
         this.certificateService = certificateService;
+    }
+
+    @Override
+    public Set<String> getTemplateFields( InputStream inputStream ) throws TemplateReadException
+    {
+        return null;
     }
 
     public void init()
@@ -219,7 +224,7 @@ public class MockDocumentTemplateRenderEngine
         StringBuilder previewOutput = new StringBuilder();
 
         previewOutput.append("<html><body><p><b>This is what will be printed:</b></p><code>");
-        
+
         try
         {
             data = populateFields (is, bindings);

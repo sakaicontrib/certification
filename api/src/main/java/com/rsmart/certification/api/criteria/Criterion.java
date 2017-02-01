@@ -15,7 +15,7 @@ public interface Criterion
 
     public CriteriaFactory getCriteriaFactory();
 
-    public String  getCurrentCriteriaTemplate();
+    public String getCurrentCriteriaTemplate();
 
     public String getExpression();
 

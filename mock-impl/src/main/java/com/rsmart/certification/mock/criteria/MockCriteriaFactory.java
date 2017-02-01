@@ -1,13 +1,16 @@
 package com.rsmart.certification.mock.criteria;
 
+import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateService;
-import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionCreationException;
-
+import com.rsmart.certification.api.criteria.CriterionProgress;
+import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+import com.rsmart.certification.api.criteria.UserProgress;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -39,6 +42,54 @@ public class MockCriteriaFactory
         templates.add(template);
     }
 
+    @Override
+    public void clearCaches()
+    {
+        // Unimplemented
+    }
+
+    @Override
+    public CriteriaTemplate getCriteriaTemplate( String id ) throws UnknownCriterionTypeException
+    {
+        return null;
+    }
+
+    @Override
+    public Date getDateIssued( String userId, String contextId, CertificateDefinition certDef, boolean useCaching )
+    {
+        return null;
+    }
+
+    @Override
+    public Date getDateRecorded( Long itemId, String userId, String contextId, boolean useCaching )
+    {
+        return null;
+    }
+
+    @Override
+    public Date getFinalGradeDateRecorded( String userId, String contextId )
+    {
+        return null;
+    }
+
+    @Override
+    public Double getFinalScore( String userId, String contextId )
+    {
+        return null;
+    }
+
+    @Override
+    public Map<String, Map<Criterion, UserProgress>> getProgressForUsers( String contextId, List<String> userIds, Class type, List<Criterion> critCollection )
+    {
+        return null;
+    }
+
+    @Override
+    public Double getScore( Long itemId, String userId, String contextId, boolean useCaching )
+    {
+        return null;
+    }
+
     public void init()
     {
         getCertificateService().registerCriteriaFactory(this);
@@ -53,7 +104,7 @@ public class MockCriteriaFactory
     {
         return cs;
     }
-    
+
     public Set<CriteriaTemplate> getCriteriaTemplates()
     {
         return templates;
@@ -74,7 +125,7 @@ public class MockCriteriaFactory
     {
         if (!(criterion instanceof MockCriterion))
             throw new UnknownCriterionTypeException (criterion.getClass().getName());
-        
+
         return template;
     }
 
@@ -86,7 +137,7 @@ public class MockCriteriaFactory
 
         MockCriterion
             mc = (MockCriterion)criterion;
-        
+
         return (mc.stringVar != null && mc.stringVar.trim().length() > 0 &&
                 "rutebega".equals (mc.multipleChoiceVar));
     }
@@ -120,6 +171,12 @@ public class MockCriteriaFactory
             criterion = new MockCriterion(multVar, strVar);
 
         return criterion;
+    }
+
+    @Override
+    public boolean isCriterionMet( Criterion criterion, String userId, String contextId, boolean useCaching ) throws UnknownCriterionTypeException
+    {
+        return false;
     }
 
     public class MockCriteriaTemplate
@@ -158,6 +215,24 @@ public class MockCriteriaFactory
             return "This is a mock criteria. Select \"mult. choice var\" and \"string var\".\n (To cause criteria to succeed select \"rutebega\" and enter any value for \"string var\"";
         }
 
+        @Override
+        public String getExpression( Criterion criterion )
+        {
+            return null;
+        }
+
+        @Override
+        public String getId()
+        {
+            return null;
+        }
+
+        @Override
+        public String getMessage()
+        {
+            return null;
+        }
+
         public int getTemplateVariableCount()
         {
             return variables.size();
@@ -188,19 +263,20 @@ public class MockCriteriaFactory
             return "mult. choice var";
         }
 
+        @Override
+        public String getVariableLabel()
+        {
+            return null;
+        }
+
         public boolean isMultipleChoice()
         {
             return true;
         }
 
-        public String[] getValues()
+        public Map<String, String> getValues()
         {
-            return new String[]
-                    {
-                      "ocelot",
-                      "rutebaga",
-                      "entropy"
-                    };
+            return new HashMap();
         }
 
         public boolean isValid(String value)
@@ -218,12 +294,18 @@ public class MockCriteriaFactory
             return "string var";
         }
 
+        @Override
+        public String getVariableLabel()
+        {
+            return null;
+        }
+
         public boolean isMultipleChoice()
         {
             return false;
         }
 
-        public String[] getValues()
+        public Map<String, String> getValues()
         {
             return null;
         }
@@ -249,6 +331,29 @@ public class MockCriteriaFactory
             this.stringVar = stringVar;
         }
 
+        @Override
+        public CriteriaFactory getCriteriaFactory()
+        {
+            return null;
+        }
+
+        @Override
+        public String getCurrentCriteriaTemplate()
+        {
+            return null;
+        }
+
+        @Override
+        public Date getDateMet( String userId, String siteId, boolean useCaching )
+        {
+            return null;
+        }
+
+        public String getProgress( String userID, String siteID, boolean useCaching )
+        {
+            return null;
+        }
+
         public String getId()
         {
             return id;
@@ -262,6 +367,18 @@ public class MockCriteriaFactory
             exp.append ("This criteria is set to: \"").append(multipleChoiceVar).append("\" and \"").append (stringVar);
 
             return exp.toString();
+        }
+
+        @Override
+        public List<CriterionProgress> getReportData( String userId, String siteId, Date issueDate, boolean useCaching )
+        {
+            return null;
+        }
+
+        @Override
+        public List<String> getReportHeaders()
+        {
+            return null;
         }
 
         public Map<String, String> getVariableBindings()

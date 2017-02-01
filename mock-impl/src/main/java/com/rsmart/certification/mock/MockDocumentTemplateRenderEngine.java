@@ -1,10 +1,10 @@
 package com.rsmart.certification.mock;
 
+import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateRenderEngine;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -21,8 +21,8 @@ import java.util.Set;
 public class MockDocumentTemplateRenderEngine
     implements DocumentTemplateRenderEngine
 {
-    private MockDocumentTemplateService
-        documentTemplateService = null;
+    private MockDocumentTemplateService documentTemplateService = null;
+    private MockCertificateService certificateService = null;
 
     public void setDocumentTemplateService(DocumentTemplateService dts)
     {
@@ -34,27 +34,22 @@ public class MockDocumentTemplateRenderEngine
         return documentTemplateService;
     }
 
-    public void init()
+    public void setCertificateService( CertificateService cs )
     {
-        getDocumentTemplateService().register("text/plain", this);
+        this.certificateService = (MockCertificateService) cs;
     }
 
-    public String getOutputMimeType(DocumentTemplate template) {
-        return "text/plain";
+    public CertificateService getCertificateService()
+    {
+        return certificateService;
     }
 
-    public Set<String> getTemplateFields(DocumentTemplate template)
-        throws TemplateReadException
+    @Override
+    public Set<String> getTemplateFields( InputStream is ) throws TemplateReadException
     {
-        InputStream
-            is = template.getTemplateFileInputStream();
-        HashSet<String>
-            variables = new HashSet<String>();
-
-        BufferedInputStream
-            bis = null;
-        int
-            b = -1;
+        HashSet<String> variables = new HashSet<String>();
+        BufferedInputStream bis = null;
+        int b = -1;
 
         if (!BufferedInputStream.class.isAssignableFrom(is.getClass()))
         {
@@ -71,10 +66,8 @@ public class MockDocumentTemplateRenderEngine
             {
                 if ('$' == b)
                 {
-                    int
-                        lBracket = bis.read();
-                    StringBuffer
-                        variable = new StringBuffer();
+                    int lBracket = bis.read();
+                    StringBuffer variable = new StringBuffer();
 
                     if ('{' == lBracket)
                     {
@@ -100,11 +93,26 @@ public class MockDocumentTemplateRenderEngine
         return variables;
     }
 
+    public void init()
+    {
+        getDocumentTemplateService().register("text/plain", this);
+    }
+
+    public String getOutputMimeType(DocumentTemplate template) {
+        return "text/plain";
+    }
+
+    public Set<String> getTemplateFields(DocumentTemplate template)
+        throws TemplateReadException
+    {
+        return getTemplateFields( certificateService.getTemplateFileInputStream( template.getResourceId() ) );
+    }
+
     public InputStream render(DocumentTemplate template, Map<String, String> bindings)
         throws TemplateReadException
     {
         InputStream
-            is = template.getTemplateFileInputStream();
+            is = certificateService.getTemplateFileInputStream( template.getResourceId() );
 
         byte
             data[] = null;
@@ -204,7 +212,7 @@ public class MockDocumentTemplateRenderEngine
         throws TemplateReadException
     {
         InputStream
-            is = template.getTemplateFileInputStream();
+            is = certificateService.getTemplateFileInputStream( template.getResourceId() );
 
         byte
             data[] = null;
@@ -213,7 +221,7 @@ public class MockDocumentTemplateRenderEngine
             previewOutput = new StringBuffer();
 
         previewOutput.append("<html><body><p><b>This is what will be printed:</b></p><code>");
-        
+
         try
         {
             data = populateFields (is, bindings);

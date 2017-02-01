@@ -2,9 +2,7 @@ package com.rsmart.certification.mock;
 
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.TemplateReadException;
-
 import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -31,10 +29,16 @@ public class MockDocumentTemplate
     {
         this.id = id;
     }
-    
+
     public String getId()
     {
         return id;
+    }
+
+    @Override
+    public String getName()
+    {
+        return "";
     }
 
     public void setOutputMimeType(String mimeType)
@@ -45,6 +49,12 @@ public class MockDocumentTemplate
     public String getOutputMimeType()
     {
         return mimeType;
+    }
+
+    @Override
+    public String getResourceId()
+    {
+        return "";
     }
 
     public InputStream getTemplateFileInputStream()

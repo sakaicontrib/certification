@@ -1,8 +1,8 @@
 package com.rsmart.certification.mock;
 
-import com.rsmart.certification.api.CertificateAward;
+import com.rsmart.certification.api.CertificateDefinition;
+import com.rsmart.certification.api.VariableResolutionException;
 import com.rsmart.certification.api.VariableResolver;
-
 import java.util.HashSet;
 import java.util.Set;
 
@@ -28,7 +28,8 @@ public class MockVariableResolver
         return "this is a mock variable for testing purposes";
     }
 
-    public String getValue(CertificateAward award, String key)
+    @Override
+    public String getValue( CertificateDefinition certDef, String varLabel, String userId, boolean useCaching ) throws VariableResolutionException
     {
         return "test";
     }

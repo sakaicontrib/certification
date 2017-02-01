@@ -1,10 +1,17 @@
 package com.rsmart.certification.mock;
 
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.Stack;
 import org.sakaiproject.entity.api.Entity;
 import org.sakaiproject.entity.api.HttpAccess;
 import org.sakaiproject.entity.api.Reference;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.time.api.Time;
+import org.sakaiproject.user.api.PasswordPolicyProvider;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserAlreadyDefinedException;
 import org.sakaiproject.user.api.UserDirectoryService;
@@ -15,13 +22,6 @@ import org.sakaiproject.user.api.UserNotDefinedException;
 import org.sakaiproject.user.api.UserPermissionException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
-
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.Stack;
 
 /**
  * User: duffy
@@ -73,6 +73,12 @@ public class MockUserDirectoryService
 
     public void cancelEdit(UserEdit user) {
         //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public boolean checkDuplicatedEmail( User user )
+    {
+        return false;
     }
 
     public void commitEdit(UserEdit user) throws UserAlreadyDefinedException {
@@ -202,8 +208,20 @@ public class MockUserDirectoryService
             };
     }
 
+    @Override
+    public PasswordPolicyProvider getPasswordPolicy()
+    {
+        return null;
+    }
+
     public User getUser(String id) throws UserNotDefinedException {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public User getUserByAid( String aid ) throws UserNotDefinedException
+    {
+        return null;
     }
 
     public User getUserByEid(String eid) throws UserNotDefinedException {
@@ -250,12 +268,24 @@ public class MockUserDirectoryService
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
+    @Override
+    public boolean updateUserId( String eId, String newEmail )
+    {
+        return false;
+    }
+
     public String userReference(String id) {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     public String getLabel() {
         return null;  //To change body of implemented methods use File | Settings | File Templates.
+    }
+
+    @Override
+    public PasswordRating validatePassword( String password, User user )
+    {
+        return null;
     }
 
     public boolean willArchiveMerge() {

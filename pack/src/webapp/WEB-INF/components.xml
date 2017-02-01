@@ -29,7 +29,7 @@
                 <value>com/rsmart/certification/impl/hibernate/criteria/GreaterThanScoreCriterionHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/DueDatePassedCriterionHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/FinalGradeScoreCriterionHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/WillExpireCriterionHibernateImpl.hbm.xml</value>
+                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/WillExpireCriterionHibernateImpl.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertAssignment.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertCategory.hbm.xml</value>
                 <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradebook.hbm.xml</value>

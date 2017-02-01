@@ -83,6 +83,8 @@
           init-method="init">
         <property name="documentTemplateService"
                   ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="certificateService"
+                  ref="com.rsmart.certification.api.CertificateService"/>
     </bean>
 
     <bean id="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"

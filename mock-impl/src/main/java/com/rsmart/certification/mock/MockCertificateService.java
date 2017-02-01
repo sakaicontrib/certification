@@ -1,6 +1,5 @@
 package com.rsmart.certification.mock;
 
-import com.rsmart.certification.api.CertificateAward;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinitionStatus;
 import com.rsmart.certification.api.CertificateService;
@@ -8,30 +7,27 @@ import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateException;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.IncompleteCertificateDefinitionException;
-import com.rsmart.certification.api.UnmetCriteriaException;
-
+import com.rsmart.certification.api.ReportRow;
+import com.rsmart.certification.api.TemplateReadException;
 import com.rsmart.certification.api.UnmodifiableCertificateDefinitionException;
-import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+import com.rsmart.certification.api.UnsupportedTemplateTypeException;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
-import com.rsmart.certification.mock.criteria.MockCriteriaFactory;
-import org.sakaiproject.exception.IdUnusedException;
-import org.sakaiproject.exception.IdUsedException;
-import org.sakaiproject.user.api.UserDirectoryService;
-
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
+import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URI;
-import java.net.URL;
+import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.exception.IdUsedException;
+import org.sakaiproject.user.api.UserDirectoryService;
 
 /**
  * User: duffy
@@ -53,8 +49,6 @@ public class MockCertificateService
         caId = 1;
     private UserDirectoryService
         uds = null;
-    private HashMap <String, HashMap<String, MockCertificateAward>>
-        certAwards = new HashMap<String, HashMap<String, MockCertificateAward>>();
     private HashSet <CriteriaFactory>
         critFacts = new HashSet<CriteriaFactory>();
     private HashMap <Class, CriteriaFactory>
@@ -79,6 +73,120 @@ public class MockCertificateService
         certDefs.put(myCertDef.getId(), myCertDef);
 
         return myCertDef;
+    }
+
+    @Override
+    public void deleteCertificateDefinition( String certificateDefinitionId ) throws IdUnusedException, DocumentTemplateException
+    {
+        // Unimplemented
+    }
+
+    @Override
+    public Map<Long, Date> getAssignmentDatesRecorded( String gradebookId, String studentId )
+    {
+        return null;
+    }
+
+    @Override
+    public Map<Long, Double> getAssignmentPoints( String gradebookId )
+    {
+        return null;
+    }
+
+    @Override
+    public Map<Long, Double> getAssignmentScores( String gradebookId, String studentId )
+    {
+        return null;
+    }
+
+    @Override
+    public Map<Long, Double> getAssignmentWeights( String gradebookId )
+    {
+        return null;
+    }
+
+    @Override
+    public Map<Long, Double> getCatOnlyAssignmentPoints( String gradebookId )
+    {
+        return null;
+    }
+
+    @Override
+    public int getCategoryType( String gradebookId )
+    {
+        return 0;
+    }
+
+    @Override
+    public Map<Long, Double> getCategoryWeights( String gradebookId )
+    {
+        return null;
+    }
+
+    @Override
+    public CertificateDefinition getCertificateDefinitionByName( String siteId, String name ) throws IdUnusedException
+    {
+        return null;
+    }
+
+    @Override
+    public List<Map.Entry<String, String>> getCertificateRequirementsForUser( String certId, String userId, String siteId, boolean useCaching ) throws IdUnusedException
+    {
+        return null;
+    }
+
+    @Override
+    public ContentHostingService getContentHostingService()
+    {
+        return null;
+    }
+
+    @Override
+    public CriteriaFactory getCriteriaFactory( String criteriaTemplateId )
+    {
+        return null;
+    }
+
+    @Override
+    public String getFormattedMessage( String key, Object[] values )
+    {
+        return "";
+    }
+
+    @Override
+    public Collection<String> getGradedUserIds( String siteId )
+    {
+        return null;
+    }
+
+    @Override
+    public String getMimeType( byte[] toCheck ) throws DocumentTemplateException
+    {
+        return "application/pdf";
+    }
+
+    @Override
+    public List<ReportRow> getReportRows( List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate, Date endDate, List<Criterion> orderedCriteria )
+    {
+        return null;
+    }
+
+    @Override
+    public String getString( String key )
+    {
+        return "";
+    }
+
+    @Override
+    public InputStream getTemplateFileInputStream( String resourceId ) throws TemplateReadException
+    {
+        return null;
+    }
+
+    @Override
+    public void removeAwardCriterion( String certificateDefinitionId, String criterionId ) throws IdUnusedException, UnmodifiableCertificateDefinitionException
+    {
+        // Unimplemented
     }
 
     public CertificateDefinition updateCertificateDefinition(CertificateDefinition certDef)
@@ -132,8 +240,9 @@ public class MockCertificateService
         return cd;
     }
 
-    public CertificateDefinition createCertificateDefinition(String name, String description, String siteId)
-        throws IdUsedException
+    public CertificateDefinition createCertificateDefinition( String name, String description, String siteId, Boolean progressHidden,
+                                                                String fileName, String mimeType, InputStream template )
+            throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException
     {
         MockCertificateDefinition
             certDef = new MockCertificateDefinition();
@@ -187,8 +296,8 @@ public class MockCertificateService
         template.setData(finalBuffer);
     }
 
-    public DocumentTemplate setDocumentTemplate(String certificateDefinitionId, String mimeType, InputStream template)
-        throws IdUnusedException, DocumentTemplateException
+    public DocumentTemplate setDocumentTemplate( String certificateDefinitionId, String name, String mimeType, InputStream template )
+            throws IdUnusedException, UnsupportedTemplateTypeException, DocumentTemplateException
     {
         MockCertificateDefinition
             cd = getCD(certificateDefinitionId);
@@ -215,10 +324,10 @@ public class MockCertificateService
         return dt;
     }
 
-    public DocumentTemplate setDocumentTemplate(String certificateDefinitionId, InputStream template)
+    public DocumentTemplate setDocumentTemplate(String certificateDefinitionId, String name, InputStream template)
         throws IdUnusedException, DocumentTemplateException
     {
-        return setDocumentTemplate(certificateDefinitionId, "text/plain", template);
+        return setDocumentTemplate(certificateDefinitionId, name, "text/plain", template);
     }
 
     public void setFieldValues(String certificateDefinitionId, Map<String, String> fieldValues)
@@ -298,8 +407,7 @@ public class MockCertificateService
         return cdSet;
     }
 
-    public Set<Criterion> getUnmetAwardConditions(String certificateDefinitionId)
-            throws IdUnusedException, UnknownCriterionTypeException
+    public Set<Criterion> getUnmetAwardConditions( String certificateDefinitionId, boolean useCaching ) throws IdUnusedException, UnknownCriterionTypeException
     {
         MockCertificateDefinition
             cd = getCD (certificateDefinitionId);
@@ -320,7 +428,7 @@ public class MockCertificateService
         return unmet;
     }
 
-    public Set<Criterion> getUnmetAwardConditionsForUser(String certificateDefinitionId, String userId)
+    public Set<Criterion> getUnmetAwardConditionsForUser( String certificateDefinitionId, String userId, boolean useCaching )
             throws IdUnusedException, UnknownCriterionTypeException
     {
         Set<Criterion>
@@ -345,188 +453,6 @@ public class MockCertificateService
         return unmet;
     }
 
-    public CertificateAward awardCertificate(String certificateDefinitionId)
-            throws IdUnusedException, UnmetCriteriaException, UnknownCriterionTypeException
-    {
-        return awardCertificate (certificateDefinitionId, uds.getCurrentUser().getId());
-    }
-
-    public CertificateAward awardCertificate(String certificateDefinitionId, String userId)
-            throws IdUnusedException, UnmetCriteriaException, UnknownCriterionTypeException
-    {
-        return awardCert(certificateDefinitionId, userId);
-    }
-
-    private HashMap<String, MockCertificateAward> getAwardsForCert (String certDefId)
-    {
-        return certAwards.get(certDefId);
-    }
-
-    private void addAwardForCert (String certDefId, MockCertificateAward ca)
-    {
-        HashMap <String, MockCertificateAward>
-            awards = getAwardsForCert(certDefId);
-
-        if (awards == null)
-        {
-            awards = new HashMap<String, MockCertificateAward>();
-
-            certAwards.put (certDefId, awards);
-        }
-
-        awards.put (ca.getUserId(), ca);
-    }
-
-    public CertificateAward getCertificateAward(String certificateDefinitionId)
-        throws IdUnusedException
-    {
-        return getCertificateAwardForUser(certificateDefinitionId, uds.getCurrentUser().getId());
-    }
-
-    private MockCertificateAward awardCert (String cdId, String userId)
-            throws IdUnusedException, UnmetCriteriaException, UnknownCriterionTypeException
-    {
-        //TODO - some real logic
-
-        MockCertificateDefinition
-            cd = getCD (cdId);
-
-        Set<Criterion>
-            conditions = cd.getAwardCriteria(),
-            unmet = new HashSet<Criterion>();
-
-        for (Criterion condition : conditions)
-        {
-            CriteriaFactory
-                cFact = critFactsMap.get(condition.getClass());
-
-            if (!cFact.isCriterionMet(condition))
-            {
-                unmet.add(condition);
-            }
-        }
-
-        if (unmet.size() > 0)
-        {
-            UnmetCriteriaException
-                uce = new UnmetCriteriaException();
-
-            uce.setUnmetCriteria(unmet);
-
-            throw uce;
-        }
-
-        MockCertificateAward
-            award = new MockCertificateAward();
-
-        award.setId("" + caId++);
-        award.setCertificateDefinition(cd);
-        award.setUserId(userId);
-
-        addAwardForCert(cdId, award);
-
-        return award;
-    }
-
-    public CertificateAward getCertificateAwardForUser(String certificateDefinitionId, String userId)
-            throws IdUnusedException
-    {
-        HashMap<String, MockCertificateAward>
-            awards = getAwardsForCert(certificateDefinitionId);
-        MockCertificateAward
-            award = null;
-
-        if (awards != null)
-        {
-            award = awards.get(userId);
-
-            if (award != null)
-                return award;
-        }
-
-        return null;
-    }
-
-    public Set<CertificateAward> getCertificateAwards()
-    {
-        HashSet<CertificateAward>
-            awards = new HashSet<CertificateAward>();
-
-        for (HashMap<String, MockCertificateAward> awds4Cert : certAwards.values())
-        {
-            awards.addAll(awds4Cert.values());
-        }
-
-        return awards;
-    }
-
-    public Set<CertificateAward> getCertificateAwards(String certificateDefinitionId)
-        throws IdUnusedException
-    {
-        HashMap<String, MockCertificateAward>
-            awards = getAwardsForCert(certificateDefinitionId);
-
-        if (awards == null)
-            throw new IdUnusedException(certificateDefinitionId);
-
-        HashSet<CertificateAward>
-            results = new HashSet<CertificateAward>();
-
-        results.addAll(awards.values());
-
-        return results;
-    }
-
-    public Map<String, CertificateAward> getCertificateAwardsForUser(String[] certificateDefinitionIds)
-        throws IdUnusedException
-    {
-        String
-            userId = getUserDirectoryService().getCurrentUser().getId();
-        HashMap<String, CertificateAward>
-            results = new HashMap<String, CertificateAward>();
-
-        if (userId == null)
-            return results;
-
-        for (String id : certificateDefinitionIds)
-        {
-            Map<String, MockCertificateAward>
-                awards = certAwards.get(id);
-
-            MockCertificateAward
-                award = awards.get(userId);
-
-            if (award != null)
-            {
-                results.put(id, award);
-            }
-        }
-
-        return results;
-    }
-
-    public Set<CertificateAward> getCertificateAwardsForUser(String userId)
-    {
-        HashSet<CertificateAward>
-            results = new HashSet<CertificateAward>();
-
-        if (userId == null)
-            return results;
-
-        for (CertificateAward award : getCertificateAwards())
-        {
-            MockCertificateAward
-                mca = (MockCertificateAward)award;
-
-            if (userId.equals(mca.getUserId()))
-            {
-                results.add(mca);
-            }
-        }
-
-        return results;
-    }
-
     public Map<String, String> getPredefinedTemplateVariables()
     {
         HashMap<String, String>
@@ -534,25 +460,6 @@ public class MockCertificateService
 
         vars.put ("foo", "this is foo");
         return vars;
-    }
-
-    public InputStream getPrintableCertificateRendering(String certificateAwardId)
-        throws IdUnusedException
-    {
-        Set<CertificateAward>
-            awards = getCertificateAwards();
-
-        for (CertificateAward award : awards)
-        {
-            if (award.getId().equals(certificateAwardId))
-            {
-                byte[]
-                    arr = {'h','e','l','l','o',' ','w','o','r','l','d'};
-
-                return new ByteArrayInputStream(arr);
-            }
-        }
-        throw new IdUnusedException(certificateAwardId);
     }
 
     public void registerCriteriaFactory(CriteriaFactory cFact)

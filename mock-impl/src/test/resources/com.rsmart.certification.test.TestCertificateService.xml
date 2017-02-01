@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" 
+<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN"
 	"http://www.springframework.org/dtd/spring-beans.dtd">
 
 <beans>
@@ -12,6 +12,7 @@
          class="com.rsmart.certification.mock.MockDocumentTemplateRenderEngine"
          init-method="init">
        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+       <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
    </bean>
    <bean id="com.rsmart.certification.api.CertificateService"
          class="com.rsmart.certification.mock.MockCertificateService">

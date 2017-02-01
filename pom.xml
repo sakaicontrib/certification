@@ -23,7 +23,6 @@
     <groupId>org.sakaiproject</groupId>
     <artifactId>master</artifactId>
     <version>11-SNAPSHOT</version>
-    <!--<relativePath>../../pom.xml</relativePath>-->
   </parent>
   <name>Certification Base Project</name>
   <groupId>com.rsmart</groupId>
@@ -31,8 +30,8 @@
     <module>api</module>
     <module>deploy</module>
     <module>tool</module>
-    <!--module>mock-impl</module>
-    <module>mock-pack</module-->
+    <module>mock-impl</module>
+    <module>mock-pack</module>
     <module>impl</module>
     <module>pack</module>
     <module>model</module>

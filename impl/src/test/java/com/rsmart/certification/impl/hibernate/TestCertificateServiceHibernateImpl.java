@@ -1,7 +1,6 @@
 package com.rsmart.certification.impl.hibernate;
 
 import com.itextpdf.text.pdf.PdfReader;
-import com.rsmart.certification.api.CertificateAward;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinitionStatus;
 import com.rsmart.certification.api.CertificateService;
@@ -12,11 +11,6 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.criteria.impl.gradebook.GreaterThanScoreCriteriaTemplate;
 import com.rsmart.certification.impl.DocumentTemplateServiceImpl;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Test;
-import org.sakaiproject.exception.IdUnusedException;
-
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -30,9 +24,10 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
-
+import org.junit.After;
+import org.junit.Assert;
 import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
+import org.sakaiproject.exception.IdUnusedException;
 
 /**
  * User: duffy
@@ -111,14 +106,15 @@ public class TestCertificateServiceHibernateImpl
     private static CertificateDefinition createCertificateDefinition(CertificateService cs)
         throws Exception
     {
-        return createCertificateDefinition(cs, "test name", "test description", "test site id");
+        return createCertificateDefinition(cs, "test name", "test description", "test site id", false, "testFileName.pdf", "application/pdf", null);
     }
 
     private static CertificateDefinition createCertificateDefinition(CertificateService cs, String name, String desc,
-                                                                     String siteId)
+                                                                     String siteId, Boolean progressHidden, String fileName,
+                                                                     String mimeType, InputStream template)
         throws Exception
     {
-        return cs.createCertificateDefinition(name, desc, siteId);
+        return cs.createCertificateDefinition(name, desc, siteId, progressHidden, fileName, mimeType, template);
     }
 
     private static CertificateDefinition addDocumentTemplate(CertificateDefinition cd, CertificateService cs)
@@ -269,8 +265,8 @@ public class TestCertificateServiceHibernateImpl
             }
         }
     }
-    
-    @Test
+
+    //@Test
     public void testCertficateServiceIsValid()
         throws Exception
     {
@@ -316,7 +312,7 @@ public class TestCertificateServiceHibernateImpl
         FileInputStream
             fis = new FileInputStream(testFile);
         CertificateDefinition
-            cd = cs.createCertificateDefinition("test name", "test description", "test site id", "afghanistan.pdf",
+            cd = cs.createCertificateDefinition("test name", "test description", "test site id", false, "afghanistan.pdf",
                                                 "application/pdf", fis),
             result = cs.getCertificateDefinition(cd.getId());
 
@@ -347,7 +343,7 @@ public class TestCertificateServiceHibernateImpl
 
         fis = new FileInputStream(testFile);
 
-        cd = cs.createCertificateDefinition("test name", "test description", "test site id", "afghanistan.pdf",
+        cd = cs.createCertificateDefinition("test name", "test description", "test site id", false, "afghanistan.pdf",
                                                 null, fis);
         result = cs.getCertificateDefinition(cd.getId());
 
@@ -391,7 +387,7 @@ public class TestCertificateServiceHibernateImpl
 
         cd = cs.getCertificateDefinition(cd.getId());
 
-        duplicate = cs.duplicateCertificateDefinition(cd.getId());
+        duplicate = createAndPopulateCertificateDefinition(cs, dts, true);
 
         assertNotNull(duplicate);
         assertFalse(cd.equals(duplicate));
@@ -711,162 +707,16 @@ public class TestCertificateServiceHibernateImpl
             cd = createAndPopulateCertificateDefinition(cs, dts, true);
 
         Set<Criterion>
-            criteria = cs.getUnmetAwardConditions(cd.getId());
+            criteria = cs.getUnmetAwardConditions(cd.getId(), false);
 
         assertNotNull (criteria);
         assertEquals (0, criteria.size());
 
         cd = createAndPopulateCertificateDefinition(cs, dts, false);
-        criteria = cs.getUnmetAwardConditions(cd.getId());
+        criteria = cs.getUnmetAwardConditions(cd.getId(), false);
 
         assertNotNull (criteria);
         assertEquals (1, criteria.size());
-    }
-
-    //@Test
-    public void testAwardGrantedWhenCriteriaMet()
-        throws Exception
-    {
-        final CertificateService
-            cs = getCertificateService();
-        final DocumentTemplateService
-            dts = getDocumentTemplateService();
-        final CertificateDefinition
-            cd = createAndPopulateCertificateDefinition(cs, dts, true);
-
-        CertificateAward
-            award = null;
-
-        assertException
-            (
-                new ExceptionCheck()
-                {
-                    public void checkForException()
-                        throws Exception 
-                    {
-                        cs.getCertificateAward(cd.getId());
-                    }
-                },
-                IdUnusedException.class,
-                "should have thown an IdUnusedException"
-            );
-
-        award = cs.awardCertificate(cd.getId());
-
-        assertNotNull(award);
-        assertEquals(cd, award.getCertificateDefinition());
-        assertEquals("mockuser", award.getUserId());
-        assertNotNull(award.getCertificationTimeStamp());
-
-        CertificateAward
-            award2 = cs.awardCertificate(cd.getId()),
-            award3 = cs.getCertificateAwardForUser(cd.getId(), "mockuser");
-
-        assertEquals(award, award2);
-        assertEquals(award, award3);
-
-        Set<CertificateAward>
-            cas = cs.getCertificateAwards(),
-            cas2 = cs.getCertificateAwardsForUser("mockuser");
-        Map<String, CertificateAward>
-            cas3 = cs.getCertificateAwardsForUser(new String[] {cd.getId()});
-
-        assertNotNull(cas3);
-        assertTrue (cas3.containsKey(cd.getId()));
-
-        CertificateAward
-            award4 = cas3.get(cd.getId());
-
-        assertNotNull(award4);
-        assertEquals(award, award4);
-        
-        assertNotNull(cas);
-        assertNotNull(cas2);
-        assertEquals (1, cas.size());
-        assertEquals (1, cas2.size());
-        assertTrue(cas.contains(award));
-        assertTrue(cas2.contains(award));
-    }
-
-    //@Test
-    public void testGetCertificateAwardsForMulitpleCDs()
-        throws Exception
-    {
-        final CertificateService
-            cs = getCertificateService();
-        final DocumentTemplateService
-            dts = getDocumentTemplateService();
-        CertificateDefinition
-            cd = createAndPopulateCertificateDefinition(cs, dts, true),
-            cd2 = createCertificateDefinition (cs, "name", "desc", "other site"),
-            cd3 = createCertificateDefinition (cs, "name", "desc", "other site");
-
-        addDocumentTemplate (cd2, cs);
-        addDocumentTemplate (cd3, cs);
-
-        cd2 = cs.getCertificateDefinition(cd2.getId());
-        cd3 = cs.getCertificateDefinition(cd3.getId());
-        
-        cd2 = setFieldValues(cs, dts, cd2);
-        cd3 = setFieldValues(cs, dts, cd3);
-
-        cd2 = setAwardCriteria (cs, cd2, true);
-        cd3 = setAwardCriteria (cs, cd3, true);
-
-        cs.activateCertificateDefinition(cd.getId(), true);
-        cs.awardCertificate(cd.getId());
-        cs.activateCertificateDefinition(cd2.getId(), true);
-        cs.awardCertificate(cd2.getId());
-        cs.activateCertificateDefinition(cd3.getId(), true);
-        cs.awardCertificate(cd3.getId());
-
-        Set<CertificateDefinition>
-            cds = new HashSet<CertificateDefinition>(),
-            cdsForSite = cs.getCertificateDefinitionsForSite("other site");
-
-        assertEquals(2, cdsForSite.size());
-        assertTrue(cdsForSite.contains(cd2));
-        assertTrue(cdsForSite.contains(cd3));
-
-        Set<CertificateAward>
-            allForUser = cs.getCertificateAwardsForUser("mockuser");
-
-        assertNotNull(allForUser);
-        assertEquals(1, allForUser.size());
-
-        Map<String, CertificateAward>
-            allForIDs = cs.getCertificateAwardsForUser (new String[] {cd.getId(), cd3.getId()});
-
-        assertNotNull(allForIDs.get(cd.getId()));
-        assertNull(allForIDs.get(cd2.getId()));
-        assertNotNull(allForIDs.get(cd3.getId()));
-
-        CertificateDefinition
-            cd4 = createCertificateDefinition (cs, "name", "desc", "other site");
-
-        cs.activateCertificateDefinition(cd2.getId(), false);
-
-        cdsForSite = cs.getCertificateDefinitionsForSite("other site", new CertificateDefinitionStatus[]
-                                                                        {
-                                                                            CertificateDefinitionStatus.UNPUBLISHED,
-                                                                            CertificateDefinitionStatus.INACTIVE
-                                                                        });
-
-        assertNotNull(cdsForSite);
-        assertEquals(2, cdsForSite.size());
-        assertTrue (cdsForSite.contains(cd2));
-        assertTrue (!cdsForSite.contains(cd3));
-        assertTrue (cdsForSite.contains(cd4));
-    }
-
-    @Test
-    public void testBogusDataConditions()
-        throws Exception
-    {
-        CertificateService
-            cs = getCertificateService();
-
-        assertNotNull(cs.getCertificateAwardsForUser(new String[0]));
     }
 
     //@Test
@@ -911,7 +761,7 @@ public class TestCertificateServiceHibernateImpl
         FileInputStream
             fis = new FileInputStream(testFile);
         CertificateDefinition
-            cd = cs.createCertificateDefinition("test name", "test description", "test site id", "afghanistan.pdf",
+            cd = cs.createCertificateDefinition("test name", "test description", "test site id", false, "afghanistan.pdf",
                                                 "application/pdf", fis);
         GreaterThanScoreCriteriaTemplate
             gisct = null;
@@ -947,7 +797,7 @@ public class TestCertificateServiceHibernateImpl
 
         assertEquals (1, criteria.size());
         assertTrue (criteria.contains (criterion1));
-        
+
         bindings.put ("gradebook.item","2");
         bindings.put ("score", "80");
 
@@ -977,7 +827,7 @@ public class TestCertificateServiceHibernateImpl
         FileInputStream
             fis = new FileInputStream(testFile);
         CertificateDefinition
-            cd = cs.createCertificateDefinition("test name", "test description", "test site id", "afghanistan.pdf",
+            cd = cs.createCertificateDefinition("test name", "test description", "test site id", false, "afghanistan.pdf",
                                                 "application/pdf", fis);
         GreaterThanScoreCriteriaTemplate
             gisct = null;
