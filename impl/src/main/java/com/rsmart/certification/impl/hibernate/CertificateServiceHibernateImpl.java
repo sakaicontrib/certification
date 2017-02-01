@@ -1322,7 +1322,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     }
 
     @Override
-    public List<ReportRow> getReportRows(List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate, Date endDate, List<Criterion> orderedCriteria)
+    public List<ReportRow> getReportRows(List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate,
+                                         Date endDate, List<Criterion> orderedCriteria)
     {
         if (definition == null)
         {

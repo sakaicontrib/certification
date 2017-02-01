@@ -23,6 +23,8 @@ public class GradebookItemCriterionHibernateImpl extends AbstractCriterionHibern
     protected final static String ASSIGNMENT_DUE = "gradebook.item.due";
     protected final static String ASSIGNMENT_POINTS = "gradebook.item.points";
 
+    protected static final String MESSAGE_GRADE_NOT_NUMERIC = "report.grade.notNumeric";
+
     public void setAssignment(Assignment assn)
     {
         setItemId(assn.getId());

@@ -89,7 +89,6 @@ public class GradebookItemTemplateVariable implements CriteriaTemplateVariable
         }
 
         List<Assignment> assignments = gbs.getAssignments(contextId);
-
         for (Assignment asn : assignments)
         {
             if (filter.include(asn))

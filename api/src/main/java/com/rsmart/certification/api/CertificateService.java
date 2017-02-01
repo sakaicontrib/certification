@@ -278,5 +278,6 @@ public interface CertificateService
      * and filters by the filter type (all, awarded, unawarded), the filter date type (issue date, expiry date),
      * between the start date and the end date, and the progress of the criteria will be ordered according to orderedCriteria
      **/
-   public List<ReportRow> getReportRows(List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate, Date endDate, List<Criterion> orderedCriteria);
+   public List<ReportRow> getReportRows(List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate,
+                                        Date endDate, List<Criterion> orderedCriteria) throws NumberFormatException;
 }

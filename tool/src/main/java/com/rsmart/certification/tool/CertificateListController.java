@@ -147,6 +147,7 @@ public class CertificateListController extends BaseCertificateController
     private final String MESSAGE_ERROR_NOT_ADMIN = "error.not.admin";
     private final String MESSAGE_ERROR_NO_SELECTION = "error.no.selection";
     private final String MESSAGE_ERROR_BAD_ID = "error.bad.id";
+    private final String MESSAGE_GRADE_NOT_NUMERIC = "form.error.grade.notNumeric";
     private final String MESSAGE_TEMPLATE_PROCESSING_ERROR = "form.error.templateProcessingError";
     private final String MESSAGE_FORM_PRINT_ERROR = "form.print.error";
     private final String MESSAGE_REPORT_TABLE_HEADER_DUEDATE = "report.table.header.duedate";
@@ -800,7 +801,15 @@ public class CertificateListController extends BaseCertificateController
             /* Iterate through the list of users who have the ability to be awarded certificates,
              * populate each row of the table accordingly*/
             List<String> userIds = getAwardableUserIds();
-            reportRows = getReportRows(definition, "all", null, null, null, userIds, session);
+
+            try
+            {
+                reportRows = getReportRows( definition, "all", null, null, null, userIds, session );
+            }
+            catch( NumberFormatException ex )
+            {
+                model.put( ERROR_MESSAGE, MESSAGE_GRADE_NOT_NUMERIC );
+            }
 
             //set up the paging navigator
             //the 'if' surrounding this scope: page == null && export == null
@@ -1217,7 +1226,15 @@ public class CertificateListController extends BaseCertificateController
             }
         }
 
-        List<ReportRow> reportRows = getReportRows(definition, filterType, filterDateType, startDate, endDate, userIds, session);
+        List<ReportRow> reportRows = null;
+        try
+        {
+            reportRows = getReportRows( definition, filterType, filterDateType, startDate, endDate, userIds, session );
+        }
+        catch( NumberFormatException ex )
+        {
+            model.put( ERROR_MESSAGE, MESSAGE_GRADE_NOT_NUMERIC );
+        }
 
         //set up the paging navigator
         //the 'if' surrounding this scope: page == null && export == null
@@ -1299,7 +1316,7 @@ public class CertificateListController extends BaseCertificateController
      * @return a list of ReportRows representing the rows in the report
      */
     public List<ReportRow> getReportRows(CertificateDefinition definition, String filterType, String filterDateType, Date startDate, Date endDate,
-            List<String> userIds, HttpSession session)
+            List<String> userIds, HttpSession session) throws NumberFormatException
     {
         if (!isAdministrator())
         {

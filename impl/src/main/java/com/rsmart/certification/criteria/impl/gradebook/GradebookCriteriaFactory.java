@@ -22,11 +22,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.service.gradebook.shared.Assignment;
+import org.sakaiproject.service.gradebook.shared.CourseGrade;
 import org.sakaiproject.service.gradebook.shared.GradeDefinition;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.tool.api.SessionManager;
@@ -819,7 +821,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         return template;
     }
 
-    public Double getScore(final Long itemId, final String userId, final String contextId, boolean useCaching)
+    public Double getScore(final Long itemId, final String userId, final String contextId, boolean useCaching) throws NumberFormatException
     {
         //grab from the cache if available
         Map<String, Double> userToGradeMap = null;
@@ -853,7 +855,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                         return null;
                     }
 
-                    return gbs.getAssignmentScore (contextId, itemId, userId);
+                    return Double.parseDouble( gbs.getAssignmentScoreString( contextId, itemId, userId ) );
                 }
             });
 
@@ -871,7 +873,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
         }
     }
 
-    public Double getFinalScore(final String userId, final String contextId)
+    public Double getFinalScore(final String userId, final String contextId) throws NumberFormatException
     {
         try
         {
@@ -880,73 +882,21 @@ public class GradebookCriteriaFactory implements CriteriaFactory
             {
                 public Object doSecureAction()
                 {
-                    //get gradebook for the site
-                    //check category type
-                    // if category type is CATEGORY_TYPE_WEIGHTED_CATEGORY than it is weighted category
-                    //loop through category definitions
-                    //get assignments for each category and multiply weight of category to weight of assignment to possible points
+                    GradebookService gs = getGradebookService();
+                    CourseGrade courseGrade = gs.getCourseGradeForStudent( contextId, userId );
+                    String calculatedGrade = courseGrade.getCalculatedGrade();
 
-                    //if category type is CATEGORY_TYPE_NO_CATEGORY it does not have category
-                    //get all assignments and add possible points
-
-                    //if category type is CATEGORY_TYPE_ONLY_CATEGORY than loop through category definitions
-                    //get assignments for each category and add assignments possible points
-
-                    Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
-                    Map<Long,Double> assgnWeights = certService.getAssignmentWeights(contextId);
-                    Map<Long,Double> assgnScores = certService.getAssignmentScores(contextId, userId);
-                    Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
-
-                    double studentTotalScore = 0;
-
-                    int categoryType = certService.getCategoryType(contextId);
-
-                    switch(categoryType)
+                    // If the string is null or empty, infer this as a zero
+                    if( StringUtils.isBlank( calculatedGrade ) )
                     {
-                        case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
-                        {
-                            for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
-                            {
-                                Double score = assgnScore.getValue();
-                                studentTotalScore += score == null ? 0:score;
-                            }
-                            break;
-                        }
-                        case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
-                        {
-                            for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
-                            {
-                                if(catWeights.containsKey(assgnScore.getKey()))
-                                {
-                                    Double score = assgnScore.getValue();
-                                    studentTotalScore += score == null ? 0:score;
-                                }
-                            }
-                            break;
-                        }
-                        case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
-                        {
-                            for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
-                            {
-                                if(catWeights.containsKey(assgnScore.getKey()))
-                                {
-                                    Double score = assgnScore.getValue();
-                                    Double points = assgnPoints.get(assgnScore.getKey());
-                                    Double catWeight = catWeights.get(assgnScore.getKey());
-                                    Double assgnWeight = assgnWeights.get(assgnScore.getKey());
-
-                                    studentTotalScore += 100* (((score == null) ? 0:score) /
-                                                         ((points == null) ? 1:points))*
-                                                         ((catWeight == null ? 1:catWeight)) *
-                                                         ((assgnWeight == null ? 1:assgnWeight));
-                                }
-                            }
-                            break;
-                        }
+                        return 0.0;
                     }
 
-                    return studentTotalScore;
-
+                    // Otherwise, parse the string to a Double leaving exceptions to be caught by the caller
+                    else
+                    {
+                        return Double.parseDouble( calculatedGrade );
+                    }
                 }
             });
         }
@@ -1141,6 +1091,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
 
     @Override
     public Map<String, Map<Criterion, UserProgress>> getProgressForUsers(String contextId, List<String> userIds, Class type, List<Criterion> critCollection)
+            throws NumberFormatException
     {
         Map<String, Map<Criterion, UserProgress>> progressForUsers = new HashMap<String, Map<Criterion, UserProgress>>();
         if (type == null)
@@ -1216,6 +1167,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory
     }
 
     private Map<String, Map<Criterion, UserProgress>> getFinalGradeScoreProgressForUsers(String contextId, List<String> userIds, List<Criterion> critCollection)
+            throws NumberFormatException
     {
         Map<String, Map<Criterion, UserProgress>> userCritProgress = new HashMap<String, Map<Criterion, UserProgress>>();
         GradebookService gbs = getGradebookService();

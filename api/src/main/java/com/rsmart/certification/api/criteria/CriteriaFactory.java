@@ -42,14 +42,14 @@ public interface CriteriaFactory
      * @param contextId
      * @return the score on a gradebook item (if not applicable, returns null)
      */
-    public Double getScore(Long itemId, String userId, String contextId, boolean useCaching);
+    public Double getScore(Long itemId, String userId, String contextId, boolean useCaching) throws NumberFormatException;
 
     /**
      * @param userId the user's id
      * @param contextId
      * @return the final score for the given user
      */
-    public Double getFinalScore(String userId, String contextId);
+    public Double getFinalScore(String userId, String contextId) throws NumberFormatException;
 
     /**
      *
@@ -100,7 +100,8 @@ public interface CriteriaFactory
      * @param type the implemented type of the collection
      * @param critCollection list of criteria on which to assess the users' progress
      * @return Mapping of userId -> (mapping of Criterion -> UserProgress)
-     * @throws IllegalArgumentException if a member of criteria's type doesn't match type
+     * @throws NumberFormatException
      */
-   public Map<String, Map<Criterion, UserProgress>> getProgressForUsers(String contextId, List<String> userIds, Class type, List<Criterion> critCollection);
+   public Map<String, Map<Criterion, UserProgress>> getProgressForUsers(String contextId, List<String> userIds, Class type, List<Criterion> critCollection)
+           throws NumberFormatException;
 }

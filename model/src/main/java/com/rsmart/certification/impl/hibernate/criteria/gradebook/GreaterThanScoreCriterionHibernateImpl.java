@@ -56,16 +56,23 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
             //impossible
         }
 
-        Double score = getCriteriaFactory().getScore(getItemId(), userId, siteId, useCaching);
-        String progress = "";
-        if (score == null)
+        String progress;
+        try
         {
-            progress = getCertificateService().getString(MESSAGE_REPORT_TABLE_INCOMPLETE);
+            Double score = getCriteriaFactory().getScore(getItemId(), userId, siteId, useCaching);
+            if (score == null)
+            {
+                progress = getCertificateService().getString(MESSAGE_REPORT_TABLE_INCOMPLETE);
+            }
+            else
+            {
+                NumberFormat numberFormat = NumberFormat.getInstance();
+                progress = numberFormat.format(score);
+            }
         }
-        else
+        catch( NumberFormatException ex )
         {
-            NumberFormat numberFormat = NumberFormat.getInstance();
-            progress = numberFormat.format(score);
+            progress = getCertificateService().getString( MESSAGE_GRADE_NOT_NUMERIC );
         }
 
         CriterionProgress datum = new CriterionProgress(progress, met);
@@ -97,24 +104,31 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
         CertificateService certServ = getCertificateService();
         NumberFormat numberFormat = NumberFormat.getInstance();
 
-        Double dblScore = getCriteriaFactory().getScore(getItemId(), userId, siteId, useCaching);
-        if (dblScore  == null)
+        try
         {
-            return certServ.getString(MESSAGE_ITEM_INCOMPLETE);
-        }
-        else
-        {
-            StringBuilder score = new StringBuilder(numberFormat.format(dblScore));
-            if (dblScore == 1)
+            Double dblScore = getCriteriaFactory().getScore(getItemId(), userId, siteId, useCaching);
+            if (dblScore  == null)
             {
-                score.append(" ").append(certServ.getString(MESSAGE_POINT));
+                return certServ.getString(MESSAGE_ITEM_INCOMPLETE);
             }
             else
             {
-                score.append(" ").append(certServ.getString(MESSAGE_POINTS));
-            }
+                StringBuilder score = new StringBuilder(numberFormat.format(dblScore));
+                if (dblScore == 1)
+                {
+                    score.append(" ").append(certServ.getString(MESSAGE_POINT));
+                }
+                else
+                {
+                    score.append(" ").append(certServ.getString(MESSAGE_POINTS));
+                }
 
-            return certServ.getFormattedMessage(MESSAGE_ITEM_COMPLETE, new String[]{ score.toString() });
+                return certServ.getFormattedMessage(MESSAGE_ITEM_COMPLETE, new String[]{ score.toString() });
+            }
+        }
+        catch( NumberFormatException ex )
+        {
+            return certServ.getString( MESSAGE_GRADE_NOT_NUMERIC );
         }
     }
 }
