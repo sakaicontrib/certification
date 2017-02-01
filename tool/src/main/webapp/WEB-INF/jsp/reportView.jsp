@@ -2,10 +2,10 @@
 <jsp:include page="/WEB-INF/jsp/header.jsp"/>
 <script type="text/javascript" src="/library/js/jquery/cookie/jquery.cookie.js"></script>
 <form:form id="reportView" method="POST">
-    <div class="navIntraTool">
-        <a href="${toolUrl}/reportView.form?certId=${cert.id}&export=true" id="export"><spring:message code="export.csv"/></a>&nbsp;
-        <a href="" id="return"><spring:message code="return.cert.list"/></a>
-    </div>
+    <ul class="navIntraTool actionToolBar">
+        <li><span><a href="${toolUrl}/reportView.form?certId=${cert.id}&export=true" id="export"><spring:message code="export.csv"/></a></span></li>
+        <li><span><a href="" id="return"><spring:message code="return.cert.list"/></a></span></li>
+    </ul>
     <h2><spring:message code="report.header" arguments="${cert.name}" htmlEscape="true"/></h2>
     <div id="errorDiv">
         <c:forEach items="${errors}" var="error">
@@ -79,11 +79,11 @@
             <span style="align:center"><spring:message code="form.pager.showing"/>&nbsp;<c:out value="${firstElement}" />&nbsp;&#045;&nbsp;<c:out value="${lastElement}" />&nbsp;of&nbsp;${reportList.nrOfElements}</span><br/>
             <c:choose>
                 <c:when test="${!reportList.firstPage}">
-                    <input type="button" id="first" value="<spring:message code="pagination.first"/>" />&nbsp;
+                    <input type="button" id="first" value="<spring:message code="pagination.first"/>" />
                     <input type="button" id="prev" value="<spring:message code="pagination.previous"/>" />
                 </c:when>
                 <c:otherwise>
-                    <input type="button" id="nofirst" value="<spring:message code="pagination.first"/>" disabled="disabled" />&nbsp;
+                    <input type="button" id="nofirst" value="<spring:message code="pagination.first"/>" disabled="disabled" />
                     <input type="button" id="noPrev" value="<spring:message code="pagination.previous"/>" disabled="disabled" />
                 </c:otherwise>
             </c:choose>
@@ -102,7 +102,7 @@
             </select>
             <c:choose>
                 <c:when test="${!reportList.lastPage}">
-                    <input type="button" id="next" value="<spring:message code="pagination.next"/>" />&nbsp;
+                    <input type="button" id="next" value="<spring:message code="pagination.next"/>" />
                     <input type="button" id="last" value="<spring:message code="pagination.last"/>" />
                 </c:when>
                 <c:otherwise>
