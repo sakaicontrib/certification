@@ -30,8 +30,6 @@
     <module>api</module>
     <module>deploy</module>
     <module>tool</module>
-    <module>mock-impl</module>
-    <module>mock-pack</module>
     <module>impl</module>
     <module>pack</module>
     <module>model</module>
