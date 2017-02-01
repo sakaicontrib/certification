@@ -1172,43 +1172,49 @@ public class CertificateListController extends BaseCertificateController
         SimpleDateFormat sdf = new SimpleDateFormat(FILTER_DATE_FORMAT);
         Date startDate = null;
         Date endDate = null;
-        try
-        {
-            startDate = sdf.parse(filterStartDate);
-        }
-        catch (ParseException e)
-        {
-            //leave the value as null - getReportRows will show everything up to the end date
-        }
-        try
-        {
-            endDate = sdf.parse(filterEndDate);
-        }
-        catch (ParseException e)
-        {
-            //leave the value as null - getReportRows will show everything after the start date
-            //if they're both null it will display everything
-        }
 
-        if (endDate != null)
+        // We only care about date ranges if the filter type is awarded.
+        if ("awarded".equals(filterType))
         {
-            if (startDate != null)
+            try
             {
-                //order them correctly
-                if (endDate.before(startDate))
-                {
-                    //swap
-                    Date temp = endDate;
-                    endDate = startDate;
-                    startDate = temp;
-                }
+                startDate = sdf.parse(filterStartDate);
+            }
+            catch (ParseException e)
+            {
+                //leave the value as null - getReportRows will show everything up to the end date
             }
 
-            //Add a day to the end date to make it inclusive
-            Calendar calEnd = Calendar.getInstance();
-            calEnd.setTime(endDate);
-            calEnd.add(Calendar.DATE, 1);
-            endDate = calEnd.getTime();
+            try
+            {
+                endDate = sdf.parse(filterEndDate);
+            }
+            catch (ParseException e)
+            {
+                //leave the value as null - getReportRows will show everything after the start date
+                //if they're both null it will display everything
+            }
+
+            if (endDate != null)
+            {
+                if (startDate != null)
+                {
+                    //order them correctly
+                    if (endDate.before(startDate))
+                    {
+                        //swap
+                        Date temp = endDate;
+                        endDate = startDate;
+                        startDate = temp;
+                    }
+                }
+
+                //Add a day to the end date to make it inclusive
+                Calendar calEnd = Calendar.getInstance();
+                calEnd.setTime(endDate);
+                calEnd.add(Calendar.DATE, 1);
+                endDate = calEnd.getTime();
+            }
         }
 
         List<ReportRow> reportRows = getReportRows(definition, filterType, filterDateType, startDate, endDate, userIds, session);
