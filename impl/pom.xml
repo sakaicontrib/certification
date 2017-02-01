@@ -136,13 +136,6 @@
       <scope>provided</scope>
     </dependency>
   </dependencies>
-  <repositories>
-    <repository>
-      <id>itextpdf.com</id>
-      <name>Maven Repository for iText</name>
-      <url>http://maven.itextpdf.com/</url>
-    </repository>
-  </repositories>
   <build>
     <sourceDirectory>src/main/java</sourceDirectory>
     <resources>
