@@ -13,11 +13,17 @@
   ~ under the License.
   ~
   ~ Contributor(s): duffy
-  -->
+-->
 
-<!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd">
-
-<beans default-lazy-init="false">
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd"
+    default-lazy-init="false">
 
     <bean id="certification.AdditionalHibernateMappings"
           class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
@@ -40,12 +46,18 @@
 
     <bean id="com.rsmart.certification.api.CertificateService"
           class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+
+        <!-- Transaction manager -->
         <property name="transactionManager">
             <ref bean="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager"/>
         </property>
+
+        <!-- Implementation target -->
         <property name="target">
             <ref bean="com.rsmart.certification.api.CertificateService.wrapped"/>
         </property>
+
+        <!-- Transaction settings for methods in the service -->
         <property name="transactionAttributes">
             <props>
                 <prop key="addAwardCriterion">PROPAGATION_REQUIRES_NEW</prop>
@@ -54,6 +66,31 @@
             </props>
         </property>
     </bean>
+
+    <bean id="com.rsmart.certification.api.CertificateService.wrapped"
+          class="com.rsmart.certification.impl.hibernate.CertificateServiceHibernateImpl"
+          init-method="init">
+
+         <!--S akai services -->
+        <property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
+        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+        <property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+
+        <!-- Certification services -->
+        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="extraUserPropertyUtility" ref="com.rsmart.certification.api.util.ExtraUserPropertyUtility"/>
+
+        <!-- Member variables -->
+        <property name="templateDirectory" value="${sakai.home}/templates"/>
+
+    <!-- Spring/Hibernate -->
+        <property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"/>
+    </bean>
+
     <bean id="com.rsmart.certification.api.DocumentTemplateService"
           class="com.rsmart.certification.impl.DocumentTemplateServiceImpl">
         <property name="variableResolvers">
@@ -76,24 +113,8 @@
     <bean id="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
           class="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
           init-method="init">
-          <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
-        <property name="documentTemplateService"
-                  ref="com.rsmart.certification.api.DocumentTemplateService"/>
-    </bean>
-
-    <bean id="com.rsmart.certification.api.CertificateService.wrapped"
-          class="com.rsmart.certification.impl.hibernate.CertificateServiceHibernateImpl"
-          init-method="init">
-        <property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"/>
+        <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
         <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
-        <property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
-        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
-        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
-        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
-        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
-        <property name="templateDirectory" value="${sakai.home}/templates"/>
-        <property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
-        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
     </bean>
 
     <bean id="com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
@@ -115,6 +136,10 @@
 
     <bean id="com.rsmart.certification.api.util.ExtraUserPropertyUtility"
           class="com.rsmart.certification.impl.util.ExtraUserPropertyUtilityImpl">
+        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
     </bean>
 
     <bean id="com.rsmart.certification.api.util.PortalParamManager"
@@ -125,7 +150,6 @@
                 <value>panelId</value>
             </list>
         </property>
-
     </bean>
 
 </beans>

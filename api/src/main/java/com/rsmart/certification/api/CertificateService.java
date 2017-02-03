@@ -280,4 +280,6 @@ public interface CertificateService
      **/
    public List<ReportRow> getReportRows(List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate,
                                         Date endDate, List<Criterion> orderedCriteria) throws NumberFormatException;
+
+   public String getTemplateDirectory();
 }

@@ -18,10 +18,10 @@ import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import com.rsmart.certification.api.criteria.UserProgress;
+import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.impl.security.AllowMapSecurityAdvisor;
-import com.rsmart.certification.impl.util.ExtraUserPropertyUtilityImpl;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -99,6 +99,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private SiteService siteService = null;
     private AuthzGroupService authzGroupService= null;
     private ContentHostingService contentHostingService = null;
+    private ExtraUserPropertyUtility extraUserPropertyUtility = null;
 
     private String templateDirectory = null;
     private HashMap<String, CriteriaFactory> criteriaTemplateMap = new HashMap<String, CriteriaFactory>();
@@ -125,6 +126,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private static final String PARAM_GBID = "gbid";
     private static final String PARAM_GRADEBOOK_ID = "gradebookId";
     private static final String PARAM_STUDENT_ID = "studentId";
+    private static final String PARAM_ID = "id";
+    private static final String PARAM_NAME = "name";
 
     private final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
 
@@ -218,6 +221,11 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         this.securityService = securityService;
     }
 
+    public void setExtraUserPropertyUtility(ExtraUserPropertyUtility extraUserPropertyUtility)
+    {
+        this.extraUserPropertyUtility = extraUserPropertyUtility;
+    }
+
     public void init()
     {
         LOG.info("init");
@@ -289,10 +297,10 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 session.flush();
 
                 Query q = session.createQuery("delete from DocumentTemplateHibernateImpl where id=?");
-                q.setString(0, certificateDefinitionId);
+                q.setString(PARAM_ID, certificateDefinitionId);
                 q.executeUpdate();
                 q = session.getNamedQuery("deleteCertificateDefinition");
-                q.setString(0, certificateDefinitionId);
+                q.setString(PARAM_ID, certificateDefinitionId);
                 q.executeUpdate();
 
                 return cd;
@@ -344,7 +352,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 public Object doInHibernate(Session session)
                 {
                     Query q = session.createQuery ("from "+ CertificateDefinitionHibernateImpl.class.getName() + " where id = :id ");
-                    q.setParameter("id", cd.getId());
+                    q.setParameter(PARAM_ID, cd.getId());
                     CertificateDefinitionHibernateImpl cdhi = (CertificateDefinitionHibernateImpl) q.list().get(0);
                     cdhi.setName(cd.getName());
                     cdhi.setDescription(cd.getDescription());
@@ -653,11 +661,13 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         return docTemp;
     }
 
+    //@Transactional( propagation = Propagation.REQUIRES_NEW )
     public DocumentTemplate setDocumentTemplate(String certificateDefinitionId, String name, InputStream template) throws IdUnusedException, DocumentTemplateException
     {
         return setDocumentTemplate(certificateDefinitionId, name, null, template);
     }
 
+    //@Transactional( propagation = Propagation.REQUIRES_NEW )
     public DocumentTemplate setDocumentTemplate(final String certificateDefinitionId, final String name,
                                                 final String mimeType, final InputStream template)
         throws IdUnusedException, UnsupportedTemplateTypeException, DocumentTemplateException
@@ -818,7 +828,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public CertificateDefinition getCertificateDefinitionByName (String siteId, String name) throws IdUnusedException
     {
-        List results = getHibernateTemplate().findByNamedQuery(QUERY_CERTIFICATE_DEFINITION_BY_NAME, new Object[] { siteId, name });
+        List results = getHibernateTemplate().findByNamedQueryAndNamedParam(QUERY_CERTIFICATE_DEFINITION_BY_NAME, new String[] {PARAM_SITE_ID, PARAM_NAME}, new String[] {siteId, name});
 
         if (results == null || results.isEmpty())
         {
@@ -969,6 +979,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
     }
 
+    //@Transactional( propagation = Propagation.REQUIRES_NEW )
     public Criterion addAwardCriterion(final String certificateDefinitionId, final Criterion criterion) throws IdUnusedException
     {
         try
@@ -1139,7 +1150,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException
+            public Object doInHibernate(Session session) throws HibernateException, SQLException
             {
                 List<Object[]> results =  session.createQuery("select assn.id, assn.assignmentWeighting from CertAssignment as assn " +
                         "where assn.notCounted=false and assn.removed=false and " +
@@ -1164,7 +1175,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException
+            public Object doInHibernate(Session session) throws HibernateException, SQLException
             {
                 List<Object[]> results = session.createQuery("select assn.id, assn.pointsPossible from CertCategory as cat, CertAssignment as assn " +
                         "where cat.gradebook.uid=:gradebookId and cat.removed=false " +
@@ -1190,7 +1201,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException
+            public Object doInHibernate(Session session) throws HibernateException, SQLException
             {
                 List<Object[]> results = session.createQuery("select assn.id, assn.pointsPossible from CertAssignment as assn " +
                         "where assn.removed=false and assn.notCounted=false and " +
@@ -1214,7 +1225,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException
+            public Object doInHibernate(Session session) throws HibernateException, SQLException
             {
                 Iterator results = session.createQuery("select agr.gradableObject.id, agr.pointsEarned from CertAssignmentScore as agr " +
                         "where agr.gradableObject.removed=false " +
@@ -1240,7 +1251,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException
+            public Object doInHibernate(Session session) throws HibernateException, SQLException
             {
                 Iterator results = session.createQuery("select agr.gradableObject.id, agr.dateRecorded from CertAssignmentScore as agr " +
                          "where agr.gradableObject.removed=false " +
@@ -1306,7 +1317,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException
+            public Object doInHibernate(Session session) throws HibernateException, SQLException
             {
                 //We need to get people from gb_grade_record_t, grading event only gives us people graded from the gradebook tool
                 String query = 	"select distinct gr.studentId from CertGradeRecordObject as gr " +
@@ -1343,13 +1354,12 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         List<ReportRow> reportRows = new ArrayList<ReportRow>();
 
         //we'll need this to get additional user properties
-        ExtraUserPropertyUtilityImpl extraPropsUtil = new ExtraUserPropertyUtilityImpl();
         //determines if the current user has permission to view extra properties
-        boolean canShowUserProps = extraPropsUtil.isExtraUserPropertiesEnabled() && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
+        boolean canShowUserProps = extraUserPropertyUtility.isExtraUserPropertiesEnabled() && extraUserPropertyUtility.isExtraPropertyViewingAllowedForCurrentUser();
 
         //Get the headers for the additional user properties
         //keeps track of the order of the keys so that we know that the headers and the cells line up
-        Map<String, String> propKeysTitles = extraPropsUtil.getExtraUserPropertiesKeyAndTitleMap();
+        Map<String, String> propKeysTitles = extraUserPropertyUtility.getExtraUserPropertiesKeyAndTitleMap();
         List<String> propKeys = new ArrayList<String>(propKeysTitles.keySet());
 
         //Get the criteria in the order of the displayed columns
@@ -1499,7 +1509,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             ArrayList<String> extraProps = new ArrayList<String>();
             if (canShowUserProps)
             {
-                Map<String, String> extraPropsMap = extraPropsUtil.getExtraPropertiesMapForUser(user);
+                Map<String, String> extraPropsMap = extraUserPropertyUtility.getExtraPropertiesMapForUser(user);
                 Iterator<String> itKeys = propKeys.iterator();
                 while (itKeys.hasNext())
                 {

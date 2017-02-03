@@ -6,10 +6,10 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import lombok.Setter;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.authz.api.SecurityService;
-import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.entity.api.ResourceProperties;
 import org.sakaiproject.site.api.SiteService;
@@ -40,21 +40,16 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
      * report*/
     private Map<String, String> extraUserPropertyKeyAndTitleMap;
 
-    private UserDirectoryService userDirectoryService;
-    private ToolManager toolManager;
-    private SiteService siteService;
-    private SecurityService securityService;
+    @Setter private UserDirectoryService userDirectoryService;
+    @Setter private ToolManager toolManager;
+    @Setter private SiteService siteService;
+    @Setter private SecurityService securityService;
 
     /**
      * Constructor
      */
     public ExtraUserPropertyUtilityImpl()
     {
-        userDirectoryService = (UserDirectoryService) ComponentManager.get(UserDirectoryService.class);
-        toolManager = (ToolManager) ComponentManager.get(ToolManager.class);
-        siteService = (SiteService) ComponentManager.get(SiteService.class);
-        securityService = (SecurityService) ComponentManager.get(SecurityService.class);
-
         //read sakai.properties
         extraUserPropertiesEnabled = ServerConfigurationService.getBoolean(ENABLE_SAKAI_PROPERTY, false);
         extraUserPropertyKeyAndTitleMap = new HashMap<String, String>();

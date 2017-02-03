@@ -72,11 +72,11 @@
     </query>
     <query name="deleteCertificateDefinition">
         delete from CertificateDefinitionHibernateImpl cd
-            where id = ?
+            where id = :id
     </query>
     <query name="getCertificateDefinitionByName">
         from CertificateDefinitionHibernateImpl
-            where siteId = ?
-              and name = ?
+            where siteId = :siteId
+              and name = :name
     </query>
 </hibernate-mapping>

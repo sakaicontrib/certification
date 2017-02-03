@@ -10,12 +10,12 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import javax.annotation.Resource;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
-import org.sakaiproject.component.cover.ComponentManager;
 import org.sakaiproject.entity.api.Entity;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
@@ -23,6 +23,7 @@ import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * User: duffy
@@ -58,39 +59,72 @@ public class BaseCertificateController
     protected static final String EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY = "form.expiry.onlyCriterionError";
     final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
 
-    public UserDirectoryService getUserDirectoryService()
+    protected ToolManager                 toolManager;
+    protected UserDirectoryService        userDirectoryService;
+    protected SecurityService             securityService;
+    protected SiteService                 siteService;
+    protected ServerConfigurationService  serverConfigurationService;
+
+    protected CertificateService          certificateService;
+    protected DocumentTemplateService     documentTemplateService;
+    protected ExtraUserPropertyUtility    extraUserPropertyUtility;
+
+    @Resource(name="org.sakaiproject.tool.api.ToolManager")
+    public void setToolManager(ToolManager toolManager)
     {
-        return (UserDirectoryService) ComponentManager.get(UserDirectoryService.class);
+        this.toolManager = toolManager;
     }
 
-    public ToolManager getToolManager()
+    @Resource(name="org.sakaiproject.user.api.UserDirectoryService")
+    public void setUserDirectoryService(UserDirectoryService userDirectoryService)
     {
-        return (ToolManager) ComponentManager.get(ToolManager.class);
+        this.userDirectoryService = userDirectoryService;
     }
 
-    public CertificateService getCertificateService()
+    @Resource(name="org.sakaiproject.authz.api.SecurityService")
+    public void setSecurityService(SecurityService securityService)
     {
-        return (CertificateService) ComponentManager.get(CertificateService.class);
+        this.securityService = securityService;
     }
 
-    public DocumentTemplateService getDocumentTemplateService()
+    @Resource(name="org.sakaiproject.site.api.SiteService")
+    public void setSiteService(SiteService siteService)
     {
-        return (DocumentTemplateService) ComponentManager.get(DocumentTemplateService.class);
+        this.siteService = siteService;
     }
 
-    public SecurityService getSecurityService()
+    @Resource(name="org.sakaiproject.component.api.ServerConfigurationService")
+    public void setServerConfigurationService(ServerConfigurationService serverConfigurationService)
     {
-        return (SecurityService) ComponentManager.get(SecurityService.class);
+        this.serverConfigurationService = serverConfigurationService;
     }
 
-    public ServerConfigurationService getServerConfigurationService()
+    @Resource(name="com.rsmart.certification.api.CertificateService")
+    public void setCertificateService(CertificateService certificateService)
     {
-        return (ServerConfigurationService) ComponentManager.get(ServerConfigurationService.class);
+        this.certificateService = certificateService;
     }
+
+    @Autowired
+    public void setDocumentTemplateService(DocumentTemplateService documentTemplateService)
+    {
+        this.documentTemplateService = documentTemplateService;
+    }
+
+    @Autowired
+    public void setExtraUserPropertyUtility(ExtraUserPropertyUtility extraUserPropertyUtility)
+    {
+        this.extraUserPropertyUtility = extraUserPropertyUtility;
+    }
+
+    public ToolManager              getToolManager()                { return toolManager; }
+    public CertificateService       getCertificateService()         { return this.certificateService; }
+    public DocumentTemplateService  getDocumentTemplateService()    { return this.documentTemplateService; }
+    public ExtraUserPropertyUtility getExtraUserPropertyUtility()   { return this.extraUserPropertyUtility; }
 
     protected String userId()
     {
-        User user = getUserDirectoryService().getCurrentUser();
+        User user = userDirectoryService.getCurrentUser();
         if (user == null)
         {
             return null;
@@ -101,7 +135,7 @@ public class BaseCertificateController
 
     protected String siteId()
     {
-        return getToolManager().getCurrentPlacement().getContext();
+        return toolManager.getCurrentPlacement().getContext();
     }
 
     protected boolean isAdministrator(String userId)
@@ -109,7 +143,7 @@ public class BaseCertificateController
         String siteId = siteId();
         String fullId = siteId;
 
-        if(getSecurityService().isSuperUser(userId))
+        if(securityService.isSuperUser(userId))
         {
             //stand aside, it's admin
             return true;
@@ -118,7 +152,7 @@ public class BaseCertificateController
         {
             fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
         }
-        if(getSecurityService().unlock(userId, ADMIN_FN, fullId))
+        if(securityService.unlock(userId, ADMIN_FN, fullId))
         {
             //user has certificate.admin
             return true;
@@ -137,7 +171,7 @@ public class BaseCertificateController
         String siteId = siteId();
         String fullId = siteId;
 
-        if (getSecurityService().isSuperUser(userId))
+        if (securityService.isSuperUser(userId))
         {
             //ha! Take that, admin!
             return false;
@@ -146,7 +180,7 @@ public class BaseCertificateController
         {
             fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
         }
-        if (getSecurityService().unlock(userId, AWARDABLE_FN, fullId))
+        if (securityService.unlock(userId, AWARDABLE_FN, fullId))
         {
             //user has certificate.be.awarded
             return true;
@@ -159,21 +193,11 @@ public class BaseCertificateController
         return isAwardable(userId());
     }
 
-    public ExtraUserPropertyUtility getExtraUserPropertyUtility()
-    {
-        return (ExtraUserPropertyUtility) ComponentManager.get(ExtraUserPropertyUtility.class);
-    }
-
-    protected SiteService getSiteService()
-    {
-        return (SiteService) ComponentManager.get(SiteService.class);
-    }
-
     protected Site getCurrentSite()
     {
         try
         {
-            return getSiteService().getSite(siteId());
+            return siteService.getSite(siteId());
         }
         catch (Exception e)
         {
@@ -209,7 +233,7 @@ public class BaseCertificateController
      */
     public Set<String> getHistoricalGradedUserIds()
     {
-        return new HashSet<String> (getCertificateService().getGradedUserIds(siteId()));
+        return new HashSet<String> (certificateService.getGradedUserIds(siteId()));
     }
 
     public String getRole(String userId)
@@ -236,8 +260,8 @@ public class BaseCertificateController
          * For example, simply linking to print.form?certId=${cert.id} caused a download of the tool's markup
          */
         StringBuilder urlPrefix = new StringBuilder();
-        String toolId = getToolManager().getCurrentPlacement().getId();
-        String toolUrl = getServerConfigurationService().getToolUrl();
+        String toolId = toolManager.getCurrentPlacement().getId();
+        String toolUrl = serverConfigurationService.getToolUrl();
         urlPrefix.append(toolUrl);
         urlPrefix.append("/");
         urlPrefix.append(toolId);

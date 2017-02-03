@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.Stack;
 import org.junit.After;
 import org.junit.Assert;
-import static org.junit.Assert.*;
 import org.sakaiproject.exception.IdUnusedException;
 
 /**
@@ -37,10 +36,10 @@ import org.sakaiproject.exception.IdUnusedException;
 public class TestCertificateServiceHibernateImpl
     extends SpringUnitTest
 {
-    private CertificateServiceHibernateImpl getCertificateService()
+    private CertificateService getCertificateService()
         throws Exception
     {
-        return (CertificateServiceHibernateImpl)getBeanFromContext("com.rsmart.certification.api.CertificateService");
+        return (CertificateService)getBeanFromContext("com.rsmart.certification.api.CertificateService");
     }
     private DocumentTemplateServiceImpl getDocumentTemplateService()
     {
@@ -80,7 +79,7 @@ public class TestCertificateServiceHibernateImpl
         if (msg != null && msg.length() > 0)
             sb.append(": ").append(msg);
 
-        fail (sb.toString());
+        Assert.fail (sb.toString());
     }
 
     private final void assertNoException (ExceptionCheck ec, String msg)
@@ -213,7 +212,7 @@ public class TestCertificateServiceHibernateImpl
     public void cleanUpTemplatesDirectory()
         throws Exception
     {
-        CertificateServiceHibernateImpl
+        CertificateService
             cs = getCertificateService();
 
         File
@@ -283,19 +282,19 @@ public class TestCertificateServiceHibernateImpl
         CertificateDefinition
             cd = createCertificateDefinition(cs);
 
-        assertNotNull(cd);
-        assertEquals("test name", cd.getName());
-        assertEquals("test description", cd.getDescription());
-        assertEquals("test site id", cd.getSiteId());
-        assertNotNull(cd.getId());
-        assertEquals(CertificateDefinitionStatus.UNPUBLISHED, cd.getStatus());
+        Assert.assertNotNull(cd);
+        Assert.assertEquals("test name", cd.getName());
+        Assert.assertEquals("test description", cd.getDescription());
+        Assert.assertEquals("test site id", cd.getSiteId());
+        Assert.assertNotNull(cd.getId());
+        Assert.assertEquals(CertificateDefinitionStatus.UNPUBLISHED, cd.getStatus());
 
         //test unique ID is generated
         CertificateDefinition
             cd2 = createCertificateDefinition(cs);
 
-        assertNotNull(cd2);
-        assertTrue(!cd.getId().equals(cd2.getId()));
+        Assert.assertNotNull(cd2);
+        Assert.assertTrue(!cd.getId().equals(cd2.getId()));
     }
 
     //@Test
@@ -318,26 +317,26 @@ public class TestCertificateServiceHibernateImpl
 
         fis.close();
 
-        assertNotNull(result);
-        assertEquals("test name", result.getName());
-        assertEquals("test description", result.getDescription());
-        assertEquals("test site id", result.getSiteId());
-        assertNotNull(result.getId());
-        assertEquals(CertificateDefinitionStatus.UNPUBLISHED, result.getStatus());
+        Assert.assertNotNull(result);
+        Assert.assertEquals("test name", result.getName());
+        Assert.assertEquals("test description", result.getDescription());
+        Assert.assertEquals("test site id", result.getSiteId());
+        Assert.assertNotNull(result.getId());
+        Assert.assertEquals(CertificateDefinitionStatus.UNPUBLISHED, result.getStatus());
 
         DocumentTemplate
             dt = result.getDocumentTemplate();
 
-        assertNotNull(dt);
-        assertEquals("afghanistan.pdf", dt.getName());
-        assertEquals("application/pdf", dt.getOutputMimeType());
-        assertEquals(result.getId(), dt.getId());
+        Assert.assertNotNull(dt);
+        Assert.assertEquals("afghanistan.pdf", dt.getName());
+        Assert.assertEquals("application/pdf", dt.getOutputMimeType());
+        Assert.assertEquals(result.getId(), dt.getId());
 
         PdfReader
             reader = new PdfReader (cs.getTemplateFileInputStream(dt.getResourceId()));
 
-        assertNotNull(reader);
-        assertNotNull(reader.getInfo());
+        Assert.assertNotNull(reader);
+        Assert.assertNotNull(reader.getInfo());
 
         reader.close();
 
@@ -349,24 +348,24 @@ public class TestCertificateServiceHibernateImpl
 
         fis.close();
 
-        assertNotNull(result);
-        assertEquals("test name", result.getName());
-        assertEquals("test description", result.getDescription());
-        assertEquals("test site id", result.getSiteId());
-        assertNotNull(result.getId());
-        assertEquals(CertificateDefinitionStatus.UNPUBLISHED, result.getStatus());
+        Assert.assertNotNull(result);
+        Assert.assertEquals("test name", result.getName());
+        Assert.assertEquals("test description", result.getDescription());
+        Assert.assertEquals("test site id", result.getSiteId());
+        Assert.assertNotNull(result.getId());
+        Assert.assertEquals(CertificateDefinitionStatus.UNPUBLISHED, result.getStatus());
 
         dt = result.getDocumentTemplate();
 
-        assertNotNull(dt);
-        assertEquals("afghanistan.pdf", dt.getName());
-        assertEquals("application/pdf", dt.getOutputMimeType());
-        assertEquals(result.getId(), dt.getId());
+        Assert.assertNotNull(dt);
+        Assert.assertEquals("afghanistan.pdf", dt.getName());
+        Assert.assertEquals("application/pdf", dt.getOutputMimeType());
+        Assert.assertEquals(result.getId(), dt.getId());
 
         reader = new PdfReader (cs.getTemplateFileInputStream(dt.getResourceId()));
 
-        assertNotNull(reader);
-        assertNotNull(reader.getInfo());
+        Assert.assertNotNull(reader);
+        Assert.assertNotNull(reader.getInfo());
 
         reader.close();
     }
@@ -389,21 +388,21 @@ public class TestCertificateServiceHibernateImpl
 
         duplicate = createAndPopulateCertificateDefinition(cs, dts, true);
 
-        assertNotNull(duplicate);
-        assertFalse(cd.equals(duplicate));
-        assertEquals("Copy of test name", duplicate.getName());
-        assertEquals("test description", duplicate.getDescription());
-        assertEquals("test site id", duplicate.getSiteId());
-        assertEquals(CertificateDefinitionStatus.ACTIVE, cd.getStatus());
-        assertEquals(CertificateDefinitionStatus.UNPUBLISHED, duplicate.getStatus());
+        Assert.assertNotNull(duplicate);
+        Assert.assertFalse(cd.equals(duplicate));
+        Assert.assertEquals("Copy of test name", duplicate.getName());
+        Assert.assertEquals("test description", duplicate.getDescription());
+        Assert.assertEquals("test site id", duplicate.getSiteId());
+        Assert.assertEquals(CertificateDefinitionStatus.ACTIVE, cd.getStatus());
+        Assert.assertEquals(CertificateDefinitionStatus.UNPUBLISHED, duplicate.getStatus());
 
         DocumentTemplate
             oldDT = cd.getDocumentTemplate(),
             newDT = duplicate.getDocumentTemplate();
 
-        assertNotNull(newDT);
-        assertTrue(!oldDT.equals(newDT));
-        assertEquals(oldDT.getOutputMimeType(), newDT.getOutputMimeType());
+        Assert.assertNotNull(newDT);
+        Assert.assertTrue(!oldDT.equals(newDT));
+        Assert.assertEquals(oldDT.getOutputMimeType(), newDT.getOutputMimeType());
 
         BufferedInputStream
             oldBIS = new BufferedInputStream(cs.getTemplateFileInputStream(oldDT.getResourceId())),
@@ -419,29 +418,29 @@ public class TestCertificateServiceHibernateImpl
             oldStr = new String(oldArr, 0, oldLen),
             newStr = new String(newArr, 0, newLen);
 
-        assertEquals (oldStr, newStr);
+        Assert.assertEquals (oldStr, newStr);
 
         Set<Criterion>
             oldCrit = cd.getAwardCriteria(),
             newCrit = duplicate.getAwardCriteria();
 
-        assertEquals(oldCrit.size(), newCrit.size());
+        Assert.assertEquals(oldCrit.size(), newCrit.size());
 
         for (Criterion criterion : newCrit)
         {
-            assertTrue(!oldCrit.contains(newCrit));
+            Assert.assertTrue(!oldCrit.contains(newCrit));
         }
 
         Map<String, String>
             oldBindings = cd.getFieldValues(),
             newBindings = duplicate.getFieldValues();
 
-        assertEquals(oldBindings.size(), newBindings.size());
+        Assert.assertEquals(oldBindings.size(), newBindings.size());
 
         for (String key : oldBindings.keySet())
         {
-            assertTrue(newBindings.containsKey(key));
-            assertEquals(oldBindings.get(key), newBindings.get(key));
+            Assert.assertTrue(newBindings.containsKey(key));
+            Assert.assertEquals(oldBindings.get(key), newBindings.get(key));
         }
     }
 
@@ -456,20 +455,20 @@ public class TestCertificateServiceHibernateImpl
             cd2 = createCertificateDefinition(cs),
             result = cs.getCertificateDefinition(cd.getId());
 
-        assertNotNull(result);
-        assertEquals(cd.getName(), result.getName());
-        assertEquals(cd.getDescription(), result.getDescription());
-        assertEquals(cd.getSiteId(), result.getSiteId());
-        assertEquals(cd.getId(), result.getId());
-        assertEquals(cd.getStatus(), result.getStatus());
+        Assert.assertNotNull(result);
+        Assert.assertEquals(cd.getName(), result.getName());
+        Assert.assertEquals(cd.getDescription(), result.getDescription());
+        Assert.assertEquals(cd.getSiteId(), result.getSiteId());
+        Assert.assertEquals(cd.getId(), result.getId());
+        Assert.assertEquals(cd.getStatus(), result.getStatus());
 
         result = cs.getCertificateDefinition(cd2.getId());
-        assertNotNull(result);
-        assertEquals(cd2.getName(), result.getName());
-        assertEquals(cd2.getDescription(), result.getDescription());
-        assertEquals(cd2.getSiteId(), result.getSiteId());
-        assertEquals(cd2.getId(), result.getId());
-        assertEquals(cd2.getStatus(), result.getStatus());
+        Assert.assertNotNull(result);
+        Assert.assertEquals(cd2.getName(), result.getName());
+        Assert.assertEquals(cd2.getDescription(), result.getDescription());
+        Assert.assertEquals(cd2.getSiteId(), result.getSiteId());
+        Assert.assertEquals(cd2.getId(), result.getId());
+        Assert.assertEquals(cd2.getStatus(), result.getStatus());
     }
 
     //@Test
@@ -510,10 +509,10 @@ public class TestCertificateServiceHibernateImpl
         DocumentTemplate
             dt = result.getDocumentTemplate();
 
-        assertNotNull(dt);
-        assertEquals("foo.txt", dt.getName());
-        assertEquals("text/plain", dt.getOutputMimeType());
-        assertNotNull(dt.getId());
+        Assert.assertNotNull(dt);
+        Assert.assertEquals("foo.txt", dt.getName());
+        Assert.assertEquals("text/plain", dt.getOutputMimeType());
+        Assert.assertNotNull(dt.getId());
 
         InputStream
             dtDataIs = cs.getTemplateFileInputStream(dt.getResourceId());
@@ -529,7 +528,7 @@ public class TestCertificateServiceHibernateImpl
             readBuff.append((char)c);
         }
 
-        assertEquals(data, readBuff.toString());
+        Assert.assertEquals(data, readBuff.toString());
     }
 
     //@Test
@@ -559,10 +558,10 @@ public class TestCertificateServiceHibernateImpl
         Set<String>
             fields = dts.getTemplateFields(dt);
 
-        assertNotNull(fields);
-        assertEquals(2, fields.size());
-        assertTrue(fields.contains("field1"));
-        assertTrue(fields.contains("field2"));
+        Assert.assertNotNull(fields);
+        Assert.assertEquals(2, fields.size());
+        Assert.assertTrue(fields.contains("field1"));
+        Assert.assertTrue(fields.contains("field2"));
 
         data = "no fields in this one";
 
@@ -573,8 +572,8 @@ public class TestCertificateServiceHibernateImpl
         dt = result.getDocumentTemplate();
         fields = dts.getTemplateFields(dt);
 
-        assertNotNull(fields);
-        assertTrue(fields.isEmpty());
+        Assert.assertNotNull(fields);
+        Assert.assertTrue(fields.isEmpty());
     }
 
     //@Test
@@ -588,8 +587,8 @@ public class TestCertificateServiceHibernateImpl
         Set<CriteriaTemplate>
             templates = cs.getCriteriaTemplates();
 
-        assertNotNull(templates);
-        assertTrue(!templates.isEmpty());
+        Assert.assertNotNull(templates);
+        Assert.assertTrue(!templates.isEmpty());
 
         HashSet<Criterion>
             criteria = new HashSet<Criterion>();
@@ -619,9 +618,9 @@ public class TestCertificateServiceHibernateImpl
         Set<Criterion>
             ac = result.getAwardCriteria();
 
-        assertNotNull(ac);
-        assertEquals (criteria.size(), ac.size());
-        assertTrue (ac.containsAll(criteria));
+        Assert.assertNotNull(ac);
+        Assert.assertEquals (criteria.size(), ac.size());
+        Assert.assertTrue (ac.containsAll(criteria));
     }
 
     //@Test
@@ -675,7 +674,7 @@ public class TestCertificateServiceHibernateImpl
         CertificateDefinition
             result = cs.getCertificateDefinition(cd.getId());
 
-        assertEquals (CertificateDefinitionStatus.ACTIVE, result.getStatus());
+        Assert.assertEquals (CertificateDefinitionStatus.ACTIVE, result.getStatus());
 
         assertNoException
             (
@@ -691,7 +690,7 @@ public class TestCertificateServiceHibernateImpl
             );
 
         result = cs.getCertificateDefinition(cd.getId());
-        assertEquals (CertificateDefinitionStatus.INACTIVE, result.getStatus());
+        Assert.assertEquals (CertificateDefinitionStatus.INACTIVE, result.getStatus());
     }
 
 
@@ -709,14 +708,14 @@ public class TestCertificateServiceHibernateImpl
         Set<Criterion>
             criteria = cs.getUnmetAwardConditions(cd.getId(), false);
 
-        assertNotNull (criteria);
-        assertEquals (0, criteria.size());
+        Assert.assertNotNull (criteria);
+        Assert.assertEquals (0, criteria.size());
 
         cd = createAndPopulateCertificateDefinition(cs, dts, false);
         criteria = cs.getUnmetAwardConditions(cd.getId(), false);
 
-        assertNotNull (criteria);
-        assertEquals (1, criteria.size());
+        Assert.assertNotNull (criteria);
+        Assert.assertEquals (1, criteria.size());
     }
 
     //@Test
@@ -795,8 +794,8 @@ public class TestCertificateServiceHibernateImpl
         Set<Criterion>
             criteria = result.getAwardCriteria();
 
-        assertEquals (1, criteria.size());
-        assertTrue (criteria.contains (criterion1));
+        Assert.assertEquals (1, criteria.size());
+        Assert.assertTrue (criteria.contains (criterion1));
 
         bindings.put ("gradebook.item","2");
         bindings.put ("score", "80");
@@ -808,9 +807,9 @@ public class TestCertificateServiceHibernateImpl
         result = cs.getCertificateDefinition(cd.getId());
         criteria = result.getAwardCriteria();
 
-        assertEquals (2, criteria.size());
-        assertTrue (criteria.contains (criterion1));
-        assertTrue (criteria.contains (criterion2));
+        Assert.assertEquals (2, criteria.size());
+        Assert.assertTrue (criteria.contains (criterion1));
+        Assert.assertTrue (criteria.contains (criterion2));
     }
 
     //@Test
@@ -859,7 +858,7 @@ public class TestCertificateServiceHibernateImpl
 
         criterion2 = gisct.getCriteriaFactory().createCriterion(gisct, bindings);
 
-        assertTrue (!criterion1.equals(criterion2));
+        Assert.assertTrue (!criterion1.equals(criterion2));
 
         HashSet<Criterion>
             criteria = new HashSet<Criterion>();
@@ -874,7 +873,7 @@ public class TestCertificateServiceHibernateImpl
         Set<Criterion>
             resultCriteria = result.getAwardCriteria();
 
-        assertEquals (2, criteria.size());
+        Assert.assertEquals (2, criteria.size());
 
         bindings.put ("gradebook.item","3");
         bindings.put ("score", "85");
@@ -888,6 +887,6 @@ public class TestCertificateServiceHibernateImpl
         result = cs.getCertificateDefinition(cd.getId());
         resultCriteria = result.getAwardCriteria();
 
-        assertEquals (3, resultCriteria.size());
+        Assert.assertEquals (3, resultCriteria.size());
     }
 }
