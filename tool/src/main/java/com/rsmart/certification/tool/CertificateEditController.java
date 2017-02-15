@@ -793,7 +793,7 @@ public class CertificateEditController extends BaseCertificateController
         }
         catch (InvalidBindingException ibe)
         {
-            response.sendError( ERROR_BAD_REQUEST, TOO_MANY_EXPIRATION_CRITERIA );
+            response.sendError( ERROR_BAD_REQUEST, ibe.getLocalizedMessage() );
             return;
         }
 
@@ -818,7 +818,7 @@ public class CertificateEditController extends BaseCertificateController
             // If more than one expiry was found, return the flag to produce the proper UI error message
             if( alreadyHasExpiry )
             {
-                response.sendError( 400, "**TooManyExpiry**" );
+                response.sendError( ERROR_BAD_REQUEST, TOO_MANY_EXPIRATION_CRITERIA );
                 return;
             }
         }

@@ -84,7 +84,7 @@
 
     function next()
     {
-        if(validateForm() && checkUnassigned())
+        if(checkUnassigned())
         {
             $("#submitValue").val("next");
             $("#createCertFormThree").submit();
@@ -95,29 +95,6 @@
     {
         $("#submitValue").val("cancel");
         $("#createCertFormThree").submit();
-    }
-
-    function validateForm()
-    {
-        $(".alertMessage").hide();
-        var error = false;
-        var errHtml = "";
-
-        if(!$("select").val()) {
-            errHtml = errHtml + "<spring:message code="form.error.fieldValue"/>" + "</br>" ;
-            error = true;
-        }
-
-        if(error)
-        {
-            $("#submitError").html(errHtml).show();
-            resetHeight();
-            return false;
-        }
-        else
-        {
-            return true;
-        }
     }
 
     function checkUnassigned()

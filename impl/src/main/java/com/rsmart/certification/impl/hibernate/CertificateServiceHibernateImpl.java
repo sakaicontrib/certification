@@ -296,7 +296,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 session.update(cd);
                 session.flush();
 
-                Query q = session.createQuery("delete from DocumentTemplateHibernateImpl where id=?");
+                Query q = session.createQuery("delete from DocumentTemplateHibernateImpl where id=:id");
                 q.setString(PARAM_ID, certificateDefinitionId);
                 q.executeUpdate();
                 q = session.getNamedQuery("deleteCertificateDefinition");
