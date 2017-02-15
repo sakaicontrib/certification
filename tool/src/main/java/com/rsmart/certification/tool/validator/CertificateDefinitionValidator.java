@@ -4,6 +4,7 @@ import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplateException;
 import com.rsmart.certification.tool.utils.CertificateToolState;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -50,6 +51,18 @@ public class CertificateDefinitionValidator
     public void validateThird(CertificateToolState certificateToolState, Errors errors)
     {
         Map<String, String> currentFields = certificateToolState.getTemplateFields();
+
+        // Validate mappings; throw away any invalid mappings
+        Set<String> predefinedFields = certificateToolState.getEscapedPredifinedFields().keySet();
+        for( Iterator<Map.Entry<String, String>> itr = currentFields.entrySet().iterator(); itr.hasNext(); )
+        {
+            Map.Entry<String, String> entry = itr.next();
+            if( !predefinedFields.contains( entry.getValue() ) )
+            {
+                itr.remove();
+            }
+        }
+
         //Add the $'s back in (they were removed in CertificateToolState.getEscapedPredifinedFields())
         Set<String> keys = new HashSet<String>();
         keys.addAll(currentFields.keySet());
