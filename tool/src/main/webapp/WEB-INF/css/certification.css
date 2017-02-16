@@ -1,1 +1,11 @@
+table.listHier th {
+    font-weight: bold;
+}
 
+.certPager {
+    text-align: center;
+}
+
+.certPager input {
+    margin: 0 !important;
+}

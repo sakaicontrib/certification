@@ -105,9 +105,9 @@
 	</table>
 	</div>
 	<div style="display:block; position:relative; margin:5px">
-		<input id="back" type="button" value="<spring:message code="form.submit.back" />" />&nbsp;
-		<input id="save" type="button" value="<spring:message code="form.submit.activateCert"/>"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-		<input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
+		<input id="back" type="button" value="<spring:message code='form.submit.back' />" />
+		<input id="save" type="button" value="<spring:message code='form.submit.activateCert' />" />
+		<input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
 		<form:hidden path="submitValue" />
 	</div>
 </form:form>
@@ -133,28 +133,23 @@
 
 	function back()
 	{
+		SPNR.disableControlsAndSpin( this, null );
 		$("#submitValue").val("back");
 		$("#createCertFormFour").submit();
 	}
 
 	function save()
 	{
-		if(validateForm())
-		{
-			$("#submitValue").val("save");
-			$("#createCertFormFour").submit();
-		}
+		SPNR.disableControlsAndSpin( this, null );
+		$("#submitValue").val("save");
+		$("#createCertFormFour").submit();
 	}
 
 	function cancel()
 	{
+		SPNR.disableControlsAndSpin( this, null );
 		$("#submitValue").val("cancel");
 		$("#createCertFormFour").submit();
-	}
-
-	function validateForm()
-	{
-		return true
 	}
 
 </script>

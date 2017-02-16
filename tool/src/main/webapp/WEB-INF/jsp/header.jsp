@@ -65,5 +65,5 @@
    </head>
 
 <body >
-    <div class="portletBody">
+    <div class="portletBody container-fluid">
        <c:if test="${not empty requestScope.panelId}"><div class="ospEmbedded"></c:if>

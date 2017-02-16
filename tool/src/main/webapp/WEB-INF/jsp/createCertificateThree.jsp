@@ -48,9 +48,9 @@
             </div>
         </div>
         <div style="display:block; position:relative; margin:5px">
-            <input id="back" type="button" value="<spring:message code="form.submit.back" />" />&nbsp;
-            <input id="next" type="button" value="<spring:message code="form.submit.next"/>"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-            <input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
+            <input id="back" type="button" value="<spring:message code='form.submit.back' />" />
+            <input id="next" type="button" value="<spring:message code='form.submit.next' />" />
+            <input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
             <form:hidden path="submitValue" />
         </div>
     </div>
@@ -78,6 +78,7 @@
 
     function back()
     {
+        SPNR.disableControlsAndSpin( this, null );
         $("#submitValue").val("back");
         $("#createCertFormThree").submit();
     }
@@ -86,6 +87,7 @@
     {
         if(checkUnassigned())
         {
+            SPNR.disableControlsAndSpin( this, null );
             $("#submitValue").val("next");
             $("#createCertFormThree").submit();
         }
@@ -93,6 +95,7 @@
 
     function cancel()
     {
+        SPNR.disableControlsAndSpin( this, null );
         $("#submitValue").val("cancel");
         $("#createCertFormThree").submit();
     }

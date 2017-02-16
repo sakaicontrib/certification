@@ -44,8 +44,8 @@
 		</table>
 		</div>
 		<div style="margin:5px">
-			<input id="next" type="button" value="<spring:message code="form.submit.next"/>"/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-			<input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
+			<input id="next" type="button" value="<spring:message code='form.submit.next' />" />
+			<input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
 			<form:hidden path="submitValue" />
 		</div>
 	</form:form>
@@ -69,12 +69,14 @@
 	});
 
 	function cancel() {
+		SPNR.disableControlsAndSpin( this, null );
 		$("#submitValue").val("cancel");
 		$("#createCertFormOne").submit();
 	}
 
 	function next() {
 		if(validateForm()) {
+			SPNR.disableControlsAndSpin( this, null );
 			$("#submitValue").val("next");
 			$("#createCertFormOne").submit();
 		}

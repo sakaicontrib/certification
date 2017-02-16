@@ -63,9 +63,9 @@
 			<br/>
 		</div>
 		<div style="margin:5px">
-			<input id="back" type="button" value="<spring:message code="form.submit.back"/>"/>&nbsp;
-			<input id="next" type="button" value="<spring:message code="form.submit.next"/>"/>&nbsp;&nbsp;&nbsp;&nbsp;
-			<input id="cancel" type="button" value="<spring:message code="form.submit.cancel"/>"/>
+			<input id="back" type="button" value="<spring:message code='form.submit.back' />" />
+			<input id="next" type="button" value="<spring:message code='form.submit.next' />" />
+			<input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
 			<form:hidden path="submitValue" />
 		</div>
 	</form:form>
@@ -96,28 +96,23 @@
 
 	function back()
 	{
+		SPNR.disableControlsAndSpin( this, null );
 		$("#submitValue").val("back");
 		$("#createCertFormTwo").submit();
 	}
 
 	function next()
 	{
-		if(validateForm())
-		{
-			$("#submitValue").val("next");
-			$("#createCertFormTwo").submit();
-		}
+		SPNR.disableControlsAndSpin( this, null );
+		$("#submitValue").val("next");
+		$("#createCertFormTwo").submit();
 	}
 
 	function cancel()
 	{
+		SPNR.disableControlsAndSpin( this, null );
 		$("#submitValue").val("cancel");
 		$("#createCertFormTwo").submit();
-	}
-
-	function validateForm()
-	{
-		return true;
 	}
 
 	function removeCriterion(criterionId)

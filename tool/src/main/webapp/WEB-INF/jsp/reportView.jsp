@@ -36,7 +36,6 @@
     <div id="displayOptionsPanel">
         <div style="display:inline-block; background-color:#ddd; padding:10px">
             <span style="float:left;"> <spring:message code="report.filter.show"/>  </span>
-            <img id="spinner" style="visibility:hidden; float:right" src="WEB-INF/images/indicator.gif">
             <div style="display:inline-block; margin-left: 1em;">
                 <input id="rdAll" type="radio" name="show" value="all" onclick="$('#dateRange').css('display','none');" checked><spring:message code="report.filter.all"/></input><br/>
                 <input id="idUnawarded" type="radio" name="show" value="unawarded" onclick="$('#dateRange').css('display','none');"><spring:message code="report.filter.unawarded"/></input><br/>
@@ -74,42 +73,49 @@
     </div>
     <br/>
     <p class="viewNav"><spring:message code="report.blurb"/></p>
-    <div class="listNav">
-        <div class="pager">
-            <span style="align:center"><spring:message code="form.pager.showing"/>&nbsp;<c:out value="${firstElement}" />&nbsp;&#045;&nbsp;<c:out value="${lastElement}" />&nbsp;of&nbsp;${reportList.nrOfElements}</span><br/>
-            <c:choose>
-                <c:when test="${!reportList.firstPage}">
-                    <input type="button" id="first" value="<spring:message code="pagination.first"/>" />
-                    <input type="button" id="prev" value="<spring:message code="pagination.previous"/>" />
-                </c:when>
-                <c:otherwise>
-                    <input type="button" id="nofirst" value="<spring:message code="pagination.first"/>" disabled="disabled" />
-                    <input type="button" id="noPrev" value="<spring:message code="pagination.previous"/>" disabled="disabled" />
-                </c:otherwise>
-            </c:choose>
-            <input type="hidden" id="pageNo" value="${pageNo}" />
-            <select id="pageSize">
-                <c:forEach items="${pageSizeList}" var="list">
+    <div class="navPanel row">
+        <div class="col-md-4">
+            <nav class="certPager panel panel-default">
+                <div class="panel-heading">
+                    <spring:message code="form.pager.showing"/> <c:out value="${firstElement}" /> - <c:out value="${lastElement}" /> of ${reportList.nrOfElements}
+                    <div id="spinner" class="allocatedSpinPlaceholder"></div>
+                </div>
+                <div class="panel-body">
                     <c:choose>
-                    <c:when test="${list > 200}">
-                        <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
-                    </c:when>
-                    <c:otherwise>
-                        <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.show" arguments="${list}" /></option>
-                    </c:otherwise>
+                        <c:when test="${!reportList.firstPage}">
+                            <input type="button" id="first" value="<spring:message code='pagination.first' />" />
+                            <input type="button" id="prev" value="<spring:message code='pagination.previous' />" />
+                        </c:when>
+                        <c:otherwise>
+                            <input type="button" id="nofirst" value="<spring:message code='pagination.first' />" disabled="disabled" />
+                            <input type="button" id="noPrev" value="<spring:message code='pagination.previous' />" disabled="disabled" />
+                        </c:otherwise>
                     </c:choose>
-                </c:forEach>
-            </select>
-            <c:choose>
-                <c:when test="${!reportList.lastPage}">
-                    <input type="button" id="next" value="<spring:message code="pagination.next"/>" />
-                    <input type="button" id="last" value="<spring:message code="pagination.last"/>" />
-                </c:when>
-                <c:otherwise>
-                    <input type="button" id="noNext" value="<spring:message code="pagination.next"/>" disabled="disabled"/>
-                    <input type="button" id="noLast" value="<spring:message code="pagination.last"/>" disabled="disabled"/>
-                </c:otherwise>
-            </c:choose>
+                    <input type="hidden" id="pageNo" value="${pageNo}" />
+                    <select id="pageSize">
+                        <c:forEach items="${pageSizeList}" var="list">
+                            <c:choose>
+                            <c:when test="${list > 200}">
+                                <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
+                            </c:when>
+                            <c:otherwise>
+                                <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.show" arguments="${list}" /></option>
+                            </c:otherwise>
+                            </c:choose>
+                        </c:forEach>
+                    </select>
+                    <c:choose>
+                        <c:when test="${!reportList.lastPage}">
+                            <input type="button" id="next" value="<spring:message code='pagination.next' />" />
+                            <input type="button" id="last" value="<spring:message code='pagination.last' />" />
+                        </c:when>
+                        <c:otherwise>
+                            <input type="button" id="noNext" value="<spring:message code='pagination.next' />" disabled="disabled"/>
+                            <input type="button" id="noLast" value="<spring:message code='pagination.last' />" disabled="disabled"/>
+                        </c:otherwise>
+                    </c:choose>
+                </div>
+            </nav>
         </div>
     </div>
     <input id="certificateId" type="button" style="display:none" value="${cert.id}"></input>
@@ -173,7 +179,7 @@
                                 <td>${criterionCell.progress}</td>
                             </c:when>
                             <c:otherwise>
-                                <%--OWLTODO - use a css class--%>
+                                <%--TODO - use a css class--%>
                                 <td style="color:red;">${criterionCell.progress}</td>
                             </c:otherwise>
                         </c:choose>
@@ -183,15 +189,6 @@
             </c:forEach>
         </tbody>
     </table>
-    <%--
-    <c:choose>
-    <c:when test="${empty reportList}">
-        TODO
-    </c:when>
-    <c:otherwise>
-    </c:otherwise>
-    </c:choose>
-    --%>
 </form:form>
 <script type="text/javascript">
     $(document).ready(function()
@@ -272,14 +269,12 @@
                 if (!validateDate(filterStartDate))
                 {
                     $("#errorDiv").replaceWith('<div class="alertMessage"><spring:message code="report.filter.date.invalid"/></div>');
-                    $("#spinner").css('visibility', 'hidden');
                     $("#filterReset").removeAttr('disabled');
                     return false;
                 }
                 if (!validateDate(filterEndDate))
                 {
                     $("#errorDiv").replaceWith('<div class="alertMessage"><spring:message code="report.filter.date.invalid"/></div>');
-                    $("#spinner").css('visibility', 'hidden');
                     $("#filterReset").removeAttr('disabled');
                     return false;
                 }
@@ -321,32 +316,37 @@
         var id = $("#certificateId").val();
 
         $("#first").click( function() {
+            SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=first";
             return false;
         });
 
         $("#prev").click( function() {
+            SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=previous";
             return false;
         });
 
         $("#next").click( function() {
+            SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=next";
             return false;
         });
 
         $("#last").click( function() {
+            SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=last";
             return false;
         });
 
         $("#pageSize").change( function() {
+            SPNR.insertSpinnerInPreallocated( this, null, "spinner" );
             location.href="reportView.form?certId=" + id + "&pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
             return false;
         });
 
         $("#filterApply").click( function() {
-            $("#spinner").css('visibility', 'visible');
+            SPNR.disableControlsAndSpin( this, null );
             $("#filterReset").attr('disabled', 'disabled');
             var filterType = $("input[name='show']:checked").val();
             <c:choose>
@@ -370,7 +370,7 @@
         });
 
         $("#filterReset").click( function() {
-            $("#resetSpinner").css('display', 'inline');
+            SPNR.disableControlsAndSpin( this, null );
             $("#filterApply").attr('disabled', 'disabled');
             location.href="reportView.form?certId=" + id;
             return false;
