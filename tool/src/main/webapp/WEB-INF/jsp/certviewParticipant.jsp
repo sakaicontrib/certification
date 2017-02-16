@@ -111,7 +111,7 @@
                     <td>
                     <c:choose>
                         <c:when test="${certIsAwarded[cert.id]}">
-                            <a id="viewCert${cert.id}" href="#" onclick="printCertificate('${cert.id}');">
+                            <a id="viewCert${cert.id}" href="print.form?certId=${cert.id}">
                                 <spring:message code="form.submit.print"/>
                             </a>
                         </c:when>
@@ -166,12 +166,6 @@
 				return false;
 			});
 		});
-
-		function printCertificate(certId)
-		{
-			parent.document.getElementsByTagName("iframe")[0].style.height = "900px";
-			location.href = "${toolUrl}/print.form?certId=" + certId;
-		}
 
 	</script>
 <%@ include file="/WEB-INF/jsp/footer.jsp" %>

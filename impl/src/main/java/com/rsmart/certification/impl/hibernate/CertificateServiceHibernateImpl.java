@@ -23,7 +23,6 @@ import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHiberna
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.impl.security.AllowMapSecurityAdvisor;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.InputStream;
 import java.sql.SQLException;
 import java.text.DateFormat;
@@ -736,11 +735,11 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public InputStream getTemplateFileInputStream(final String resourceId) throws TemplateReadException
     {
-        FileInputStream fis = null;
+        InputStream is = null;
 
         try
         {
-            fis = (FileInputStream) doSecureCertificateService(new SecureCertificateServiceCallback()
+            is = (InputStream) doSecureCertificateService(new SecureCertificateServiceCallback()
             {
                 public Object doSecureAction() throws Exception
                 {
@@ -754,7 +753,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             throw new TemplateReadException ("Could not read Document Template with id: " + resourceId, e);
         }
 
-        return fis;
+        return is;
     }
 
     private Object doSecureCertificateService(SecureCertificateServiceCallback callback) throws Exception
