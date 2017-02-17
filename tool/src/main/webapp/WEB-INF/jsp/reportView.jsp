@@ -125,29 +125,29 @@
                 <!-- the columns need to be in a c:for -->
                 <!-- create the headers in an array from java code -->
                 <th>
-                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=name" id="sortByName">
+                    <a href="reportViewSort.form?certId=${cert.id}&sort=name" id="sortByName" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.name"/>
                     </a>
                 </th>
                 <th>
-                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=userId" id="sortByUserId">
+                    <a href="reportViewSort.form?certId=${cert.id}&sort=userId" id="sortByUserId" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.userid"/>
                     </a>
                 </th>
                 <th>
-                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=role" id="sortByRole">
+                    <a href="reportViewSort.form?certId=${cert.id}&sort=role" id="sortByRole" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.role"/>
                     </a>
                 </th>
                 <c:forEach items="${userPropHeaders}" var="prop">
                     <th>
-                        <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=prop&prop=${prop}" id="sortBy${prop}">
+                        <a href="reportViewSort.form?certId=${cert.id}&sort=prop&prop=${prop}" id="sortBy${prop}" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                             ${prop}
                         </a>
                     </th>
                 </c:forEach>
                 <th>
-                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=issueDate" id="sortByIssueDate">
+                    <a href="reportViewSort.form?certId=${cert.id}&sort=issueDate" id="sortByIssueDate" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.issuedate"/>
                     </a>
                 </th>
@@ -157,7 +157,7 @@
                     </th>
                 </c:forEach>
                 <th>
-                    <a href="${toolUrl}/reportViewSort.form?certId=${cert.id}&sort=awarded" id="sortByAwarded">
+                    <a href="reportViewSort.form?certId=${cert.id}&sort=awarded" id="sortByAwarded" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.awarded"/>
                     </a>
                 </th>
