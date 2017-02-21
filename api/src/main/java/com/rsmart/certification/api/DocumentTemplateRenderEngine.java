@@ -13,17 +13,22 @@ import java.util.Set;
 public interface DocumentTemplateRenderEngine
 {
     /**
+     * @param template
      * @return the array of MIME types this service can handle
      */
     public String getOutputMimeType(DocumentTemplate template);
 
     /**
+     * @param template
      * @return extracts named fields from the template.
+     * @throws com.rsmart.certification.api.TemplateReadException
      */
     public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException;
 
     /**
+     * @param inputStream
      * @return extracts named fields from the inputStream
+     * @throws com.rsmart.certification.api.TemplateReadException
      */
     public Set<String> getTemplateFields(InputStream inputStream) throws TemplateReadException;
 
@@ -35,9 +40,9 @@ public interface DocumentTemplateRenderEngine
      * @param template
      * @param bindings
      * @return
+     * @throws com.rsmart.certification.api.TemplateReadException
      */
-    public InputStream render (DocumentTemplate template, Map<String, String> bindings)
-        throws TemplateReadException;
+    public InputStream render (DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException;
 
     public boolean supportsPreview(DocumentTemplate template) throws TemplateReadException;
 

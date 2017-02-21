@@ -4,6 +4,7 @@ import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -35,7 +36,7 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
     @Override
     public List<String> getReportHeaders()
     {
-        List<String> reportHeaders = new ArrayList<String>();
+        List<String> reportHeaders = new ArrayList<>();
         String header = getItemName();
         reportHeaders.add(header);
         return reportHeaders;
@@ -44,7 +45,7 @@ public class GreaterThanScoreCriterionHibernateImpl extends GradebookItemCriteri
     @Override
     public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching)
     {
-        List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
+        List<CriterionProgress> reportData = new ArrayList<>();
 
         boolean met = false;
         try

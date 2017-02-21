@@ -18,19 +18,12 @@ import static org.junit.Assert.*;
 public class TestMimeMagic
 {
     @Test
-    public void testCheckMimeType()
-        throws Exception
+    public void testCheckMimeType() throws Exception
     {
-        URL
-            testFileURL = getClass().getResource("/afghanistan.pdf");
-        File
-            testFile = new File (new URI(testFileURL.toString()));
-        Magic
-            mimeMagicParser = new Magic();
+        URL testFileURL = getClass().getResource("/afghanistan.pdf");
+        File testFile = new File (new URI(testFileURL.toString()));
+        MagicMatch mimeTypeMatch = Magic.getMagicMatch(testFile, true);
 
-        MagicMatch
-            mimeTypeMatch = mimeMagicParser.getMagicMatch(testFile, true);
-
-        assertEquals ("application/pdf", mimeTypeMatch.getMimeType());
+        assertEquals("application/pdf", mimeTypeMatch.getMimeType());
     }
 }

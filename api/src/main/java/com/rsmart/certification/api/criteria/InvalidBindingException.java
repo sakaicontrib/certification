@@ -7,10 +7,9 @@ package com.rsmart.certification.api.criteria;
  */
 public class InvalidBindingException extends CriterionCreationException
 {
-    private String
-        bindingKey,
-        bindingValue,
-        localizedMessage;
+    private String bindingKey;
+    private String bindingValue;
+    private String localizedMessage;
 
     public InvalidBindingException()
     {
@@ -55,13 +54,11 @@ public class InvalidBindingException extends CriterionCreationException
     {
         if (localizedMessage != null)
         {
-            StringBuffer
-                sb = new StringBuffer();
-
+            StringBuilder sb = new StringBuilder();
             sb.append("ERROR_MESSAGE").append(localizedMessage).append("/ERROR_MESSAGE");
-
             return sb.toString();
         }
+
         return null;
     }
 

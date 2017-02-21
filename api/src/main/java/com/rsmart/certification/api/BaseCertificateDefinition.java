@@ -3,6 +3,7 @@ package com.rsmart.certification.api;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -31,8 +32,8 @@ public class BaseCertificateDefinition implements CertificateDefinition
     protected CertificateDefinitionStatus status = CertificateDefinitionStatus.UNPUBLISHED;
     protected Boolean hidden;
     protected DocumentTemplate documentTemplate;
-    protected Map<String, String> fieldValues = new HashMap<String, String>(0);
-    protected Set<Criterion> awardCriteria = new HashSet<Criterion>();
+    protected Map<String, String> fieldValues = new HashMap<>(0);
+    protected Set<Criterion> awardCriteria = new HashSet<>();
 
     private final DateFormat DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy hh:mm aa");
 
@@ -68,13 +69,9 @@ public class BaseCertificateDefinition implements CertificateDefinition
 
     public void setDescription(String description)
     {
-        if (description!=null)
+        if (description != null)
         {
             this.description = description.trim();
-        }
-        else
-        {
-            description = null;
         }
     }
 
@@ -147,7 +144,7 @@ public class BaseCertificateDefinition implements CertificateDefinition
     {
         if (awardCriteria == null)
         {
-            awardCriteria = new HashSet<Criterion>();
+            awardCriteria = new HashSet<>();
         }
 
         awardCriteria.add(criterion);

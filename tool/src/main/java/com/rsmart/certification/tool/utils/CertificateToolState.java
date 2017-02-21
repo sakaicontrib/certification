@@ -13,7 +13,6 @@
  *
  * Contributor(s): duffy
  */
-
 package com.rsmart.certification.tool.utils;
 
 import com.rsmart.certification.api.BaseCertificateDefinition;
@@ -22,6 +21,7 @@ import com.rsmart.certification.api.VariableResolver;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -31,10 +31,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.sakaiproject.tool.api.ToolSession;
 import org.sakaiproject.tool.cover.SessionManager;
+
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 public class CertificateToolState
@@ -67,14 +70,12 @@ public class CertificateToolState
         this.selectedCriteriaTemplate = selectedCriteriaTemplate;
     }
 
-
     public CertificateDefinition getCertificateDefinition()
     {
         return certificateDefinition;
     }
 
-    public void setCertificateDefinition(
-            CertificateDefinition certificateDefinition)
+    public void setCertificateDefinition(CertificateDefinition certificateDefinition)
     {
         this.certificateDefinition = certificateDefinition;
     }
@@ -210,7 +211,7 @@ public class CertificateToolState
 
     public List<String[]> getOrderedEscapedPredifinedFields()
     {
-        List<String[]> retVal = new ArrayList<String[]>();
+        List<String[]> retVal = new ArrayList<>();
         Map<String, String> predefFields = getPredifinedFields();
         if (predefFields==null || predefFields.isEmpty())
         {
@@ -240,7 +241,7 @@ public class CertificateToolState
 
     public Map<String, String> getEscapedPredifinedFields()
     {
-        Map<String, String> retVal = new HashMap<String, String>();
+        Map<String, String> retVal = new HashMap<>();
         Map<String, String> predefFields = getPredifinedFields();
         if (predefFields==null || predefFields.isEmpty())
         {
@@ -290,7 +291,7 @@ public class CertificateToolState
         Map<String, String> temp = null;
         if(predifinedFields != null)
         {
-            temp = new HashMap<String, String>();
+            temp = new HashMap<>();
             for(String key : predifinedFields.keySet())
             {
                 String newKey = key;
@@ -321,7 +322,7 @@ public class CertificateToolState
      */
     public Map <String, String> getTemplateFieldsToDescriptions()
     {
-        Map<String, String> retVal = new HashMap<String, String>();
+        Map<String, String> retVal = new HashMap<>();
         Map<String, String> preDefFields = getPredifinedFields();
 
         if (preDefFields == null || preDefFields.isEmpty())
@@ -336,6 +337,7 @@ public class CertificateToolState
             LOG.error("certDef is null!");
             return null;
         }
+
         Set<String> keys = certDef.getFieldValues().keySet();
         if (keys == null || keys.isEmpty())
         {
@@ -374,11 +376,12 @@ public class CertificateToolState
             return getTemplateFields();
         }
 
-        retVal = new HashMap<String, String>();
+        retVal = new HashMap<>();
         Iterator<String> itKeys = fieldValues.keySet().iterator();
         while (itKeys.hasNext())
         {
             String key = itKeys.next();
+
             //passing something of the form ${} makes jsp treat it like a variable
             //soln: remove the $ here and append it back in the jsp code
             String value = fieldValues.get(key).substring(1);
@@ -407,7 +410,7 @@ public class CertificateToolState
         templateFields = null;
         predifinedFields = null;
         criteriaTemplates = null;
-        awardCriteria = new HashSet<Criterion>();
+        awardCriteria = new HashSet<>();
         selectedCriteriaTemplate = null;
         newDefinition = true;
         templateFilename = null;
@@ -420,7 +423,7 @@ public class CertificateToolState
        Map<String, String> newTemplateField = null;
        if(templateFields != null)
        {
-           newTemplateField = new HashMap<String, String>();
+           newTemplateField = new HashMap<>();
            for(String val : templateFields)
            {
                newTemplateField.put(val, val);

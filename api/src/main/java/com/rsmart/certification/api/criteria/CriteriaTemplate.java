@@ -10,7 +10,7 @@ import java.util.List;
 public interface CriteriaTemplate
 {
     public String getId();
-    
+
     public String getExpression();
 
     public String getExpression(Criterion criterion);
@@ -19,7 +19,7 @@ public interface CriteriaTemplate
 
     public List<CriteriaTemplateVariable> getTemplateVariables();
 
-    public CriteriaTemplateVariable getTemplateVariable (int i);
+    public CriteriaTemplateVariable getTemplateVariable(int i);
 
     public CriteriaFactory getCriteriaFactory();
 

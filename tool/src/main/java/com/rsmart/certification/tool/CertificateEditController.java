@@ -3,8 +3,11 @@ package com.rsmart.certification.tool;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
+import com.rsmart.certification.api.DocumentTemplateException;
 import com.rsmart.certification.api.DocumentTemplateService;
+import com.rsmart.certification.api.IncompleteCertificateDefinitionException;
 import com.rsmart.certification.api.InvalidCertificateDefinitionException;
+import com.rsmart.certification.api.UnmodifiableCertificateDefinitionException;
 import com.rsmart.certification.api.VariableResolver;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
@@ -14,6 +17,7 @@ import com.rsmart.certification.api.criteria.InvalidBindingException;
 import com.rsmart.certification.impl.hibernate.CertificateDefinitionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.tool.utils.CertificateToolState;
+
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,15 +28,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
+
 import org.codehaus.jackson.map.ObjectMapper;
+
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.IdUsedException;
 import org.sakaiproject.tool.api.ToolSession;
 import org.sakaiproject.tool.cover.SessionManager;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -58,8 +65,6 @@ import org.springframework.web.servlet.ModelAndView;
 @SessionAttributes(types = CertificateToolState.class)
 public class CertificateEditController extends BaseCertificateController
 {
-    private static final Log LOG = LogFactory.getLog(CertificateEditController.class);
-
     public static final String MIME_TYPES = "mimeTypes";
 
     //jsp views
@@ -88,10 +93,9 @@ public class CertificateEditController extends BaseCertificateController
 
     private static final String TOO_MANY_EXPIRATION_CRITERIA = "**TooManyExpiry**";
 
-    private Pattern varValuePattern = Pattern.compile ("variableValues\\[(.*)\\]");
-    private Pattern variablePattern = Pattern.compile ("\\$\\{(.+)\\}");
+    private final Pattern varValuePattern = Pattern.compile ("variableValues\\[(.*)\\]");
 
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     private final int CONSTRAINT_DESCRIPTION_LENGTH = 500;
     private final int CONSTRAINT_NAME_LENGTH = 255;
@@ -140,7 +144,7 @@ public class CertificateEditController extends BaseCertificateController
     protected ModelAndView createCertHandlerFirst(	@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
                                                     BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
     {
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
         if (!isAdministrator())
@@ -226,7 +230,7 @@ public class CertificateEditController extends BaseCertificateController
                     {
                       getCertificateService().deleteCertificateDefinition(certificateDefinition.getId());
                     }
-                    catch(Exception e2)
+                    catch(IdUnusedException | DocumentTemplateException e2)
                     {
                         logger.warn("", e);
                     }
@@ -268,7 +272,7 @@ public class CertificateEditController extends BaseCertificateController
                 //credit to Triton Man (http://stackoverflow.com/questions/6790485/save-inputstream-to-bytearray)
                 ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
                 byte [] tmp = new byte[4096];
-                int ret = 0;
+                int ret;
                 while ((ret = resourceStream.read(tmp)) > 0)
                 {
                     byteStream.write(tmp, 0, ret);
@@ -283,7 +287,7 @@ public class CertificateEditController extends BaseCertificateController
             certificateToolState.setNewTemplate(null);
 
             String delim = "";
-            StringBuffer mimeBuff = new StringBuffer();
+            StringBuilder mimeBuff = new StringBuilder();
 
             for (String mimeType : getDocumentTemplateService().getRegisteredMimeTypes())
             {
@@ -305,18 +309,17 @@ public class CertificateEditController extends BaseCertificateController
         {
             InvalidCertificateDefinitionException icde = new InvalidCertificateDefinitionException();
             icde.setInvalidField(CertificateDefinition.FIELD_NAME);
-            icde.setReason(icde.REASON_TOO_LONG);
+            icde.setReason(InvalidCertificateDefinitionException.REASON_TOO_LONG);
             throw icde;
         }
         else if (certDef.getDescription().length() > CONSTRAINT_DESCRIPTION_LENGTH)
         {
             InvalidCertificateDefinitionException icde = new InvalidCertificateDefinitionException();
             icde.setInvalidField(CertificateDefinition.FIELD_DESCRIPTION);
-            icde.setReason(icde.REASON_TOO_LONG);
+            icde.setReason(InvalidCertificateDefinitionException.REASON_TOO_LONG);
             throw icde;
         }
 
-        CertificateService certificateService = getCertificateService();
         if(certDef.getId() == null || "".equals(certDef.getId()))
         {
             CertificateDefinition existing = null;
@@ -366,6 +369,7 @@ public class CertificateEditController extends BaseCertificateController
                 if (certDef instanceof CertificateDefinitionHibernateImpl)
                 {
                     CertificateDefinitionHibernateImpl cdhi = (CertificateDefinitionHibernateImpl) certDef;
+
                     //document template will get created upon activation
                     //remove the document template if we intend to replace it
                     cdhi.setDocumentTemplate(null);
@@ -382,13 +386,14 @@ public class CertificateEditController extends BaseCertificateController
                 ToolSession session = SessionManager.getCurrentToolSession();
                 session.setAttribute(ATTR_TEMPLATE_FIELDS, templateFields);
                 certificateToolState.setTemplateFields(templateFields);
-                Map<String, String> fieldValues = new HashMap<String, String>();
+                Map<String, String> fieldValues = new HashMap<>();
                 certDef.setFieldValues(fieldValues);
             }
             else
             {
                 DocumentTemplateService dts = getDocumentTemplateService();
                 DocumentTemplate dt = certDef.getDocumentTemplate();
+
                 /* dt will be null if a new template was uploaded earlier
                  * and we are coming back to this page*/
                 if (dt != null)
@@ -415,10 +420,10 @@ public class CertificateEditController extends BaseCertificateController
         CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
         CertificateService certSvc = getCertificateService();
 
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         model.put(MODEL_KEY_TOOL_URL, getToolUrl());
 
-        String viewName = null;
+        String viewName;
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
         if (!isAdministrator())
@@ -521,7 +526,7 @@ public class CertificateEditController extends BaseCertificateController
     protected ModelAndView createCertHandlerThird(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
                                                     BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
     {
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
         if (!isAdministrator())
@@ -542,7 +547,7 @@ public class CertificateEditController extends BaseCertificateController
             //jsp strips the $'s out
             CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
             Map<String, String> templateFields = certDef.getFieldValues();
-            Map<String, String> newTemplateFields = new HashMap<String, String>();
+            Map<String, String> newTemplateFields = new HashMap<>();
             Set<String> keys = templateFields.keySet();
             for (String key : keys)
             {
@@ -566,7 +571,6 @@ public class CertificateEditController extends BaseCertificateController
             return createCertHandlerSecond(certificateToolState, result, request, status);
         }
 
-        CertificateService certificateService = getCertificateService();
         if(result.hasErrors())
         {
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, STATUS_MESSAGE_KEY, FORM_ERR);
@@ -612,7 +616,7 @@ public class CertificateEditController extends BaseCertificateController
     protected ModelAndView createCertHandlerFourth(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
                 BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
     {
-        Map<String, Object> model = new HashMap<String, Object>();
+        Map<String, Object> model = new HashMap<>();
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
         if (!isAdministrator())
@@ -637,7 +641,6 @@ public class CertificateEditController extends BaseCertificateController
         {
             try
             {
-                CertificateService certificateService = getCertificateService();
                 CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
 
                 /* Every time the certificate definition is updated, we need to refresh it from the certificate service.
@@ -675,7 +678,7 @@ public class CertificateEditController extends BaseCertificateController
                     if (certificateToolState.getNewTemplate() != null)
                     {
                         //update the document template
-                        DocumentTemplate dt = certificateService.setDocumentTemplate(certDef.getId(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(), certificateToolState.getTemplateInputStream());
+                        certificateService.setDocumentTemplate(certDef.getId(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(), certificateToolState.getTemplateInputStream());
                     }
 
                     certificateService.setAwardCriteria(certDef.getId(), awardCriteria);
@@ -691,7 +694,7 @@ public class CertificateEditController extends BaseCertificateController
                 status.setComplete();
                 return new ModelAndView(strRedirect);
             }
-            catch (Exception e)
+            catch (IdUsedException | DocumentTemplateException | IdUnusedException | UnmodifiableCertificateDefinitionException | IncompleteCertificateDefinitionException e)
             {
                 model.put(STATUS_MESSAGE_KEY, FORM_ERR);
                 model.put(MOD_ATTR, certificateToolState);
@@ -751,10 +754,9 @@ public class CertificateEditController extends BaseCertificateController
         Map <String, String[]> params = request.getParameterMap();
 
         // variable bindings for the new Criterion
-        HashMap<String,String> varMap = new HashMap<String, String>(0);
+        HashMap<String,String> varMap = new HashMap<>(0);
 
         // grab the parameters that we know
-        String certId[] = params.get(ATTR_CERT_ID);
         String templateId[] = params.get(ATTR_TEMPLATE_ID);
 
         // loop through to find request parameters for setting variable values (from dynamic Criterion creation form)
@@ -784,7 +786,7 @@ public class CertificateEditController extends BaseCertificateController
         // get the CriteriaTemplate - first need to get the CriteriaFactory which holds the CriteraTemplate
         CriteriaFactory critFact = cs.getCriteriaFactory(templateId[0]);
         CriteriaTemplate template = critFact.getCriteriaTemplate(templateId[0]);
-        Criterion newCriterion = null;
+        Criterion newCriterion;
 
         // create the criterion based on the form contents
         try
@@ -841,7 +843,6 @@ public class CertificateEditController extends BaseCertificateController
         }
 
         Map <String, String[]> params = request.getParameterMap();
-        String certId[] = params.get(ATTR_CERT_ID);
         String criterionId[] = params.get(paramCritId);
 
         Set<Criterion> awardCriteria = certDef.getAwardCriteria();
@@ -864,7 +865,7 @@ public class CertificateEditController extends BaseCertificateController
                 Map<String, String> fieldValues = certDef.getFieldValues();
 
                 String expireDate = "${" + VariableResolver.CERT_EXPIREDATE + "}";
-                List<String> keysToReplace = new ArrayList<String>();
+                List<String> keysToReplace = new ArrayList<>();
 
                 Set<String> keySet = fieldValues.keySet();
                 for (String key : keySet)
@@ -894,10 +895,10 @@ public class CertificateEditController extends BaseCertificateController
 
     private class TemplateTransferObject
     {
-        private String id;
-        private String expression;
-        private List<VariableTransferObject> variables = new ArrayList<VariableTransferObject>();
-        private CriteriaTemplate template;
+        private final String id;
+        private final String expression;
+        private final List<VariableTransferObject> variables = new ArrayList<>();
+        private final CriteriaTemplate template;
 
         TemplateTransferObject (CriteriaTemplate template)
         {
@@ -935,10 +936,10 @@ public class CertificateEditController extends BaseCertificateController
 
     private class VariableTransferObject
     {
-        private String key;
-        private String label;
-        private boolean multipleChoice;
-        private HashMap<String, String> values = new HashMap<String, String>();
+        private final String key;
+        private final String label;
+        private final boolean multipleChoice;
+        private final HashMap<String, String> values = new HashMap<>();
 
         public VariableTransferObject (CriteriaTemplateVariable variable)
         {
@@ -975,8 +976,8 @@ public class CertificateEditController extends BaseCertificateController
 
     private class CriterionTransferObject
     {
-        private String id;
-        private String expression;
+        private final String id;
+        private final String expression;
 
         public CriterionTransferObject (CriteriaTemplate template, Criterion criterion)
         {

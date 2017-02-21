@@ -4,12 +4,14 @@ import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.IdUsedException;
@@ -103,10 +105,13 @@ public interface CertificateService
      * Populates the DocumentTemplate object for this CertificateDefinition.
      *
      * @param certificateDefinitionId
+     * @param name
      * @param mimeType
      * @param template
      *
      * @return the new DocumentTemplate object
+     * @throws org.sakaiproject.exception.IdUnusedException
+     * @throws com.rsmart.certification.api.UnsupportedTemplateTypeException
      */
     public DocumentTemplate setDocumentTemplate (String certificateDefinitionId, String name, String mimeType,
                                                  InputStream template)
@@ -117,15 +122,18 @@ public interface CertificateService
      * type from the input stream.
      *
      * @param certificateDefinitionId
+     * @param name
      * @param template
      *
      * @return the new DocumentTemplate object
+     * @throws org.sakaiproject.exception.IdUnusedException
+     * @throws com.rsmart.certification.api.UnsupportedTemplateTypeException
      */
     public DocumentTemplate setDocumentTemplate (String certificateDefinitionId, String name, InputStream template)
         throws IdUnusedException, UnsupportedTemplateTypeException, DocumentTemplateException;
 
     /**
-     * Gets inputstream for the DocumentTemplate set in content resource using the resourceId
+     * Gets input stream for the DocumentTemplate set in content resource using the resourceId
      * @param resourceId
      * @return
      * @throws TemplateReadException
@@ -154,9 +162,11 @@ public interface CertificateService
      * @param active
      *
      * throws IncompleteCertificateDefinitionException
+     * @throws com.rsmart.certification.api.IncompleteCertificateDefinitionException
+     * @throws org.sakaiproject.exception.IdUnusedException
      */
     public void activateCertificateDefinition (String certificateDefinitionId, boolean active)
-            throws IncompleteCertificateDefinitionException, IdUnusedException;
+        throws IncompleteCertificateDefinitionException, IdUnusedException;
 
     public CertificateDefinition getCertificateDefinitionByName (String siteId, String name)
         throws IdUnusedException;
@@ -189,33 +199,42 @@ public interface CertificateService
      *
      * @param certificateDefinitionId
      * @param conditions
+     * @throws org.sakaiproject.exception.IdUnusedException
+     * @throws com.rsmart.certification.api.UnmodifiableCertificateDefinitionException
      */
     public void setAwardCriteria (String certificateDefinitionId, Set<Criterion> conditions)
-            throws IdUnusedException, UnmodifiableCertificateDefinitionException;
+        throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
     public Criterion addAwardCriterion (String certificateDefinitionId, Criterion criterion)
-            throws IdUnusedException, UnmodifiableCertificateDefinitionException;
+        throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
     public void removeAwardCriterion (String certificateDefinitionId, String criterionId)
-            throws IdUnusedException, UnmodifiableCertificateDefinitionException;
+        throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
     /**
      * This checks the current user's progress on AwardCriteria for a CertificateDefinition
      *
      * @param certificateDefinitionId
+     * @param useCaching
      * @return the Conditions which the current user has not met for the supplied CertificateDefinition ID.
+     * @throws org.sakaiproject.exception.IdUnusedException
+     * @throws com.rsmart.certification.api.criteria.UnknownCriterionTypeException
      */
     public Set<Criterion> getUnmetAwardConditions (String certificateDefinitionId, boolean useCaching)
-            throws IdUnusedException, UnknownCriterionTypeException;
+        throws IdUnusedException, UnknownCriterionTypeException;
 
     /**
      * This checks the identified user's progress on AwardCriteria for a CertificateDefinition
      *
      * @param certificateDefinitionId
+     * @param userId
+     * @param useCaching
      * @return the Conditions which the current user has not met for the supplied CertificateDefinition ID.
+     * @throws org.sakaiproject.exception.IdUnusedException
+     * @throws com.rsmart.certification.api.criteria.UnknownCriterionTypeException
      */
     public Set<Criterion> getUnmetAwardConditionsForUser (String certificateDefinitionId, String userId, boolean useCaching)
-            throws IdUnusedException, UnknownCriterionTypeException;
+        throws IdUnusedException, UnknownCriterionTypeException;
 
     /**
      * Returns a Map whose key values are variable names that can be used to fill in template fields. The values in the
@@ -256,6 +275,7 @@ public interface CertificateService
      * @param certId the certificate definition id from which we are pulling the requirements
      * @param userId the user whose progress we are checking
      * @param siteId the certificate's containing siteId
+     * @param useCaching
      * @return
      * @throws org.sakaiproject.exception.IdUnusedException
      */
@@ -277,9 +297,18 @@ public interface CertificateService
      * Gets the report rows for the users specified in userIds and the certificate definition specified by definition,
      * and filters by the filter type (all, awarded, unawarded), the filter date type (issue date, expiry date),
      * between the start date and the end date, and the progress of the criteria will be ordered according to orderedCriteria
+     * @param userIds
+     * @param definition
+     * @param filterType
+     * @param filterDateType
+     * @param startDate
+     * @param endDate
+     * @param orderedCriteria
+     * @return
      **/
    public List<ReportRow> getReportRows(List<String> userIds, CertificateDefinition definition, String filterType, String filterDateType, Date startDate,
-                                        Date endDate, List<Criterion> orderedCriteria) throws NumberFormatException;
+                                        Date endDate, List<Criterion> orderedCriteria)
+        throws NumberFormatException;
 
    public String getTemplateDirectory();
 }

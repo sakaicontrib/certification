@@ -3,20 +3,17 @@ package com.rsmart.certification.impl;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.VariableResolutionException;
 import com.rsmart.certification.api.criteria.Criterion;
-import com.rsmart.certification.impl.hibernate.criteria.gradebook.GradebookItemCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
-import org.sakaiproject.service.gradebook.shared.AssessmentNotFoundException;
-import org.sakaiproject.service.gradebook.shared.GradeDefinition;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
@@ -24,8 +21,6 @@ import org.sakaiproject.user.api.UserDirectoryService;
 
 public class GradebookVariableResolver extends AbstractVariableResolver
 {
-    private static final Log LOG = LogFactory.getLog(GradebookVariableResolver.class);
-
     private GradebookService gradebookService = null;
     private UserDirectoryService userDirectoryService = null;
     private ToolManager toolManager = null;
@@ -72,7 +67,6 @@ public class GradebookVariableResolver extends AbstractVariableResolver
                     Calendar cal = Calendar.getInstance();
                     cal.setTime(issueDate);
                     cal.add(Calendar.MONTH, expiryOffset);
-
                     Date expiryDate = cal.getTime();
 
                     //return
@@ -96,21 +90,6 @@ public class GradebookVariableResolver extends AbstractVariableResolver
         }
 
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");
-    }
-
-    private Date getDateRecorded(GradebookItemCriterionHibernateImpl criterionImpl) throws VariableResolutionException, AssessmentNotFoundException
-    {
-        Long gradebookItemId = criterionImpl.getItemId();
-
-        GradeDefinition gradeDef = getGradebookService().getGradeDefinitionForStudentForItem(contextId(), gradebookItemId, userId());
-        Date dateRecorded = gradeDef.getDateRecorded();
-
-        if (dateRecorded == null)
-        {
-            throw new VariableResolutionException("error retrieving date of grade entry");
-        }
-
-        return dateRecorded;
     }
 
     public GradebookService getGradebookService()
@@ -175,7 +154,6 @@ public class GradebookVariableResolver extends AbstractVariableResolver
 
     protected Object doSecureGradebookAction(SecureGradebookActionCallback callback) throws Exception
     {
-        final SecurityService securityService = getSecurityService();
         final String contextId = contextId();
 
         try

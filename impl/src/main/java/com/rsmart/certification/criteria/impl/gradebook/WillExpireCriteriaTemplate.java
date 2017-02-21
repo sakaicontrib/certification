@@ -6,15 +6,17 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.ExpiryOffsetTemplateVariable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.sakaiproject.util.ResourceLoader;
 
 public class WillExpireCriteriaTemplate implements CriteriaTemplate
 {
     ExpiryOffsetTemplateVariable expiryOffsetVariable = null;
-    ArrayList<CriteriaTemplateVariable> variables = new ArrayList<CriteriaTemplateVariable>(1);
+    ArrayList<CriteriaTemplateVariable> variables = new ArrayList<>(1);
     GradebookCriteriaFactory factory = null;
     CertificateService certificateService = null;
     ResourceLoader rl = null;
@@ -38,12 +40,12 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
         return WillExpireCriteriaTemplate.class.getName();
     }
 
-    protected void addVariable (CriteriaTemplateVariable variable)
+    protected void addVariable(CriteriaTemplateVariable variable)
     {
         variables.add(variable);
     }
 
-    public void setResourceLoader (ResourceLoader rl)
+    public void setResourceLoader(ResourceLoader rl)
     {
         this.rl = rl;
     }
@@ -78,7 +80,7 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
         return getExpression(null);
     }
 
-    public String getExpression (Criterion criterion)
+    public String getExpression(Criterion criterion)
     {
         if (criterion == null)
         {
@@ -86,7 +88,6 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
         }
         else
         {
-            ResourceLoader rl = getResourceLoader();
             Map<String, String> bindings = criterion.getVariableBindings();
             String expiryOffset = bindings.get(CriteriaFactory.KEY_EXPIRY_OFFSET);
             if (expiryOffset != null)
@@ -103,6 +104,7 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
                 }
                 expiryOffset = sbExpiryOffset.toString();
             }
+
             return rl.getFormattedMessage(WillExpireCriteriaTemplate.class.getName(), new Object[]{expiryOffset});
         }
     }

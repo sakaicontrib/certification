@@ -2,11 +2,13 @@ package com.rsmart.certification.impl;
 
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory;
+
 import java.util.Map;
+
 import org.sakaiproject.util.ResourceLoader;
+
 /**
  * Essentially the same implementation as ScoreTemplateVariable, except it's an Integer
- * @author bbailla2
  *
  */
 public class ExpiryOffsetTemplateVariable implements CriteriaTemplateVariable {

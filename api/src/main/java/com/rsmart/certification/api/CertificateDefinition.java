@@ -87,6 +87,7 @@ public interface CertificateDefinition
     /**
      * Returns the date of issue for the given user
      * @param userId
+     * @param useCaching
      * @return
      */
     public Date getIssueDate(String userId, boolean useCaching);
@@ -94,6 +95,7 @@ public interface CertificateDefinition
     /**
      * Determines whether the the certificate was awarded to the given user
      * @param userId
+     * @param useCaching
      * @return
      * @throws UnknownCriterionTypeException
      */

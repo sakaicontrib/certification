@@ -4,15 +4,15 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-	<!-- read in the hibernate.properties file properties -->
-	<bean id="testPropertiesConfigurer"
-			class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
-		<property name="locations">
-			<list>
-				<value>classpath:/hibernate.properties</value>
-			</list>
-		</property>
-	</bean>
+    <!-- read in the hibernate.properties file properties -->
+    <bean id="testPropertiesConfigurer"
+          class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="locations">
+            <list>
+                <value>classpath:/hibernate.properties</value>
+            </list>
+        </property>
+    </bean>
 
     <!-- define the list of HBM mapping files -->
     <bean id="certification.hbmMappingList" class="java.util.ArrayList">
@@ -28,7 +28,7 @@
 
     <!-- create a data source (use the name Sakai uses) -->
     <bean id="javax.sql.DataSource"
-            class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+          class="org.springframework.jdbc.datasource.DriverManagerDataSource">
         <property name="driverClassName"><value>${hibernate.connection.driver_class}</value></property>
         <property name="url"><value>${hibernate.connection.url}</value></property>
         <property name="username"><value>${hibernate.connection.username}</value></property>
@@ -38,7 +38,7 @@
    <!-- create a SessionFactory bean from the data source and point it at our HBMs,
       name it the same as the Sakai global one so we can reuse our other spring files -->
    <bean id="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"
-      class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+         class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
       <property name="dataSource" ref="javax.sql.DataSource" />
       <property name="mappingResources" ref="certification.hbmMappingList"/>
       <property name="hibernateProperties">
@@ -55,15 +55,16 @@
    <!-- Create a transaction manager from the SessionFactory,
       name it the same as the Sakai one so we can reuse our other spring config files -->
    <bean id="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager"
-      class="org.springframework.orm.hibernate3.HibernateTransactionManager">
-      <property name="sessionFactory"
-         ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory" />
+         class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+      <property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory" />
    </bean>
 
     <bean id="com.rsmart.certification.mock.MockToolManager"
           class="com.rsmart.certification.mock.MockToolManager"/>
+
     <bean id="com.rsmart.certification.mock.MockUserDirectoryService"
           class="com.rsmart.certification.mock.MockUserDirectoryService"/>
+
     <bean id="com.rsmart.certification.mock.MockGradebookService"
           class="com.rsmart.certification.mock.MockGradebookService"/>
 
@@ -79,17 +80,14 @@
     <bean id="com.rsmart.certification.mock.MockDocumentTemplateRenderEngine"
           class="com.rsmart.certification.mock.MockDocumentTemplateRenderEngine"
           init-method="init">
-        <property name="documentTemplateService"
-                  ref="com.rsmart.certification.api.DocumentTemplateService"/>
-        <property name="certificateService"
-                  ref="com.rsmart.certification.api.CertificateService"/>
+        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
     </bean>
 
     <bean id="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
           class="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
           init-method="init">
-        <property name="documentTemplateService"
-                  ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
     </bean>
 
     <bean id="com.rsmart.certification.api.CertificateService"

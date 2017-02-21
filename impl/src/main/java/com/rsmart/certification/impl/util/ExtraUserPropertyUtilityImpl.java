@@ -1,14 +1,19 @@
 package com.rsmart.certification.impl.util;
 
 import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+
 import lombok.Setter;
+
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.entity.api.ResourceProperties;
@@ -19,9 +24,6 @@ import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 
-/**
- *
- */
 public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
 {
     private static final String ENABLE_SAKAI_PROPERTY = "certification.extraUserProperties.enable";
@@ -31,14 +33,14 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
     //permission to expose extra properties when viewing the report
     private static final String PERMISSION_VIEW_EXTRA_USER_PROPERTIES = "certificate.extraprops.view";
 
-    private static final Log logger = LogFactory.getLog(ExtraUserPropertyUtilityImpl.class);
+    private static final Log LOG = LogFactory.getLog(ExtraUserPropertyUtilityImpl.class);
 
-    private boolean extraUserPropertiesEnabled;
+    private final boolean extraUserPropertiesEnabled;
 
     /* Map to hold extra property keys and their corresponding column title. The key is used to retrieve the property
      * value for each user, and the title is used as the column header when those values are displayed in the certificate's
      * report*/
-    private Map<String, String> extraUserPropertyKeyAndTitleMap;
+    private final Map<String, String> extraUserPropertyKeyAndTitleMap;
 
     @Setter private UserDirectoryService userDirectoryService;
     @Setter private ToolManager toolManager;
@@ -52,7 +54,7 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
     {
         //read sakai.properties
         extraUserPropertiesEnabled = ServerConfigurationService.getBoolean(ENABLE_SAKAI_PROPERTY, false);
-        extraUserPropertyKeyAndTitleMap = new HashMap<String, String>();
+        extraUserPropertyKeyAndTitleMap = new HashMap<>();
         String[] keys = ServerConfigurationService.getStrings(KEYS_SAKAI_PROPERTY);
         String[] titles = ServerConfigurationService.getStrings(TITLES_SAKAI_PROPERTY);
         if (keys !=null && titles != null && keys.length == titles.length)
@@ -89,7 +91,7 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
     @Override
     public Map<String, String> getExtraPropertiesMapForUser(User user)
     {
-        Map<String, String> extraPropMap = new HashMap<String, String>();
+        Map<String, String> extraPropMap = new HashMap<>();
         if (extraUserPropertiesEnabled && user != null)
         {
             for (String key : extraUserPropertyKeyAndTitleMap.keySet())
@@ -98,8 +100,7 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
                 if (props != null)
                 {
                     String propValue = props.getProperty(key);
-                    //if (propValue == null || propValue.trim().isEmpty() || !isDisplayAllowedForAccountType(user.getType()))
-                    if (propValue == null || propValue.trim().isEmpty())
+                    if( StringUtils.isBlank( propValue ) )
                     {
                         propValue = NULL_DISPLAY_VALUE;
                     }
@@ -133,9 +134,9 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
             }
             catch (UserNotDefinedException unde)
             {
-                if (logger.isDebugEnabled())
+                if (LOG.isDebugEnabled())
                 {
-                    logger.debug("Extra User Properties: UserDirectoryService cannot find user with Eid: " + eid
+                    LOG.debug("Extra User Properties: UserDirectoryService cannot find user with Eid: " + eid
                         + ".\nException was: " + unde.getLocalizedMessage());
                 }
             }
@@ -165,9 +166,9 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
             }
             catch (UserNotDefinedException unde)
             {
-                if (logger.isDebugEnabled())
+                if (LOG.isDebugEnabled())
                 {
-                    logger.debug("Extra User Properties: UserDirectoryService cannot find user with Uid: " + uid
+                    LOG.debug("Extra User Properties: UserDirectoryService cannot find user with Uid: " + uid
                             + ".\nException was: " + unde.getLocalizedMessage());
                 }
             }
@@ -178,7 +179,7 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
 
     /**
      * Checks the permission for the current user to determine if they are allowed to view extra user properties
-     * @return true if the user isallowed to view extra user properties
+     * @return true if the user is allowed to view extra user properties
      */
     @Override
     public boolean isExtraPropertyViewingAllowedForCurrentUser()
@@ -194,10 +195,11 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
                 if (currentPlacement != null)
                 {
                     String siteId = currentPlacement.getContext();
-                    if (siteId != null && !siteId.trim().isEmpty())
+                    if (StringUtils.isNotBlank( siteId ))
                     {
                         String siteRef = siteService.siteReference(siteId);
-                        if (siteRef != null && !siteRef.trim().isEmpty() && currentUser.getId() != null && !currentUser.getId().trim().isEmpty())
+                        String userID = currentUser.getId();
+                        if (StringUtils.isNotBlank( siteRef ) && StringUtils.isNotBlank( userID ))
                         {
                             userCanView = securityService.unlock(currentUser.getId(), PERMISSION_VIEW_EXTRA_USER_PROPERTIES, siteRef);
                         }
@@ -232,16 +234,16 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
     }
 
     /**
-     * Given a column title, returns the preopty key associated with that column
+     * Given a column title, returns the property key associated with that column
      *
      * @param title the title of the column of interest
-     * @return the property key for the column, or an empty string i fno found or key was null. Will not return null
+     * @return the property key for the column, or an empty string if not found or key was null. Will not return null
      */
     @Override
     public String getKeyForTitle(String title)
     {
         String key = "";
-        if (title != null && !title.trim().isEmpty())
+        if (StringUtils.isNotBlank( title ))
         {
             String trimmedTitle = title.trim();
             for (String k : extraUserPropertyKeyAndTitleMap.keySet())
@@ -262,11 +264,11 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
     }
 
     /**
-     * Every user has a uid. This method returns a comparator for uid strings based not on the string itself, but on other properties of the user.
-     * The specific porperty to compare on is passed in on  the constructor.
+     * Every user has a UID. This method returns a comparator for UID strings based not on the string itself, but on other properties of the user.
+     * The specific property to compare on is passed in on  the constructor.
      *
      * @param sortKey user property key to compare on
-     * @return a comparator for user uid strings. Comparison based not on string but on user properties. Will not reutnr null
+     * @return a comparator for user UID strings. Comparison based not on string but on user properties. Will not return null
      */
     @Override
     public Comparator<String> getUidComparator(String sortKey)
@@ -279,11 +281,10 @@ public class ExtraUserPropertyUtilityImpl implements ExtraUserPropertyUtility
 
     /**
      * Compares extra user property columns.
-     *
      */
     public class ExtraUserPropertyUidComparator implements Comparator<String>
     {
-        private String key; //user property to base comparison on
+        private final String key; //user property to base comparison on
 
         public ExtraUserPropertyUidComparator(String extraUserPropertyKey)
         {

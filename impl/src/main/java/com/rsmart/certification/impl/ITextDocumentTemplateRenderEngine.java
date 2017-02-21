@@ -4,11 +4,13 @@ import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
+
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateRenderEngine;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -58,7 +60,7 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
         return MIME_TYPE;
     }
 
-    private final void assertCorrectType(final DocumentTemplate template) throws TemplateReadException
+    private void assertCorrectType(final DocumentTemplate template) throws TemplateReadException
     {
         final String mimeType = template.getOutputMimeType();
 
@@ -74,8 +76,7 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
         return getTemplateFields(certificateService.getTemplateFileInputStream(template.getResourceId()));
     }
 
-    public Set<String> getTemplateFields(InputStream inputStream)
-            throws TemplateReadException
+    public Set<String> getTemplateFields(InputStream inputStream) throws TemplateReadException
     {
         try
         {
@@ -84,7 +85,7 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
             Map<String, AcroFields.Item> fields = acroFields.getFields();
 
             Set<String> fieldKeys = fields.keySet();
-            Set<String> textFieldKeys = new HashSet<String>();
+            Set<String> textFieldKeys = new HashSet<>();
 
             for (String key : fieldKeys)
             {
@@ -124,14 +125,9 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
             }
 
             stamper.close();
-
             return new ByteArrayInputStream(baos.toByteArray());
         }
-        catch (IOException e)
-        {
-            throw new TemplateReadException(e);
-        }
-        catch (DocumentException e)
+        catch (IOException | DocumentException e)
         {
             throw new TemplateReadException(e);
         }
@@ -164,11 +160,7 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
 
             return new ByteArrayInputStream(baos.toByteArray());
         }
-        catch (IOException e)
-        {
-            throw new TemplateReadException(e);
-        }
-        catch (DocumentException e)
+        catch (IOException | DocumentException e)
         {
             throw new TemplateReadException(e);
         }

@@ -17,13 +17,16 @@ package com.rsmart.certification.impl.springframework;
 
 import java.io.IOException;
 import java.util.Enumeration;
+
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import lombok.extern.slf4j.Slf4j;
+
 import org.sakaiproject.tool.api.ActiveTool;
 import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.api.ToolException;
@@ -87,14 +90,16 @@ public class SpringTool extends HttpServlet {
 
    /**
     * initialize the servlet with the <init-param> values specified in the web.xml file.
+     * @param servletConfig
+     * @throws javax.servlet.ServletException
     */
    public void init(ServletConfig servletConfig) throws ServletException {
       super.init(servletConfig);
 
-      String value = null;
+      String value;
 
       defaultResource     = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_DEFAULT_PAGE         )) == null || value.trim().length() == 0 ? "index"                            : value);
-      defaultToLastView   = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_DEFAULT_TO_LAST_VIEW )) == null || value.trim().length() == 0 ? false                               : Boolean.valueOf(value).booleanValue());
+      defaultToLastView   = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_DEFAULT_TO_LAST_VIEW )) == null || value.trim().length() == 0 ? false                               : Boolean.valueOf(value));
       helperExt           = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_HELPER_EXTENSION     )) == null || value.trim().length() == 0 ? ".helper"                          : value);
       helperSessionPrefix = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_HELPER_SESSION_PREFIX)) == null || value.trim().length() == 0 ? "session."                         : value);
       jspPath             = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_JSP_PATH             )) == null || value.trim().length() == 0 ? ""                                 : value);
@@ -104,8 +109,9 @@ public class SpringTool extends HttpServlet {
       urlPath             = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_URL_PATH             )) == null || value.trim().length() == 0 ? "sakai.jsf.tool.URL.path"          : value);
 
       // remove the trailing slash
-      if (jspPath.endsWith("/"))
-         jspPath = jspPath.substring(0, jspPath.length() - 1);
+      if (jspPath.endsWith("/")){
+          jspPath = jspPath.substring(0, jspPath.length() - 1);
+      }
 
       log.info("init: default: " + defaultResource + " path: " + jspPath);
     }
@@ -113,6 +119,7 @@ public class SpringTool extends HttpServlet {
    /**
     * Compute a target (i.e. the servlet path info, not including folder root or jsf extension) for the case of the actual path being empty.
     *
+     * @param lastVisited
     * @return The servlet info path target computed for the case of empty actual path.
     */
    protected String computeDefaultTarget(boolean lastVisited) {
@@ -352,17 +359,13 @@ public class SpringTool extends HttpServlet {
 
       // we need that last dot to be the end of the path, not burried in the path somewhere (i.e. no more slashes after the last dot)
       String ext = path.substring(pos);
-      if (ext.indexOf("/") != -1) {
+      if (ext.contains( "/" )) {
          return false;
       }
+       // we need the ext to not be the requestExt
+       // ok, it's a resource request
 
-      // we need the ext to not be the requestExt
-      if (ext.equals(requestExt)) {
-         return false;
-      }
-
-      // ok, it's a resource request
-      return true;
+      return !ext.equals(requestExt);
    }
 
    /**

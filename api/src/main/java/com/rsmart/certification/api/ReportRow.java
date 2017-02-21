@@ -1,6 +1,7 @@
 package com.rsmart.certification.api;
 
 import com.rsmart.certification.api.criteria.CriterionProgress;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class ReportRow
      * Any extra properties to be displayed (coming from the user's properties, selected in sakai.properties -
      * certification.extraUserProperties.keys, and enabled by certification.extraUserProperties.enable)
      **/
-    private List<String> extraProps = new ArrayList<String>();
+    private List<String> extraProps = new ArrayList<>();
 
     /**
      * The date the user was issued the certificate
@@ -38,7 +39,7 @@ public class ReportRow
     /**
      * Cells representing the user's progress toward the criteria
      **/
-    private List<CriterionProgress> criterionCells = new ArrayList<CriterionProgress>();
+    private List<CriterionProgress> criterionCells = new ArrayList<>();
 
     /**
      * Whether the user was awarded or not (ie. yes/no)

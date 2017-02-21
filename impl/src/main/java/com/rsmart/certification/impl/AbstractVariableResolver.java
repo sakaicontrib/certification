@@ -1,8 +1,10 @@
 package com.rsmart.certification.impl;
 
 import com.rsmart.certification.api.VariableResolver;
+
 import java.util.HashMap;
 import java.util.Set;
+
 import org.sakaiproject.util.ResourceLoader;
 
 /**
@@ -12,8 +14,8 @@ import org.sakaiproject.util.ResourceLoader;
  */
 public abstract class AbstractVariableResolver implements VariableResolver
 {
-    private ResourceLoader messages = new ResourceLoader("com.rsmart.certification.Messages");
-    private HashMap<String, String> descriptions = new HashMap<String, String>();
+    private final ResourceLoader messages = new ResourceLoader("com.rsmart.certification.Messages");
+    private final HashMap<String, String> descriptions = new HashMap<>();
 
     public void addVariable (String variable, String description)
     {

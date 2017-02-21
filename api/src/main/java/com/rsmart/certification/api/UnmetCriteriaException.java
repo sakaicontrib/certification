@@ -1,6 +1,7 @@
 package com.rsmart.certification.api;
 
 import com.rsmart.certification.api.criteria.Criterion;
+
 import java.util.Set;
 
 /**

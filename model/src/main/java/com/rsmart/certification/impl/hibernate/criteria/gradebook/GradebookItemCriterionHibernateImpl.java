@@ -2,11 +2,13 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
 
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 import org.sakaiproject.service.gradebook.shared.Assignment;
 
 /**
@@ -16,7 +18,7 @@ import org.sakaiproject.service.gradebook.shared.Assignment;
  */
 public class GradebookItemCriterionHibernateImpl extends AbstractCriterionHibernateImpl
 {
-    protected static final SimpleDateFormat dateFormat = new SimpleDateFormat ("yyyy-MM-dd");
+    protected static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat ("yyyy-MM-dd");
 
     protected final static String ASSIGNMENT_ID = "gradebook.item";
     protected final static String ASSIGNMENT_NAME = "gradebook.item.name";
@@ -43,7 +45,7 @@ public class GradebookItemCriterionHibernateImpl extends AbstractCriterionHibern
 
         try
         {
-            return dateFormat.parse(dateStr);
+            return DATE_FORMAT.parse(dateStr);
         }
         catch (ParseException e)
         {
@@ -60,7 +62,7 @@ public class GradebookItemCriterionHibernateImpl extends AbstractCriterionHibern
         }
         else
         {
-            getVariableBindings().put(ASSIGNMENT_DUE, dateFormat.format(due));
+            getVariableBindings().put(ASSIGNMENT_DUE, DATE_FORMAT.format(due));
         }
     }
 
@@ -104,25 +106,25 @@ public class GradebookItemCriterionHibernateImpl extends AbstractCriterionHibern
     @Override
     public String getProgress( String userId, String siteId, boolean useCaching )
     {
-        throw new UnsupportedOperationException( "Not supported yet. GradebookItemCriterionHibernateImpl:105" );
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 
     @Override
     public List<CriterionProgress> getReportData( String userId, String siteId, Date issueDate, boolean useCaching )
     {
-        throw new UnsupportedOperationException( "Not supported yet. GradebookItemCriterionHibernateImpl:111" );
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 
     @Override
     public Date getDateMet( String userId, String siteId, boolean useCaching )
     {
-        throw new UnsupportedOperationException( "Not supported yet. GradebookItemCriterionHibernateImpl:117" );
+        throw new UnsupportedOperationException( "Not supported yet." );
     }
 
     @Override
     public List<String> getReportHeaders()
     {
-        List<String> reportHeaders = new ArrayList<String>();
+        List<String> reportHeaders = new ArrayList<>();
         String header = getItemName();
         reportHeaders.add(header);
         return reportHeaders;

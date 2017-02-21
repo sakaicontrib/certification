@@ -1,9 +1,11 @@
 package com.rsmart.certification.criteria.impl.gradebook;
 
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.tool.api.ToolManager;
@@ -19,22 +21,10 @@ public class GradebookItemTemplateVariable implements CriteriaTemplateVariable
     private GradebookCriteriaFactory criteriaFactory = null;
 
     private AssignmentFilter filter = null;
-    private AssignmentFilter dftFilter = new AssignmentFilter()
-    {
-        public boolean include(Assignment assignment)
-        {
-            return true;
-        }
-    };
+    private final AssignmentFilter dftFilter = (Assignment assignment) -> true;
 
     private AssignmentLabeler labeler = null;
-    private AssignmentLabeler dftLabeler = new AssignmentLabeler()
-    {
-        public String getLabel(Assignment assignment)
-        {
-            return (assignment == null) ? null : assignment.getName();
-        }
-    };
+    private final AssignmentLabeler dftLabeler = (Assignment assignment) -> (assignment == null) ? null : assignment.getName();
 
     private static final String KEY_GRADEBOOK_ITEM = "gradebook.item";
 
@@ -79,8 +69,7 @@ public class GradebookItemTemplateVariable implements CriteriaTemplateVariable
     {
         GradebookService gbs = getGradebookService();
         ToolManager tm = getToolManager();
-        HashMap<String, String> items = new HashMap<String, String>();
-        ResourceLoader rl = getResourceLoader();
+        HashMap<String, String> items = new HashMap<>();
         String contextId = tm.getCurrentPlacement().getContext();
 
         if (!gbs.isGradebookDefined(contextId))

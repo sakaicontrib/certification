@@ -2,9 +2,11 @@ package com.rsmart.certification.criteria.impl.gradebook;
 
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -36,16 +38,11 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
                 {
                     public String getLabel(Assignment assignment)
                     {
-                        StringBuffer
-                            assnLabel = new StringBuffer();
-                        ResourceLoader
-                            rl = factory.getResourceLoader();
-                        SimpleDateFormat
-                            sdf = new SimpleDateFormat("yyyy-MM-dd");
-                        Date
-                            due = assignment.getDueDate();
-                        String
-                            dateStr = null;
+                        StringBuilder assnLabel = new StringBuilder();
+                        ResourceLoader rl = factory.getResourceLoader();
+                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                        Date due = assignment.getDueDate();
+                        String dateStr;
 
                         if (due != null)
                         {
@@ -57,10 +54,10 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
                         }
 
                         assnLabel.append(assignment.getName()).append(" (").append(dateStr).append(')');
-
                         return assnLabel.toString();
                     }
-                });
+                }
+        );
     }
 
     public String getId()

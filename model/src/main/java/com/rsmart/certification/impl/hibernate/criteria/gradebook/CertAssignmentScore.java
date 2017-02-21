@@ -2,7 +2,8 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
 
 import java.util.Date;
 
-public class CertAssignmentScore extends CertGradeRecordObject {
+public class CertAssignmentScore extends CertGradeRecordObject
+{
     private Double pointsEarned;
     private Boolean excludedFromGrade;
     private Boolean excluded;

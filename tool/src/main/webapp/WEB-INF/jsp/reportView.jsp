@@ -292,7 +292,6 @@
                 var filterDateType = $.cookie("filterDateType");
                 var filterStartDate = $.cookie("filterStartDate");
                 var filterEndDate = $.cookie("filterEndDate");
-                var filterHistorical = $.cookie("filterHistorical");
 
                 /*do a click event - this way the css on the dateRange will be applied*/
                 $("input[name=show][value=" + filterType + "]").click();

@@ -27,25 +27,23 @@
                            http://www.springframework.org/schema/context/spring-context.xsd"
        default-lazy-init="true" >
 
-   <context:component-scan base-package="com.rsmart.certification.tool"/>
+    <context:component-scan base-package="com.rsmart.certification.tool"/>
 
-   <bean id="messageSource"
-         class="org.sakaiproject.util.ResourceLoaderMessageSource">
-       <property name="basename" value="com.rsmart.certification.tool.Messages" />
-   </bean>
-
-   <bean id="localeResolver" class="com.rsmart.certification.impl.SakaiLocaleResolver"/>
-
-    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
-        <property name="exceptionMappings">
-            <props>
-                <!--prop key="com.rsmart.certification.api.FooException">error/foo</prop-->
-            </props>
-        </property>
+    <bean id="messageSource"
+          class="org.sakaiproject.util.ResourceLoaderMessageSource">
+        <property name="basename" value="com.rsmart.certification.tool.Messages" />
     </bean>
 
-    <bean id="errorController"
-        class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>
+    <bean id="localeResolver" class="com.rsmart.certification.impl.SakaiLocaleResolver"/>
+
+     <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+         <property name="exceptionMappings">
+             <props>
+             </props>
+         </property>
+     </bean>
+
+     <bean id="errorController" class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>
 
     <bean id="multipartResolver"
           class="org.springframework.web.multipart.commons.CommonsMultipartResolver">

@@ -5,6 +5,7 @@ import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,7 +17,7 @@ import java.util.Map;
 public abstract class AbstractCriterionHibernateImpl implements Criterion
 {
     private String id = null;
-    private Map<String, String> bindings = new HashMap<String, String>();
+    private Map<String, String> bindings = new HashMap<>();
     private CriteriaFactory cFact = null;
     private CertificateService certServ = null;
 

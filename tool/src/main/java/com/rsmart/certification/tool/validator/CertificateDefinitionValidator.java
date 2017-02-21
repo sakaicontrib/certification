@@ -3,27 +3,27 @@ package com.rsmart.certification.tool.validator;
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplateException;
 import com.rsmart.certification.tool.utils.CertificateToolState;
+
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.springframework.validation.Errors;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
-
 public class CertificateDefinitionValidator
 {
-    private Pattern variablePattern = Pattern.compile ("\\$\\{(.+)\\}");
+    private final Pattern variablePattern = Pattern.compile ("\\$\\{(.+)\\}");
 
     public void validateFirst(CertificateToolState certificateToolState, Errors errors, CertificateService service)
     {
         CommonsMultipartFile newTemplate = certificateToolState.getNewTemplate();
-
         if (newTemplate != null && newTemplate.getSize() > 0)
         {
-            if(certificateToolState.getMimeTypes().indexOf(newTemplate.getContentType()) < 0)
+            if(!certificateToolState.getMimeTypes().contains( newTemplate.getContentType() ))
             {
                 // could be browser misreporting (ie. Firefox), so get a second opinion
                 try
@@ -64,7 +64,7 @@ public class CertificateDefinitionValidator
         }
 
         //Add the $'s back in (they were removed in CertificateToolState.getEscapedPredifinedFields())
-        Set<String> keys = new HashSet<String>();
+        Set<String> keys = new HashSet<>();
         keys.addAll(currentFields.keySet());
         for (String key : keys)
         {
@@ -72,6 +72,7 @@ public class CertificateDefinitionValidator
             currentFields.remove(key);
             currentFields.put(key, value);
         }
+
         certificateToolState.setTemplateFields(currentFields);
         Map<String, String> preDefFields = certificateToolState.getPredifinedFields();
         Set<String> keySet = preDefFields.keySet();

@@ -22,6 +22,7 @@ import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.impl.security.AllowMapSecurityAdvisor;
+
 import java.io.File;
 import java.io.InputStream;
 import java.sql.SQLException;
@@ -36,23 +37,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import net.sf.jmimemagic.Magic;
 import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
+
 import org.sakaiproject.antivirus.api.VirusFoundException;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.Role;
-import org.sakaiproject.authz.api.SecurityAdvisor;
+import org.sakaiproject.authz.api.SecurityAdvisor.SecurityAdvice;
 import org.sakaiproject.authz.api.SecurityService;
-import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.content.api.ContentResourceEdit;
@@ -74,6 +78,7 @@ import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
+
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.hibernate3.HibernateCallback;
 import org.springframework.orm.hibernate3.HibernateObjectRetrievalFailureException;
@@ -87,7 +92,7 @@ import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
  */
 public class CertificateServiceHibernateImpl extends HibernateDaoSupport implements CertificateService
 {
-    private static Log LOG = LogFactory.getLog(CertificateServiceHibernateImpl.class);
+    private static final Log LOG = LogFactory.getLog(CertificateServiceHibernateImpl.class);
 
     //managers and services
     private DocumentTemplateService documentTemplateService = null;
@@ -101,12 +106,12 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private ExtraUserPropertyUtility extraUserPropertyUtility = null;
 
     private String templateDirectory = null;
-    private HashMap<String, CriteriaFactory> criteriaTemplateMap = new HashMap<String, CriteriaFactory>();
-    private HashMap<Class, CriteriaFactory> criteriaFactoryMap = new HashMap<Class, CriteriaFactory>();
-    private HashSet<CriteriaFactory> criteriaFactories = new HashSet<CriteriaFactory>();
-    private HashMap<String, VariableResolver> variableResolvers = new HashMap<String, VariableResolver>();
+    private final HashMap<String, CriteriaFactory> criteriaTemplateMap = new HashMap<>();
+    private final HashMap<Class, CriteriaFactory> criteriaFactoryMap = new HashMap<>();
+    private final HashSet<CriteriaFactory> criteriaFactories = new HashSet<>();
+    private final HashMap<String, VariableResolver> variableResolvers = new HashMap<>();
 
-    private ResourceLoader messages = new ResourceLoader("com.rsmart.certification.Messages");
+    private final ResourceLoader messages = new ResourceLoader("com.rsmart.certification.Messages");
 
     //For resource properties
     private final String PUBVIEW_FALSE = "false";
@@ -235,7 +240,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
 
         File dirFile = new File (templateDirectory);
-
         if ((!dirFile.exists() && !dirFile.mkdir()) || !dirFile.canWrite())
         {
             throw new IllegalStateException ("templateDirectory \"" + templateDirectory + "\" is unreadable");
@@ -270,16 +274,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private String contextId()
     {
         return getToolManager().getCurrentPlacement().getContext();
-    }
-
-    private String toolId()
-    {
-        return getToolManager().getCurrentTool().getId();
-    }
-
-    private String portalUrl()
-    {
-        return ServerConfigurationService.getPortalUrl();
     }
 
     public void deleteCertificateDefinition(final String certificateDefinitionId) throws IdUnusedException, DocumentTemplateException
@@ -360,11 +354,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 }
             });
         }
-        catch (ObjectNotFoundException onfe)
-        {
-            throw new IdUnusedException(cd.getId());
-        }
-        catch (HibernateObjectRetrievalFailureException horfe)
+        catch (ObjectNotFoundException | HibernateObjectRetrievalFailureException onfe)
         {
             throw new IdUnusedException(cd.getId());
         }
@@ -450,25 +440,9 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             contentHostingService.removeResource(resourceId);
             contentHostingService.removeCollection(certDefCId);
         }
-        catch (PermissionException e)
+        catch (PermissionException | IdUnusedException | TypeException | InUseException | ServerOverloadException e)
         {
             //TODO: Should these be thrown? Should this method 'throws DocumentTemplateException'?
-            new DocumentTemplateException(e);
-        }
-        catch (IdUnusedException e)
-        {
-            new DocumentTemplateException(e);
-        }
-        catch (TypeException e)
-        {
-            new DocumentTemplateException(e);
-        }
-        catch (InUseException e)
-        {
-            new DocumentTemplateException(e);
-        }
-        catch (ServerOverloadException e)
-        {
             new DocumentTemplateException(e);
         }
     }
@@ -584,22 +558,12 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public String getMimeType (byte[] toCheck) throws DocumentTemplateException
     {
-        Magic mimeMagicParser = new Magic();
         try
         {
-            //mimeMagicParser.getMagicMatch(arg0, arg1)
-            MagicMatch mimeTypeMatch = mimeMagicParser.getMagicMatch(toCheck, true);
+            MagicMatch mimeTypeMatch = Magic.getMagicMatch(toCheck, true);
             return mimeTypeMatch.getMimeType();
         }
-        catch (MagicParseException e)
-        {
-            throw new DocumentTemplateException (e);
-        }
-        catch (MagicMatchNotFoundException e)
-        {
-            throw new DocumentTemplateException (e);
-        }
-        catch (MagicException e)
+        catch (MagicParseException | MagicMatchNotFoundException | MagicException e)
         {
             throw new DocumentTemplateException (e);
         }
@@ -621,13 +585,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         ContentResourceEdit templateFile = null;
         try
         {
-            templateFile = (ContentResourceEdit) doSecureCertificateService(new SecureCertificateServiceCallback()
-            {
-                public Object doSecureAction() throws Exception
-                {
-                    return storeTemplateFile(cd.getSiteId(), cd.getId(), template, fileName, mimeType, resourceId);
-                }
-            });
+            templateFile = (ContentResourceEdit) doSecureCertificateService(() -> storeTemplateFile(cd.getSiteId(), cd.getId(), template, fileName, mimeType, resourceId));
         }
         catch(Exception e)
         {
@@ -660,13 +618,11 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         return docTemp;
     }
 
-    //@Transactional( propagation = Propagation.REQUIRES_NEW )
     public DocumentTemplate setDocumentTemplate(String certificateDefinitionId, String name, InputStream template) throws IdUnusedException, DocumentTemplateException
     {
         return setDocumentTemplate(certificateDefinitionId, name, null, template);
     }
 
-    //@Transactional( propagation = Propagation.REQUIRES_NEW )
     public DocumentTemplate setDocumentTemplate(final String certificateDefinitionId, final String name,
                                                 final String mimeType, final InputStream template)
         throws IdUnusedException, UnsupportedTemplateTypeException, DocumentTemplateException
@@ -677,13 +633,12 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             {
                 public Object doInHibernate(Session session) throws HibernateException, SQLException
                 {
-                    boolean updating = false;
+                    boolean updating;
                     CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl)session.load(CertificateDefinitionHibernateImpl.class,
                                                                               certificateDefinitionId);
                     DocumentTemplateHibernateImpl dthi = (DocumentTemplateHibernateImpl) cd.getDocumentTemplate();
 
                     updating = (dthi != null);
-
                     if (!updating)
                     {
                         dthi = new DocumentTemplateHibernateImpl();
@@ -713,11 +668,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 }
             });
         }
-        catch (ObjectNotFoundException onfe)
-        {
-            throw new IdUnusedException (certificateDefinitionId);
-        }
-        catch (HibernateObjectRetrievalFailureException horfe)
+        catch (ObjectNotFoundException | HibernateObjectRetrievalFailureException onfe)
         {
             throw new IdUnusedException (certificateDefinitionId);
         }
@@ -750,7 +701,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
         catch(Exception e)
         {
-            throw new TemplateReadException ("Could not read Document Template with id: " + resourceId, e);
+            throw new TemplateReadException("Could not read Document Template with id: " + resourceId, e);
         }
 
         return is;
@@ -758,18 +709,9 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     private Object doSecureCertificateService(SecureCertificateServiceCallback callback) throws Exception
     {
-        final SessionManager sessionManager = getSessionManager();
-
         try
         {
-            securityService.pushAdvisor(new SecurityAdvisor()
-            {
-                public SecurityAdvice isAllowed(String userId, String function, String reference)
-                {
-                    return SecurityAdvice.ALLOWED;
-                }
-            });
-
+            securityService.pushAdvisor((String userId, String function, String reference) -> SecurityAdvice.ALLOWED);
             return callback.doSecureAction();
         }
         finally
@@ -788,7 +730,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     public void activateCertificateDefinition(String certificateDefinitionId, boolean active) throws IncompleteCertificateDefinitionException, IdUnusedException
     {
         CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl)getCertificateDefinition(certificateDefinitionId);
-
         if (cd.getDocumentTemplate() == null || cd.getName() == null || cd.getAwardCriteria() == null || cd.getFieldValues() == null)
         {
             throw new IncompleteCertificateDefinitionException ("incomplete certificate definition");
@@ -801,7 +742,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private void setCriteriaFactoryOnCriteria(CertificateDefinition certDef)
     {
         Set<Criterion> criteria = certDef.getAwardCriteria();
-
         if (criteria != null)
         {
             for (Criterion crit : criteria)
@@ -828,7 +768,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     public CertificateDefinition getCertificateDefinitionByName (String siteId, String name) throws IdUnusedException
     {
         List results = getHibernateTemplate().findByNamedQueryAndNamedParam(QUERY_CERTIFICATE_DEFINITION_BY_NAME, new String[] {PARAM_SITE_ID, PARAM_NAME}, new String[] {siteId, name});
-
         if (results == null || results.isEmpty())
         {
             throw new IdUnusedException ("site: " + siteId + " name: " + name);
@@ -846,11 +785,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             setCertificateServiceOnCriteria(certDef);
             return certDef;
         }
-        catch (ObjectNotFoundException onfe)
-        {
-            throw new IdUnusedException (id);
-        }
-        catch (HibernateObjectRetrievalFailureException horfe)
+        catch (ObjectNotFoundException | HibernateObjectRetrievalFailureException onfe)
         {
             throw new IdUnusedException (id);
         }
@@ -858,7 +793,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public Set<CertificateDefinition> getCertificateDefinitions()
     {
-        HashSet<CertificateDefinition> cds = new HashSet<CertificateDefinition>();
+        HashSet<CertificateDefinition> cds = new HashSet<>();
         cds.addAll(getHibernateTemplate().loadAll(CertificateDefinitionHibernateImpl.class));
 
         for (CertificateDefinition certDef : cds)
@@ -867,13 +802,14 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             setCriteriaFactoryOnCriteria(cert);
             setCertificateServiceOnCriteria(cert);
         }
+
         return cds;
     }
 
     public Set<CertificateDefinition> getCertificateDefinitionsForSite(final String siteId)
     {
-        HashSet<CertificateDefinition> cds = new HashSet<CertificateDefinition>();
-        List<CertificateDefinition> result = null;
+        HashSet<CertificateDefinition> cds = new HashSet<>();
+        List<CertificateDefinition> result;
 
         result = (List<CertificateDefinition>) getHibernateTemplate().execute(new HibernateCallback()
         {
@@ -897,8 +833,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public Set<CertificateDefinition> getCertificateDefinitionsForSite(final String siteId, final CertificateDefinitionStatus[] statuses)
     {
-        HashSet<CertificateDefinition> cds = new HashSet<CertificateDefinition>();
-        List<CertificateDefinition> result = null;
+        HashSet<CertificateDefinition> cds = new HashSet<>();
+        List<CertificateDefinition> result;
 
         result = (List<CertificateDefinition>) getHibernateTemplate().execute(new HibernateCallback()
         {
@@ -944,13 +880,9 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     Set<Criterion> existingConditions = cd.getAwardCriteria();
                     for (Criterion condition : conditions)
                     {
-                        if (existingConditions.contains(condition))
+                        if (!existingConditions.contains(condition))
                         {
-                            //do nothing, a criterion's bindings never change
-                        }
-                        else
-                        {
-                            session.save (condition);
+                            session.save(condition);
                         }
                     }
 
@@ -963,7 +895,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         catch (RuntimeException re)
         {
             Throwable t = re.getCause();
-
             if (t == null)
             {
                 throw re;
@@ -978,7 +909,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
     }
 
-    //@Transactional( propagation = Propagation.REQUIRES_NEW )
     public Criterion addAwardCriterion(final String certificateDefinitionId, final Criterion criterion) throws IdUnusedException
     {
         try
@@ -987,8 +917,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             {
                 public Object doInHibernate(Session session) throws HibernateException, SQLException
                 {
-                    CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl)session.load(CertificateDefinitionHibernateImpl.class,
-                                                                                                             certificateDefinitionId);
+                    CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl)session.load(CertificateDefinitionHibernateImpl.class, certificateDefinitionId);
                     Set<Criterion> criteria = cd.getAwardCriteria();
                     session.save(criterion);
                     criteria.add(criterion);
@@ -1043,7 +972,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         String contextId = contextId();
         CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl)getCertificateDefinition(certificateDefinitionId);
         Set<Criterion> criteria = cd.getAwardCriteria();
-        Set<Criterion> unmetCriteria = new HashSet<Criterion>();
+        Set<Criterion> unmetCriteria = new HashSet<>();
 
         for (Criterion criterion : criteria)
         {
@@ -1060,12 +989,11 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public Map<String, String> getPredefinedTemplateVariables()
     {
-        HashMap<String, String> predefined = new HashMap<String, String>();
+        HashMap<String, String> predefined = new HashMap<>();
 
         for (String key : variableResolvers.keySet())
         {
             VariableResolver vr = variableResolvers.get(key);
-
             for (String label : vr.getVariableLabels())
             {
                 predefined.put(label, vr.getVariableDescription(label));
@@ -1099,7 +1027,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public Set<CriteriaTemplate> getCriteriaTemplates()
     {
-        HashSet<CriteriaTemplate> criteriaTemplates = new HashSet<CriteriaTemplate>();
+        HashSet<CriteriaTemplate> criteriaTemplates = new HashSet<>();
         for (CriteriaFactory factory : criteriaFactories)
         {
             criteriaTemplates.addAll(factory.getCriteriaTemplates());
@@ -1117,7 +1045,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             {
                 List<Integer> list = session.createQuery("select gb.category_type from CertGradebook as gb where gb.uid=:gbid")
                         .setParameter(PARAM_GBID, gradebookId).list();
-                return (Integer) list.get(0);
+                return list.get(0);
             }
         });
     }
@@ -1134,7 +1062,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                         "and cat.id = assn.category.id and assn.notCounted=false and assn.removed=false"
                     ).setParameter(PARAM_GBID, gradebookId).list();
 
-                Map<Long,Double> catWeightMap = new HashMap<Long,Double>();
+                Map<Long,Double> catWeightMap = new HashMap<>();
                 for(Object[] row : results)
                 {
                     catWeightMap.put((Long) row[0], (Double) row[1]);
@@ -1156,7 +1084,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                         "assn.gradebook.uid=:gradebookId"
                     ).setParameter(PARAM_GRADEBOOK_ID, gradebookId).list();
 
-                Map<Long, Double> assnWeights = new HashMap<Long, Double>();
+                Map<Long, Double> assnWeights = new HashMap<>();
                 for(Object[] row : results)
                 {
                     assnWeights.put((Long) row[0], (Double) row[1]);
@@ -1182,7 +1110,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                         "and assn.removed=false"
                     ).setParameter(PARAM_GRADEBOOK_ID, gradebookId).list();
 
-                HashMap<Long, Double> assnPoints = new HashMap<Long, Double>();
+                HashMap<Long, Double> assnPoints = new HashMap<>();
                 for(Object[] row : results)
                 {
                     assnPoints.put((Long) row[0], (Double) row[1]);
@@ -1207,7 +1135,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                         "assn.gradebook.uid=:gradebookId"
                      ).setParameter(PARAM_GRADEBOOK_ID, gradebookId).list();
 
-                HashMap<Long, Double> assnPoints = new HashMap<Long, Double>();
+                HashMap<Long, Double> assnPoints = new HashMap<>();
                 for(Object[] row : results)
                 {
                     assnPoints.put((Long) row[0], (Double) row[1]);
@@ -1232,7 +1160,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                         "and agr.gradableObject.gradebook.uid=:gradebookId and agr.studentId = :studentId"
                      ).setParameter(PARAM_GRADEBOOK_ID, gradebookId).setParameter(PARAM_STUDENT_ID, studentId).list().iterator();
 
-                HashMap<Long, Double> assnScores = new HashMap<Long, Double>();
+                HashMap<Long, Double> assnScores = new HashMap<>();
                 while(results.hasNext())
                 {
                     Object[] row = (Object[]) results.next();
@@ -1258,7 +1186,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                         "and agr.gradableObject.gradebook.uid=:gradebookId and agr.studentId = :studentId"
                     ).setParameter(PARAM_GRADEBOOK_ID, gradebookId).setParameter(PARAM_STUDENT_ID, studentId).list().iterator();
 
-                HashMap<Long, Date> assnDates = new HashMap<Long, Date>();
+                HashMap<Long, Date> assnDates = new HashMap<>();
                 while(results.hasNext())
                 {
                     Object[] row = (Object[]) results.next();
@@ -1276,14 +1204,13 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     public List<Map.Entry<String, String>> getCertificateRequirementsForUser (String certId, String userId, String siteId, boolean useCaching) throws IdUnusedException
     {
         CertificateDefinition certDef = getCertificateDefinition(certId);
-        Map requirements = new HashMap<String, String>();
+        Map requirements = new HashMap<>();
 
         Set<Criterion> criteria = certDef.getAwardCriteria();
         Iterator<Criterion> itCriteria = criteria.iterator();
         while (itCriteria.hasNext())
         {
             Criterion crit = itCriteria.next();
-            CriteriaFactory factory = crit.getCriteriaFactory();
             String expression = crit.getExpression();
             String progress = crit.getProgress(userId, siteId, useCaching);
 
@@ -1294,7 +1221,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             }
         }
 
-        return new ArrayList<Map.Entry<String, String>>(requirements.entrySet());
+        return new ArrayList<>(requirements.entrySet());
     }
 
     public Collection<String> getGradedUserIds(final String siteId)
@@ -1350,7 +1277,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             showUnawarded = true;
         }
 
-        List<ReportRow> reportRows = new ArrayList<ReportRow>();
+        List<ReportRow> reportRows = new ArrayList<>();
 
         //we'll need this to get additional user properties
         //determines if the current user has permission to view extra properties
@@ -1359,7 +1286,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         //Get the headers for the additional user properties
         //keeps track of the order of the keys so that we know that the headers and the cells line up
         Map<String, String> propKeysTitles = extraUserPropertyUtility.getExtraUserPropertiesKeyAndTitleMap();
-        List<String> propKeys = new ArrayList<String>(propKeysTitles.keySet());
+        List<String> propKeys = new ArrayList<>(propKeysTitles.keySet());
 
         //Get the criteria in the order of the displayed columns
         WillExpireCriterionHibernateImpl wechi = null;
@@ -1405,7 +1332,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
          */
 
         // Maps users to their progress on all criteria
-        Map<String, Map<Criterion, UserProgress>> allUserProgress = new HashMap<String, Map<Criterion, UserProgress>>();
+        Map<String, Map<Criterion, UserProgress>> allUserProgress = new HashMap<>();
 
         Set<Criterion> criteria = definition.getAwardCriteria();
         String siteId = definition.getSiteId();
@@ -1416,7 +1343,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
          * So we need a mapping of CriteriaFactories to the criterion types, and the criterion types need to be mapped to the criteria that match each criterion type.
          * Ie. CriteriaFactory -> (Criterion type managed by CriteriaFactory -> Criteria of key'd Criterion type)
          */
-        Map<CriteriaFactory, Map<Class, List<Criterion>>> critFactToCritCollectionMap = new HashMap<CriteriaFactory, Map<Class, List<Criterion>>>();
+        Map<CriteriaFactory, Map<Class, List<Criterion>>> critFactToCritCollectionMap = new HashMap<>();
         for (Criterion criterion : criteria)
         {
             CriteriaFactory critFact = criterion.getCriteriaFactory();
@@ -1425,7 +1352,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             if (critTypeToCollectionMap == null)
             {
                 // The mapping of Criterion Type -> List<Criteria> for this CriterionFactory doesn't exist yet, so create one
-                critTypeToCollectionMap = new HashMap<Class, List<Criterion>>();
+                critTypeToCollectionMap = new HashMap<>();
                 critFactToCritCollectionMap.put(critFact, critTypeToCollectionMap);
             }
 
@@ -1435,7 +1362,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             if (critCollection == null)
             {
                 // There is no collection of criteria associated with this criterion's type yet. Create one.
-                critCollection = new ArrayList<Criterion>();
+                critCollection = new ArrayList<>();
                 critTypeToCollectionMap.put(criterionType, critCollection);
             }
 
@@ -1473,7 +1400,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                         if (allCriteriaMap == null)
                         {
                             // the current user doesn't have a mapping of Criterion -> UserProgress yet. Create one.
-                            allCriteriaMap = new HashMap<Criterion, UserProgress>();
+                            allCriteriaMap = new HashMap<>();
                             allUserProgress.put(userId, allCriteriaMap);
                         }
 
@@ -1505,7 +1432,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             row.setRole(role);
 
             // populate the extra user properties
-            ArrayList<String> extraProps = new ArrayList<String>();
+            ArrayList<String> extraProps = new ArrayList<>();
             if (canShowUserProps)
             {
                 Map<String, String> extraPropsMap = extraUserPropertyUtility.getExtraPropertiesMapForUser(user);
@@ -1520,6 +1447,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
             // Determine the awarded status and the issue date using the UserProgress objects we previously retrieved
             Map<Criterion, UserProgress> critProgressMap = allUserProgress.get(userId);
+
             // assume this user is awarded until we find a criterion on which the user has failed
             boolean awarded = true;
             Date dateAwarded = null;
@@ -1542,6 +1470,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     {
                         // null progress implies failure
                         awarded = false;
+
                         // date could have been set in previous iterations, so clear it
                         dateAwarded = null;
                         break;
@@ -1591,30 +1520,18 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                 {
                     if ("issueDate".equals(filterDateType))
                     {
-                        if (dateAwarded == null)
-                        {
-                            continue;
-                        }
-                        if (startDate != null && dateAwarded.before(startDate))
-                        {
-                            continue;
-                        }
-                        if (endDate != null && dateAwarded.after(endDate))
+                        if (dateAwarded == null
+                            || (startDate != null && dateAwarded.before(startDate))
+                            || (endDate != null && dateAwarded.after(endDate)))
                         {
                             continue;
                         }
                     }
                     else if ("expiryDate".equals(filterDateType) && wechi != null)
                     {
-                        if (expiryDate == null)
-                        {
-                            continue;
-                        }
-                        if (startDate != null && expiryDate.before(startDate))
-                        {
-                            continue;
-                        }
-                        if (endDate != null && expiryDate.after(endDate))
+                        if (expiryDate == null
+                            || (startDate != null && expiryDate.before(startDate))
+                            || (endDate != null && expiryDate.after(endDate)))
                         {
                             continue;
                         }
@@ -1631,11 +1548,11 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             row.setIssueDate(strIssueDate);
 
             // populate the criterion cells
-            List<CriterionProgress> criterionCells = new ArrayList<CriterionProgress>();
+            List<CriterionProgress> criterionCells = new ArrayList<>();
             if (critProgressMap == null)
             {
                 // User made no progress on any criteria. Create placeholders
-                for (int i = 0; i < orderedCriteria.size(); i++)
+                for( Criterion orderedCriteria1 : orderedCriteria )
                 {
                     CriterionProgress critProg = new CriterionProgress("", false);
                     criterionCells.add(critProg);

@@ -3,6 +3,7 @@ package com.rsmart.certification.criteria.impl.gradebook;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
+
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -27,7 +28,7 @@ public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTempl
                 {
                     public String getLabel(Assignment assignment)
                     {
-                        StringBuffer assnLabel = new StringBuffer();
+                        StringBuilder assnLabel = new StringBuilder();
                         assnLabel.append(assignment.getName()).append(" (").append(assignment.getPoints().toString()).append(" ");
                         ResourceLoader rl = factory.getResourceLoader();
 

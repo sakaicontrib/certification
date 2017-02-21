@@ -3,6 +3,7 @@ package com.rsmart.certification.mock;
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.VariableResolutionException;
 import com.rsmart.certification.api.VariableResolver;
+
 import java.util.HashSet;
 import java.util.Set;
 
@@ -11,14 +12,11 @@ import java.util.Set;
  * Date: Jul 5, 2011
  * Time: 1:43:00 PM
  */
-public class MockVariableResolver
-    implements VariableResolver
+public class MockVariableResolver implements VariableResolver
 {
     public Set<String> getVariableLabels()
     {
-        HashSet<String>
-            vars = new HashSet<String>();
-
+        HashSet<String> vars = new HashSet<>();
         vars.add("mockVariable");
         return vars;
     }

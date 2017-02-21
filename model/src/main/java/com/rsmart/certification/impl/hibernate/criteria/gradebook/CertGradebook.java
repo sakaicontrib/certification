@@ -54,12 +54,7 @@ public class CertGradebook
         }
 
         CertGradebook that = (CertGradebook) o;
-        if (id != that.id)
-        {
-            return false;
-        }
-
-        return true;
+        return id == that.id;
     }
 
     @Override

@@ -7,6 +7,7 @@ import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
 import com.rsmart.certification.api.VariableResolutionException;
 import com.rsmart.certification.api.VariableResolver;
+
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,16 +25,15 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
 {
     private final Pattern varPattern = Pattern.compile("\\$\\{(.+)\\}");
 
-    private Map<String, DocumentTemplateRenderEngine> renderers = new HashMap<String, DocumentTemplateRenderEngine>();
-    private HashMap<String, VariableResolver> variableResolvers = new HashMap<String, VariableResolver>();
+    private Map<String, DocumentTemplateRenderEngine> renderers = new HashMap<>();
+    private final HashMap<String, VariableResolver> variableResolvers = new HashMap<>();
 
     public void register(String mimeType, DocumentTemplateRenderEngine engine)
     {
         renderers.put (mimeType.trim().toLowerCase(), (DocumentTemplateRenderEngine)engine);
     }
 
-    public boolean isPreviewable(DocumentTemplate template)
-        throws TemplateReadException
+    public boolean isPreviewable(DocumentTemplate template) throws TemplateReadException
     {
         DocumentTemplateRenderEngine dtre = renderers.get(template.getOutputMimeType());
         if (dtre != null)
@@ -44,8 +44,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
         return false;
     }
 
-    public String getPreviewMimeType(DocumentTemplate template)
-        throws TemplateReadException
+    public String getPreviewMimeType(DocumentTemplate template) throws TemplateReadException
     {
         DocumentTemplateRenderEngine dtre = renderers.get(template.getOutputMimeType());
         if (dtre != null)
@@ -56,7 +55,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
         return null;
     }
 
-    public void setRendererMap (Map<String, DocumentTemplateRenderEngine> map)
+    public void setRendererMap(Map<String, DocumentTemplateRenderEngine> map)
     {
         renderers = map;
     }
@@ -71,8 +70,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
         return renderers.get(mimeType);
     }
 
-    public Set<String> getTemplateFields(DocumentTemplate template)
-        throws TemplateReadException
+    public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException
     {
         DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(template.getOutputMimeType());
         if (engine != null)
@@ -101,7 +99,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
         Map<String, String> bindings = certDef.getFieldValues();
 
         // Maps key values to substitution values (ie. expiry.offset -> "November 21, 2022")
-        HashMap<String, String> resolvedBindings = new HashMap<String, String> ();
+        HashMap<String, String> resolvedBindings = new HashMap<> ();
         DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(template.getOutputMimeType());
 
         for (String key : bindings.keySet())
@@ -135,7 +133,6 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
     public void setVariableResolvers(Set<VariableResolver> resolvers)
     {
         variableResolvers.clear();
-
         for (VariableResolver var : resolvers)
         {
             for (String label : var.getVariableLabels())
@@ -147,7 +144,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService
 
     public Set<VariableResolver> getVariableResolvers()
     {
-        HashSet<VariableResolver> resolvers = new HashSet<VariableResolver>();
+        HashSet<VariableResolver> resolvers = new HashSet<>();
         resolvers.addAll(variableResolvers.values());
         return resolvers;
     }

@@ -20,45 +20,49 @@
 
 package com.rsmart.certification.impl.util;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import com.rsmart.certification.api.util.PortalParamManager;
+import java.util.HashMap;
 
-import javax.servlet.ServletRequest;
-import java.util.Hashtable;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class PortalParamManagerImpl implements PortalParamManager {
-   protected final transient Log logger = LogFactory.getLog(getClass());
+import javax.servlet.ServletRequest;
 
-   private List parameters = null;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
+public class PortalParamManagerImpl implements PortalParamManager
+{
+    protected final transient Log logger = LogFactory.getLog(getClass());
+    private List<String> parameters = null;
 
-   public Map getParams(ServletRequest request) {
-      Map map = new Hashtable();
+    public Map<String, String> getParams(ServletRequest request)
+    {
+        Map<String, String> map = new HashMap<>();
+        for( String key : parameters )
+        {
+            String value = request.getParameter(key);
+            if (value == null)
+            {
+                value = (String) request.getAttribute(key);
+            }
 
-      for (Iterator i = getParameters().iterator(); i.hasNext();) {
-         String key = (String) i.next();
-         String value = request.getParameter(key);
-         if (value == null) {
-            value = (String) request.getAttribute(key);
-         }
+            if (value != null)
+            {
+                map.put(key, value);
+            }
+        }
 
-         if (value != null) {
-            map.put(key, value);
-         }
-      }
+        return map;
+    }
 
-      return map;
-   }
+    public List<String> getParameters()
+    {
+        return parameters;
+    }
 
-   public List getParameters() {
-      return parameters;
-   }
-
-   public void setParameters(List parameters) {
-      this.parameters = parameters;
-   }
+    public void setParameters(List<String> parameters)
+    {
+        this.parameters = parameters;
+    }
 }

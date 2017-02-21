@@ -1,6 +1,7 @@
 package com.rsmart.certification.api.criteria;
 
 import com.rsmart.certification.api.CertificateDefinition;
+
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,7 @@ public interface CriteriaFactory
      * @param itemId the gradebook item's id
      * @param userId the user's id
      * @param contextId
+     * @param useCaching
      * @return the score on a gradebook item (if not applicable, returns null)
      */
     public Double getScore(Long itemId, String userId, String contextId, boolean useCaching) throws NumberFormatException;
@@ -56,6 +58,7 @@ public interface CriteriaFactory
      * @param itemId
      * @param userId
      * @param contextId
+     * @param useCaching
      * @return the date that the gradebook item's score was entered (if applicable)
      */
     public Date getDateRecorded(Long itemId, String userId, String contextId, boolean useCaching);
@@ -78,6 +81,7 @@ public interface CriteriaFactory
      * @param userId
      * @param contextId
      * @param certDef
+     * @param useCaching
      * @return
      */
     public Date getDateIssued(String userId, String contextId, CertificateDefinition certDef, boolean useCaching);
@@ -103,5 +107,5 @@ public interface CriteriaFactory
      * @throws NumberFormatException
      */
    public Map<String, Map<Criterion, UserProgress>> getProgressForUsers(String contextId, List<String> userIds, Class type, List<Criterion> critCollection)
-           throws NumberFormatException;
+        throws NumberFormatException;
 }

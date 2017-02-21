@@ -37,6 +37,7 @@ public interface Criterion
      * @param userId the user we are grabbing report data for
      * @param siteId the site containing this criterion
      * @param issueDate
+     * @param useCaching
      * @return
      */
     public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching);
@@ -49,6 +50,7 @@ public interface Criterion
      * Returns null if the criterion is not met
      * @param userId
      * @param siteId
+     * @param useCaching
      * @return
      */
     public Date getDateMet(String userId, String siteId, boolean useCaching);
@@ -60,6 +62,7 @@ public interface Criterion
      * Returns "" if progress is undefined (ie. WillExpire)
      * @param userId
      * @param siteId
+     * @param useCaching
      * @return
      */
     public String getProgress(String userId, String siteId, boolean useCaching);

@@ -2,6 +2,7 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
 
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -24,7 +25,7 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     @Override
     public List<String> getReportHeaders()
     {
-        List<String> reportHeaders = new ArrayList<String>();
+        List<String> reportHeaders = new ArrayList<>();
 
         String gradebookItem = getItemName();
         String header = getCertificateService().getFormattedMessage(MESSAGE_REPORT_TABLE_HEADER_DUEDATE, new Object[]{gradebookItem});
@@ -36,7 +37,7 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     @Override
     public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching)
     {
-        List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
+        List<CriterionProgress> reportData = new ArrayList<>();
 
         boolean met = false;
         try

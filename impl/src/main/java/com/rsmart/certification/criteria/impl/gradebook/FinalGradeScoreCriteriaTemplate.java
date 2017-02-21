@@ -6,12 +6,15 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
+
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -24,11 +27,10 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
 {
     private static final Log LOG = LogFactory.getLog(FinalGradeScoreCriteriaTemplate.class);
     ScoreTemplateVariable scoreVariable = null;
-    ArrayList<CriteriaTemplateVariable> variables = new ArrayList<CriteriaTemplateVariable>(1);
+    ArrayList<CriteriaTemplateVariable> variables = new ArrayList<>(1);
     GradebookCriteriaFactory factory = null;
     CertificateService certificateService = null;
-    GradebookService
-        gbService = null;
+    GradebookService gbService = null;
     ResourceLoader rl = null;
 
     private final String EXPRESSION_KEY = "final.grade.score.criteria.expression";
@@ -96,44 +98,23 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
             return rl.getFormattedMessage(EXPRESSION_KEY, new Object[]{});
         }
 
-        SecureGradebookActionCallback
-            typeCallback = new SecureGradebookActionCallback()
-            {
-                public Object doSecureAction()
-                {
-                    return certificateService.getCategoryType(factory.contextId());
-                }
-            },
-            assnPointsCallback = new SecureGradebookActionCallback()
-            {
-                public Object doSecureAction()
-                {
-                    return certificateService.getAssignmentPoints(factory.contextId());
-                }
-            },
-            catOnlyAssnPointsCallback = new SecureGradebookActionCallback()
-            {
-            	public Object doSecureAction()
-            	{
-            		return certificateService.getCatOnlyAssignmentPoints(factory.contextId());
-            	}
-            };
+        SecureGradebookActionCallback typeCallback = () -> certificateService.getCategoryType(factory.contextId());
+        SecureGradebookActionCallback assnPointsCallback = () -> certificateService.getAssignmentPoints(factory.contextId());
+        SecureGradebookActionCallback catOnlyAssnPointsCallback = () -> certificateService.getCatOnlyAssignmentPoints(factory.contextId());
 
-        Map<Long, Double>
-            assnPoints = null;
-        int
-            categoryType = -1;
+        Map<Long, Double> assnPoints;
+        int categoryType;
 
         try
         {
             categoryType = (Integer) factory.doSecureGradebookAction(typeCallback);
             if(categoryType == GradebookService.CATEGORY_TYPE_ONLY_CATEGORY)
             {
-            	assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(catOnlyAssnPointsCallback);
+                assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(catOnlyAssnPointsCallback);
             }
             else
             {
-            	assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
+                assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
             }
 
         }

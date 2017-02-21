@@ -9,5 +9,5 @@ import org.sakaiproject.service.gradebook.shared.Assignment;
  */
 public interface AssignmentFilter
 {
-    public boolean include (Assignment assignment);
+    public boolean include(Assignment assignment);
 }

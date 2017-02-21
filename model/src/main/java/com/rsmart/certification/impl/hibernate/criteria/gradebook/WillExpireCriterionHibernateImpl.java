@@ -3,6 +3,7 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
 import com.rsmart.certification.api.criteria.CriteriaFactory;
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -28,7 +29,7 @@ public class WillExpireCriterionHibernateImpl extends GradebookItemCriterionHibe
     @Override
     public List<String> getReportHeaders()
     {
-        List<String> reportHeaders = new ArrayList<String>();
+        List<String> reportHeaders = new ArrayList<>();
         String header = getCertificateService().getString(MESSAGE_REPORT_TABLE_HEADER_EXPIRE);
         reportHeaders.add(header);
         return reportHeaders;
@@ -42,12 +43,13 @@ public class WillExpireCriterionHibernateImpl extends GradebookItemCriterionHibe
      * @param userId the user we are grabbing report data for
      * @param siteId the site containing this criterion
      * @param issueDate
+     * @param useCaching
      * @return
      */
     @Override
     public List<CriterionProgress> getReportData(String userId, String siteId, Date issueDate, boolean useCaching)
     {
-        List<CriterionProgress> reportData = new ArrayList<CriterionProgress>();
+        List<CriterionProgress> reportData = new ArrayList<>();
 
         boolean met = false;
         try

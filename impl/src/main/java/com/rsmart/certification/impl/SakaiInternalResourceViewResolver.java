@@ -15,64 +15,40 @@
  */
 package com.rsmart.certification.impl;
 
+import com.rsmart.certification.impl.control.RedirectView;
+
+import java.util.Locale;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import com.rsmart.certification.impl.control.RedirectView;
+
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-import java.util.Locale;
+public class SakaiInternalResourceViewResolver extends InternalResourceViewResolver
+{
+    private static final Log LOG = LogFactory.getLog(SakaiInternalResourceViewResolver.class);
 
+    protected AbstractUrlBasedView buildView(String viewName) throws Exception
+    {
+        LOG.info("inside buildView");
+        return super.buildView(viewName);
+    }
 
-/**
- *
- */
-public class SakaiInternalResourceViewResolver extends InternalResourceViewResolver {
-   private static Log log = LogFactory.getLog(SakaiInternalResourceViewResolver.class);
-   private static final String HELPER_REDIRECT_URL_PREFIX = "helper";
+    protected View createView(String viewName, Locale locale) throws Exception
+    {
+        LOG.info("inside createView");
 
-   protected AbstractUrlBasedView buildView(String viewName) throws Exception {
-      log.info("inside buildView");
-      return super.buildView(viewName);
-   }
+        // Check for special "redirect:" prefix.
+        if (viewName.startsWith(REDIRECT_URL_PREFIX))
+        {
+            String redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length());
+            RedirectView redirectView = new RedirectView();
+            redirectView.setUrl(redirectUrl);
+            return redirectView;
+        }
 
-   protected View createView(String viewName, Locale locale) throws Exception {
-      log.info("inside createView");
-
-      // Check for special "redirect:" prefix.
-      if (viewName.startsWith(REDIRECT_URL_PREFIX)) {
-         String redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length());
-         RedirectView redirectView = new RedirectView();
-         redirectView.setUrl(redirectUrl);
-         return redirectView;
-      }
-
-      // Check for special "helper:" prefix.
-      /*
-      if (viewName.startsWith(HELPER_REDIRECT_URL_PREFIX)) {
-         String redirectUrl = viewName.substring(HELPER_REDIRECT_URL_PREFIX.length());
-         HelperView helperView = new HelperView();
-         helperView.setUrl(redirectUrl);
-         return helperView;
-      }
-      */
-      return super.createView(viewName, locale);
-   }
-/*
-   protected View loadView(String viewName, Locale locale) throws Exception {
-      log.info("inside loadView");
-
-      AbstractUrlBasedView view = buildView(viewName);
-      TemplateJstlView templateView = (TemplateJstlView) BeanUtils.instantiateClass(TemplateJstlView.class);
-      templateView.setBody(prefix + viewName + suffix);
-      templateView.setContentType(view.getContentType());
-      templateView.setRequestContextAttribute(view.getRequestContextAttribute());
-      templateView.setAttributesMap(getAttributesMap());
-      templateView.setUrl(templateView.getDefaultTemplateDefName());
-      templateView.setApplicationContext(getApplicationContext());
-      templateView.afterPropertiesSet();
-      return templateView;
-   }
-*/
+        return super.createView(viewName, locale);
+    }
 }

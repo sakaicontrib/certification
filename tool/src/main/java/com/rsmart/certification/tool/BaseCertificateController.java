@@ -4,15 +4,19 @@ import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.tool.validator.CertificateDefinitionValidator;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+
 import javax.annotation.Resource;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -23,6 +27,7 @@ import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
+
 import org.springframework.beans.factory.annotation.Autowired;
 
 /**
@@ -152,13 +157,8 @@ public class BaseCertificateController
         {
             fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
         }
-        if(securityService.unlock(userId, ADMIN_FN, fullId))
-        {
-            //user has certificate.admin
-            return true;
-        }
 
-        return false;
+        return securityService.unlock(userId, ADMIN_FN, fullId);
     }
 
     protected boolean isAdministrator()
@@ -173,19 +173,15 @@ public class BaseCertificateController
 
         if (securityService.isSuperUser(userId))
         {
-            //ha! Take that, admin!
+            //stand aside, it's admin
             return false;
         }
         if (siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT))
         {
             fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
         }
-        if (securityService.unlock(userId, AWARDABLE_FN, fullId))
-        {
-            //user has certificate.be.awarded
-            return true;
-        }
-        return false;
+
+        return securityService.unlock(userId, AWARDABLE_FN, fullId);
     }
 
     protected boolean isAwardable()
@@ -202,9 +198,7 @@ public class BaseCertificateController
         catch (Exception e)
         {
             //Should never happen
-            RuntimeException re = new RuntimeException ("BaseCertificateController can't get the current Site");
-            re.initCause(e);
-            throw re;
+            throw new RuntimeException( "BaseCertificateController can't get the current Site", e );
         }
     }
 
@@ -215,7 +209,7 @@ public class BaseCertificateController
     public List<String> getAwardableUserIds()
     {
         //return value
-        List<String> userIds = new ArrayList<String>();
+        List<String> userIds = new ArrayList<>();
 
         Site currentSite = getCurrentSite();
         if (currentSite == null)
@@ -233,7 +227,7 @@ public class BaseCertificateController
      */
     public Set<String> getHistoricalGradedUserIds()
     {
-        return new HashSet<String> (certificateService.getGradedUserIds(siteId()));
+        return new HashSet<> (certificateService.getGradedUserIds(siteId()));
     }
 
     public String getRole(String userId)

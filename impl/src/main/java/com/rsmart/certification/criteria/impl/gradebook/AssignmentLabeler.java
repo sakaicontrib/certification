@@ -9,5 +9,5 @@ import org.sakaiproject.service.gradebook.shared.Assignment;
  */
 public interface AssignmentLabeler
 {
-    public String getLabel (Assignment assignment);
+    public String getLabel(Assignment assignment);
 }

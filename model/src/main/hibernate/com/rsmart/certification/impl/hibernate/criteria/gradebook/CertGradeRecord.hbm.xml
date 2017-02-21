@@ -1,6 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE hibernate-mapping PUBLIC "-//Hibernate/Hibernate Mapping DTD//EN"
 	"http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
 <hibernate-mapping default-cascade="none" package="com.rsmart.certification.impl.hibernate.criteria.gradebook"
 	default-lazy="false">
 	<class name="com.rsmart.certification.impl.hibernate.criteria.gradebook.CertGradeRecordObject" table="GB_GRADE_RECORD_T" discriminator-value="0">

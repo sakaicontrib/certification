@@ -65,12 +65,7 @@ public class CertCategory
         }
 
         CertCategory that = (CertCategory) o;
-        if (id != that.id)
-        {
-            return false;
-        }
-
-        return true;
+        return id == that.id;
     }
 
     @Override

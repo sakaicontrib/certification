@@ -1,7 +1,9 @@
 package com.rsmart.certification.criteria.impl.gradebook;
 
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
+
 import java.util.Map;
+
 import org.sakaiproject.util.ResourceLoader;
 
 /**

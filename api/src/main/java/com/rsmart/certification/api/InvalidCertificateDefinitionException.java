@@ -1,8 +1,6 @@
 package com.rsmart.certification.api;
 
 /**
- * @author bbailla2
- *
  * Thrown when creating a certificate definition, but some constraint isn't met
  */
 public class InvalidCertificateDefinitionException extends CertificationException
