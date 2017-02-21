@@ -5,13 +5,11 @@ package com.rsmart.certification.api.criteria;
  * Date: Jul 15, 2011
  * Time: 4:46:54 PM
  */
-public class InvalidBindingException
-    extends CriterionCreationException
+public class InvalidBindingException extends CriterionCreationException
 {
-    private String
-        bindingKey,
-        bindingValue,
-        localizedMessage;
+    private String bindingKey;
+    private String bindingValue;
+    private String localizedMessage;
 
     public InvalidBindingException()
     {
@@ -37,32 +35,35 @@ public class InvalidBindingException
         return bindingKey;
     }
 
-    public void setBindingKey(String bindingKey) {
+    public void setBindingKey(String bindingKey)
+    {
         this.bindingKey = bindingKey;
     }
 
-    public String getBindingValue() {
+    public String getBindingValue()
+    {
         return bindingValue;
     }
 
-    public void setBindingValue(String bindingValue) {
+    public void setBindingValue(String bindingValue)
+    {
         this.bindingValue = bindingValue;
     }
 
-    public String getLocalizedMessage() {
+    public String getLocalizedMessage()
+    {
         if (localizedMessage != null)
         {
-            StringBuffer
-                sb = new StringBuffer();
-
+            StringBuilder sb = new StringBuilder();
             sb.append("ERROR_MESSAGE").append(localizedMessage).append("/ERROR_MESSAGE");
-
             return sb.toString();
         }
+
         return null;
     }
 
-    public void setLocalizedMessage(String localizedMessage) {
+    public void setLocalizedMessage(String localizedMessage)
+    {
         this.localizedMessage = localizedMessage;
     }
 }

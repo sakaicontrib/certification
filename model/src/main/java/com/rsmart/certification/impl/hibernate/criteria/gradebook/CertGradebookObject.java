@@ -7,79 +7,104 @@ package com.rsmart.certification.impl.hibernate.criteria.gradebook;
  */
 public class CertGradebookObject
 {
-    private long
-        id;
-    private String
-        name;
-        
+    private long id;
+    private String name;
+
     private CertGradebook gradebook;
     private CertCategory category;
-    private boolean
-        removed,
-        ungraded;
+    private boolean removed;
+    private boolean ungraded;
+    private boolean released;
 
-    public CertGradebook getGradebook() {
-		return gradebook;
-	}
+    public CertGradebook getGradebook()
+    {
+        return gradebook;
+    }
 
-	public void setGradebook(CertGradebook gradebook) {
-		this.gradebook = gradebook;
-	}
+    public void setGradebook(CertGradebook gradebook)
+    {
+        this.gradebook = gradebook;
+    }
 
-	public CertCategory getCategory() {
-		return category;
-	}
+    public CertCategory getCategory()
+    {
+        return category;
+    }
 
-	public void setCategory(CertCategory category) {
-		this.category = category;
-	}
+    public void setCategory(CertCategory category)
+    {
+        this.category = category;
+    }
 
-	public long getId() {
+    public long getId()
+    {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(long id)
+    {
         this.id = id;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
-    public boolean isRemoved() {
+    public boolean isRemoved()
+    {
         return removed;
     }
 
-    public void setRemoved(boolean removed) {
+    public void setRemoved(boolean removed)
+    {
         this.removed = removed;
     }
 
-    public boolean isUngraded() {
+    public boolean isUngraded()
+    {
         return ungraded;
     }
 
-    public void setUngraded(boolean ungraded) {
+    public void setUngraded(boolean ungraded)
+    {
         this.ungraded = ungraded;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(CertGradebookObject.class.isAssignableFrom(o.getClass()))) return false;
+    public boolean isReleased()
+    {
+        return released;
+    }
 
-        CertGradebookObject that = (CertGradebookObject) o;
-
-        if (id != that.id) return false;
-
-        return true;
+    public void setReleased(boolean released)
+    {
+        this.released = released;
     }
 
     @Override
-    public int hashCode() {
+    public boolean equals(Object o)
+    {
+        if (this == o)
+        {
+            return true;
+        }
+        if (!(CertGradebookObject.class.isAssignableFrom(o.getClass())))
+        {
+            return false;
+        }
+
+        CertGradebookObject that = (CertGradebookObject) o;
+        return id == that.id;
+    }
+
+    @Override
+    public int hashCode()
+    {
         return (int) (id ^ (id >>> 32));
     }
 }

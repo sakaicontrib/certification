@@ -1,10 +1,10 @@
 package com.rsmart.certification.mock;
 
+import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateRenderEngine;
 import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.TemplateReadException;
-import com.rsmart.certification.api.CertificateService;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
@@ -19,12 +19,9 @@ import java.util.Set;
  * Date: Jun 20, 2011
  * Time: 3:02:22 PM
  */
-public class MockDocumentTemplateRenderEngine
-    implements DocumentTemplateRenderEngine
+public class MockDocumentTemplateRenderEngine implements DocumentTemplateRenderEngine
 {
-    private DocumentTemplateService
-        documentTemplateService = null;
-
+    private DocumentTemplateService documentTemplateService = null;
     private CertificateService certificateService = null;
 
     public void setDocumentTemplateService(DocumentTemplateService dts)
@@ -47,26 +44,29 @@ public class MockDocumentTemplateRenderEngine
         this.certificateService = certificateService;
     }
 
+    @Override
+    public Set<String> getTemplateFields( InputStream inputStream ) throws TemplateReadException
+    {
+        return null;
+    }
+
     public void init()
     {
         getDocumentTemplateService().register("text/plain", this);
     }
 
-    public String getOutputMimeType(DocumentTemplate template) {
+    public String getOutputMimeType(DocumentTemplate template)
+    {
         return "text/plain";
     }
 
-    public Set<String> getTemplateFields(DocumentTemplate template)
-        throws TemplateReadException
+    public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException
     {
         InputStream is = certificateService.getTemplateFileInputStream(template.getResourceId());
-        HashSet<String>
-            variables = new HashSet<String>();
+        HashSet<String> variables = new HashSet<>();
 
-        BufferedInputStream
-            bis = null;
-        int
-            b = -1;
+        BufferedInputStream bis;
+        int b;
 
         if (!BufferedInputStream.class.isAssignableFrom(is.getClass()))
         {
@@ -83,8 +83,7 @@ public class MockDocumentTemplateRenderEngine
             {
                 if ('$' == b)
                 {
-                    int
-                        lBracket = bis.read();
+                    int lBracket = bis.read();
                     StringBuilder variable = new StringBuilder();
 
                     if ('{' == lBracket)
@@ -111,13 +110,10 @@ public class MockDocumentTemplateRenderEngine
         return variables;
     }
 
-    public InputStream render(DocumentTemplate template, Map<String, String> bindings)
-        throws TemplateReadException
+    public InputStream render(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException
     {
         InputStream is = certificateService.getTemplateFileInputStream(template.getResourceId());
-
-        byte
-            data[] = null;
+        byte data[] = null;
 
         try
         {
@@ -142,21 +138,21 @@ public class MockDocumentTemplateRenderEngine
         return new ByteArrayInputStream(data);
     }
 
-    public boolean supportsPreview(DocumentTemplate template) {
-        return true;  //To change body of implemented methods use File | Settings | File Templates.
+    public boolean supportsPreview(DocumentTemplate template)
+    {
+        return true;
     }
 
-    public String getPreviewMimeType(DocumentTemplate template) {
-        return "text/html";  //To change body of implemented methods use File | Settings | File Templates.
+    public String getPreviewMimeType(DocumentTemplate template)
+    {
+        return "text/html";
     }
 
-    protected byte[] populateFields (InputStream is, Map<String, String> bindings)
-            throws IOException, TemplateReadException {
+    protected byte[] populateFields (InputStream is, Map<String, String> bindings) throws IOException, TemplateReadException
+    {
         StringBuilder output = new StringBuilder();
-        BufferedInputStream
-            bis = null;
-        int
-            b = -1;
+        BufferedInputStream bis;
+        int b;
 
         if (!BufferedInputStream.class.isAssignableFrom(is.getClass()))
         {
@@ -171,8 +167,7 @@ public class MockDocumentTemplateRenderEngine
         {
             if ('$' == b)
             {
-                int
-                    lBracket = bis.read();
+                int lBracket = bis.read();
                 StringBuilder variable = new StringBuilder();
 
                 if ('{' == lBracket)
@@ -188,11 +183,11 @@ public class MockDocumentTemplateRenderEngine
 
                     if (bindings != null)
                     {
-                        String
-                            value = bindings.get(variable.toString());
+                        String value = bindings.get(variable.toString());
 
-                        if (value != null)
+                        if (value != null){
                             output.append(value);
+                        }
                     }
                 }
                 else
@@ -202,24 +197,22 @@ public class MockDocumentTemplateRenderEngine
                 }
             }
             else
+            {
                 output.append((char)b);
+            }
         }
 
         return output.toString().getBytes();
     }
 
-    public InputStream renderPreview(DocumentTemplate template, Map<String, String> bindings)
-        throws TemplateReadException
+    public InputStream renderPreview(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException
     {
         InputStream is = certificateService.getTemplateFileInputStream(template.getResourceId());
-
-        byte
-            data[] = null;
-
+        byte data[] = null;
         StringBuilder previewOutput = new StringBuilder();
 
         previewOutput.append("<html><body><p><b>This is what will be printed:</b></p><code>");
-        
+
         try
         {
             data = populateFields (is, bindings);
@@ -241,9 +234,7 @@ public class MockDocumentTemplateRenderEngine
         }
 
         previewOutput.append(data);
-
         previewOutput.append("</code></body></html>");
-
         return new ByteArrayInputStream(previewOutput.toString().getBytes());
     }
 }

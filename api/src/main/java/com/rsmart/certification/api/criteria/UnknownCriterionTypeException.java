@@ -7,19 +7,23 @@ package com.rsmart.certification.api.criteria;
  */
 public class UnknownCriterionTypeException extends Exception
 {
-    public UnknownCriterionTypeException() {
-        super();    //To change body of overridden methods use File | Settings | File Templates.
+    public UnknownCriterionTypeException()
+    {
+        super();
     }
 
-    public UnknownCriterionTypeException(String s) {
-        super(s);    //To change body of overridden methods use File | Settings | File Templates.
+    public UnknownCriterionTypeException(String s)
+    {
+        super(s);
     }
 
-    public UnknownCriterionTypeException(String s, Throwable throwable) {
-        super(s, throwable);    //To change body of overridden methods use File | Settings | File Templates.
+    public UnknownCriterionTypeException(String s, Throwable throwable)
+    {
+        super(s, throwable);
     }
 
-    public UnknownCriterionTypeException(Throwable throwable) {
-        super(throwable);    //To change body of overridden methods use File | Settings | File Templates.
+    public UnknownCriterionTypeException(Throwable throwable)
+    {
+        super(throwable);
     }
 }

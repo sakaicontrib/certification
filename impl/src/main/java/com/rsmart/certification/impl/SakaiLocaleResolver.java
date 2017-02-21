@@ -15,24 +15,25 @@
  */
 package com.rsmart.certification.impl;
 
-import org.sakaiproject.util.ResourceLoader;
-import org.springframework.web.servlet.LocaleResolver;
+import java.util.Locale;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Locale;
 
+import org.sakaiproject.util.ResourceLoader;
 
-/**
- *
- */
-public class SakaiLocaleResolver implements LocaleResolver {
-   public Locale resolveLocale(HttpServletRequest httpServletRequest) {
-      ResourceLoader rb = new ResourceLoader();
-      Locale locale = rb.getLocale();
-      return locale;
-   }
+import org.springframework.web.servlet.LocaleResolver;
 
-   public void setLocale(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Locale locale) {
-   }
+public class SakaiLocaleResolver implements LocaleResolver
+{
+    public Locale resolveLocale(HttpServletRequest httpServletRequest)
+    {
+        ResourceLoader rb = new ResourceLoader();
+        Locale locale = rb.getLocale();
+        return locale;
+    }
+
+    public void setLocale(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Locale locale)
+    {
+    }
 }

@@ -15,8 +15,18 @@
  */
 package com.rsmart.certification.impl.springframework;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import java.io.IOException;
+import java.util.Enumeration;
+
+import javax.servlet.RequestDispatcher;
+import javax.servlet.ServletConfig;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import lombok.extern.slf4j.Slf4j;
+
 import org.sakaiproject.tool.api.ActiveTool;
 import org.sakaiproject.tool.api.Tool;
 import org.sakaiproject.tool.api.ToolException;
@@ -25,25 +35,13 @@ import org.sakaiproject.tool.cover.ActiveToolManager;
 import org.sakaiproject.tool.cover.SessionManager;
 import org.sakaiproject.util.Web;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletConfig;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Enumeration;
-
 
 /**
  * this class is a replacement for org.sakaiproject.spring.util.SpringTool.
  * it replaces the hard coded values with servlet init parameters.
  */
+@Slf4j
 public class SpringTool extends HttpServlet {
-   /**
-    * Our log (commons).
-    */
-   private static Log logger = LogFactory.getLog(SpringTool.class);
 
    // The following fields below are all configurable by setting their values within the <servlet> tag in the web.xml file.
    // The fields all have default values, so you only have to specify values for the ones you want to change.
@@ -56,8 +54,6 @@ public class SpringTool extends HttpServlet {
    private static final String INIT_PARAM_NAME_REQUEST_EXTENSION     = "request_extension";
    private static final String INIT_PARAM_NAME_URL_EXTENSION         = "url_extension";
    private static final String INIT_PARAM_NAME_URL_PATH              = "url_path";
-
-
 
    // data members
    private String helperSessionPrefix;
@@ -92,19 +88,18 @@ public class SpringTool extends HttpServlet {
     */
    public String urlPath;
 
-
-
-
    /**
     * initialize the servlet with the <init-param> values specified in the web.xml file.
+     * @param servletConfig
+     * @throws javax.servlet.ServletException
     */
    public void init(ServletConfig servletConfig) throws ServletException {
       super.init(servletConfig);
 
-      String value = null;
+      String value;
 
       defaultResource     = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_DEFAULT_PAGE         )) == null || value.trim().length() == 0 ? "index"                            : value);
-      defaultToLastView   = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_DEFAULT_TO_LAST_VIEW )) == null || value.trim().length() == 0 ? false                               : Boolean.valueOf(value).booleanValue());
+      defaultToLastView   = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_DEFAULT_TO_LAST_VIEW )) == null || value.trim().length() == 0 ? false                               : Boolean.valueOf(value));
       helperExt           = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_HELPER_EXTENSION     )) == null || value.trim().length() == 0 ? ".helper"                          : value);
       helperSessionPrefix = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_HELPER_SESSION_PREFIX)) == null || value.trim().length() == 0 ? "session."                         : value);
       jspPath             = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_JSP_PATH             )) == null || value.trim().length() == 0 ? ""                                 : value);
@@ -114,15 +109,17 @@ public class SpringTool extends HttpServlet {
       urlPath             = ((value = servletConfig.getInitParameter(INIT_PARAM_NAME_URL_PATH             )) == null || value.trim().length() == 0 ? "sakai.jsf.tool.URL.path"          : value);
 
       // remove the trailing slash
-      if (jspPath.endsWith("/"))
-         jspPath = jspPath.substring(0, jspPath.length() - 1);
+      if (jspPath.endsWith("/")){
+          jspPath = jspPath.substring(0, jspPath.length() - 1);
+      }
 
-      logger.info("init: default: " + defaultResource + " path: " + jspPath);
+      log.info("init: default: " + defaultResource + " path: " + jspPath);
     }
 
    /**
     * Compute a target (i.e. the servlet path info, not including folder root or jsf extension) for the case of the actual path being empty.
     *
+     * @param lastVisited
     * @return The servlet info path target computed for the case of empty actual path.
     */
    protected String computeDefaultTarget(boolean lastVisited) {
@@ -149,7 +146,7 @@ public class SpringTool extends HttpServlet {
     * Shutdown the servlet.
     */
    public void destroy() {
-      logger.info("destroy");
+      log.info("destroy");
 
       super.destroy();
    }
@@ -252,7 +249,7 @@ public class SpringTool extends HttpServlet {
       res.addHeader("Pragma", "no-cache");
 
       // dispatch to the target
-      logger.debug("dispatching path: " + req.getPathInfo() + " to: " + target + " context: "
+      log.debug("dispatching path: " + req.getPathInfo() + " to: " + target + " context: "
             + getServletContext().getServletContextName());
       RequestDispatcher dispatcher = getServletContext().getRequestDispatcher(target);
       dispatcher.forward(req, res);
@@ -362,17 +359,13 @@ public class SpringTool extends HttpServlet {
 
       // we need that last dot to be the end of the path, not burried in the path somewhere (i.e. no more slashes after the last dot)
       String ext = path.substring(pos);
-      if (ext.indexOf("/") != -1) {
+      if (ext.contains( "/" )) {
          return false;
       }
+       // we need the ext to not be the requestExt
+       // ok, it's a resource request
 
-      // we need the ext to not be the requestExt
-      if (ext.equals(requestExt)) {
-         return false;
-      }
-
-      // ok, it's a resource request
-      return true;
+      return !ext.equals(requestExt);
    }
 
    /**

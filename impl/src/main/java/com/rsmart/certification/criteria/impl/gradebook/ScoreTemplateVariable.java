@@ -1,22 +1,20 @@
 package com.rsmart.certification.criteria.impl.gradebook;
 
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
-import org.sakaiproject.util.ResourceLoader;
 
 import java.util.Map;
+
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
  * Date: Jul 5, 2011
  * Time: 9:30:23 AM
  */
-public class ScoreTemplateVariable
-    implements CriteriaTemplateVariable
+public class ScoreTemplateVariable implements CriteriaTemplateVariable
 {
-    private GradebookCriteriaFactory
-        criteriaFactory = null;
-    private String
-        key = null;
+    private GradebookCriteriaFactory criteriaFactory = null;
+    private String key = null;
 
     public ScoreTemplateVariable(String key, GradebookCriteriaFactory cFact)
     {

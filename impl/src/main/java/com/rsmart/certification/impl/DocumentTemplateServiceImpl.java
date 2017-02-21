@@ -1,6 +1,6 @@
 package com.rsmart.certification.impl;
 
-import com.rsmart.certification.api.CertificateAward;
+import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateRenderEngine;
 import com.rsmart.certification.api.DocumentTemplateService;
@@ -21,28 +21,21 @@ import java.util.regex.Pattern;
  * Date: Jun 30, 2011
  * Time: 1:51:57 PM
  */
-public class DocumentTemplateServiceImpl
-    implements DocumentTemplateService
+public class DocumentTemplateServiceImpl implements DocumentTemplateService
 {
-    private final Pattern
-        varPattern = Pattern.compile("\\$\\{(.+)\\}");
+    private final Pattern varPattern = Pattern.compile("\\$\\{(.+)\\}");
 
-    private Map<String, DocumentTemplateRenderEngine>
-        renderers = new HashMap<String, DocumentTemplateRenderEngine>();
-    private HashMap<String, VariableResolver>
-        variableResolvers = new HashMap<String, VariableResolver>();
+    private Map<String, DocumentTemplateRenderEngine> renderers = new HashMap<>();
+    private final HashMap<String, VariableResolver> variableResolvers = new HashMap<>();
 
     public void register(String mimeType, DocumentTemplateRenderEngine engine)
     {
         renderers.put (mimeType.trim().toLowerCase(), (DocumentTemplateRenderEngine)engine);
     }
 
-    public boolean isPreviewable(DocumentTemplate template)
-        throws TemplateReadException
+    public boolean isPreviewable(DocumentTemplate template) throws TemplateReadException
     {
-        DocumentTemplateRenderEngine
-            dtre = renderers.get(template.getOutputMimeType());
-
+        DocumentTemplateRenderEngine dtre = renderers.get(template.getOutputMimeType());
         if (dtre != null)
         {
             return dtre.supportsPreview(template);
@@ -51,12 +44,9 @@ public class DocumentTemplateServiceImpl
         return false;
     }
 
-    public String getPreviewMimeType(DocumentTemplate template)
-        throws TemplateReadException
+    public String getPreviewMimeType(DocumentTemplate template) throws TemplateReadException
     {
-        DocumentTemplateRenderEngine
-            dtre = renderers.get(template.getOutputMimeType());
-
+        DocumentTemplateRenderEngine dtre = renderers.get(template.getOutputMimeType());
         if (dtre != null)
         {
             return dtre.getPreviewMimeType(template);
@@ -65,21 +55,7 @@ public class DocumentTemplateServiceImpl
         return null;
     }
 
-    public InputStream renderPreview(DocumentTemplate template, CertificateAward award, Map<String, String> bindings)
-            throws TemplateReadException, VariableResolutionException
-    {
-        DocumentTemplateRenderEngine
-            dtre = renderers.get(template.getOutputMimeType());
-
-        if (dtre != null)
-        {
-            return dtre.renderPreview(template, bindings);
-        }
-
-        return null;
-    }
-
-    public void setRendererMap (Map<String, DocumentTemplateRenderEngine> map)
+    public void setRendererMap(Map<String, DocumentTemplateRenderEngine> map)
     {
         renderers = map;
     }
@@ -94,12 +70,9 @@ public class DocumentTemplateServiceImpl
         return renderers.get(mimeType);
     }
 
-    public Set<String> getTemplateFields(DocumentTemplate template)
-        throws TemplateReadException
+    public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException
     {
-        DocumentTemplateRenderEngine
-            engine = getRenderEngineForMimeType(template.getOutputMimeType());
-
+        DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(template.getOutputMimeType());
         if (engine != null)
         {
             return engine.getTemplateFields(template);
@@ -108,33 +81,40 @@ public class DocumentTemplateServiceImpl
         throw new TemplateReadException ("No rendering engine supports the supplied template type");
     }
 
-    public InputStream render(DocumentTemplate template, CertificateAward award, Map<String, String> bindings)
+    public Set<String> getTemplateFields(InputStream inputStream, String mimeType) throws TemplateReadException
+    {
+        DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(mimeType);
+        if (engine != null)
+        {
+            return engine.getTemplateFields(inputStream);
+        }
+
+        throw new TemplateReadException ("No rendering engine supports the supplied template type");
+    }
+
+    public InputStream render(DocumentTemplate template, CertificateDefinition certDef, String userId)
             throws TemplateReadException, VariableResolutionException
     {
-        HashMap<String, String>
-            resolvedBindings = new HashMap<String, String> ();
-        DocumentTemplateRenderEngine
-            engine = getRenderEngineForMimeType(template.getOutputMimeType());
+        // Maps key values to display messages (ie. expiry.offset -> "Expiration Date")
+        Map<String, String> bindings = certDef.getFieldValues();
+
+        // Maps key values to substitution values (ie. expiry.offset -> "November 21, 2022")
+        HashMap<String, String> resolvedBindings = new HashMap<> ();
+        DocumentTemplateRenderEngine engine = getRenderEngineForMimeType(template.getOutputMimeType());
 
         for (String key : bindings.keySet())
         {
-            String
-                value = bindings.get(key);
-
-            Matcher
-                varMatch = varPattern.matcher(value);
+            String value = bindings.get(key);
+            Matcher varMatch = varPattern.matcher(value);
 
             if (varMatch.matches())
             {
-                String
-                    varName = varMatch.group(1);
-
-                VariableResolver
-                    resolver = variableResolvers.get(varName);
+                String varName = varMatch.group(1);
+                VariableResolver resolver = variableResolvers.get(varName);
 
                 if (resolver != null)
                 {
-                    resolvedBindings.put (key, resolver.getValue(award, varName));
+                    resolvedBindings.put (key, resolver.getValue(certDef, varName, userId, false));
                     continue;
                 }
             }
@@ -153,7 +133,6 @@ public class DocumentTemplateServiceImpl
     public void setVariableResolvers(Set<VariableResolver> resolvers)
     {
         variableResolvers.clear();
-
         for (VariableResolver var : resolvers)
         {
             for (String label : var.getVariableLabels())
@@ -162,14 +141,11 @@ public class DocumentTemplateServiceImpl
             }
         }
     }
-    
+
     public Set<VariableResolver> getVariableResolvers()
     {
-        HashSet<VariableResolver>
-            resolvers = new HashSet<VariableResolver>();
-
+        HashSet<VariableResolver> resolvers = new HashSet<>();
         resolvers.addAll(variableResolvers.values());
-
         return resolvers;
     }
 

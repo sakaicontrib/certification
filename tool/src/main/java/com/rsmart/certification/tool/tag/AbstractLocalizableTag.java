@@ -15,47 +15,59 @@
  */
 package com.rsmart.certification.tool.tag;
 
+import javax.servlet.jsp.JspException;
+import javax.servlet.jsp.JspTagException;
+
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.web.servlet.tags.RequestContextAwareTag;
 
-import javax.servlet.jsp.JspException;
-import javax.servlet.jsp.JspTagException;
+abstract public class AbstractLocalizableTag extends RequestContextAwareTag
+{
+    /**
+     * Resolve the specified message into a concrete message String.
+     * The returned message String should be unescaped.
+     * @param message
+     * @return
+     * @throws javax.servlet.jsp.JspException
+     */
+    protected String resolveMessage(String message) throws JspException, NoSuchMessageException
+    {
+        MessageSource messageSource = getMessageSource();
+        if (messageSource == null)
+        {
+            throw new JspTagException("No corresponding MessageSource found");
+        }
+
+        return messageSource.getMessage(message, null, "??" + message + "??", getRequestContext().getLocale());
+    }
+
+    /**
+     * Resolve the specified message into a concrete message String.
+     * The returned message String should be unescaped.
+     * @param message
+     * @param args
+     * @return
+     * @throws javax.servlet.jsp.JspException
+     */
+    protected String resolveMessage(String message, Object[] args) throws JspException, NoSuchMessageException
+    {
+        MessageSource messageSource = getMessageSource();
+        if (messageSource == null)
+        {
+            throw new JspTagException("No corresponding MessageSource found");
+        }
+
+        return messageSource.getMessage(message, args, "??" + message + "??", getRequestContext().getLocale());
+    }
 
 
-/**
- *
- */
-abstract public class AbstractLocalizableTag extends RequestContextAwareTag {
-   /**
-    * Resolve the specified message into a concrete message String.
-    * The returned message String should be unescaped.
-    */
-   protected String resolveMessage(String message) throws JspException, NoSuchMessageException {
-      MessageSource messageSource = getMessageSource();
-      if (messageSource == null) {
-         throw new JspTagException("No corresponding MessageSource found");
-      }
-      return messageSource.getMessage(message, null, "??" + message + "??", getRequestContext().getLocale());
-   }
-
-   /**
-    * Resolve the specified message into a concrete message String.
-    * The returned message String should be unescaped.
-    */
-   protected String resolveMessage(String message, Object[] args) throws JspException, NoSuchMessageException {
-      MessageSource messageSource = getMessageSource();
-      if (messageSource == null) {
-         throw new JspTagException("No corresponding MessageSource found");
-      }
-      return messageSource.getMessage(message, args, "??" + message + "??", getRequestContext().getLocale());
-   }
-
-
-   /**
-    * Use the application context itself for default message resolution.
-    */
-   protected MessageSource getMessageSource() {
-      return getRequestContext().getWebApplicationContext();
-   }
+    /**
+     * Use the application context itself for default message resolution.
+     * @return
+     */
+    protected MessageSource getMessageSource()
+    {
+        return getRequestContext().getWebApplicationContext();
+    }
 }

@@ -21,25 +21,25 @@
 
 <hibernate-mapping>
 
-	<class name="com.rsmart.certification.impl.hibernate.CertificateDefinitionHibernateImpl" table="certificate_definition" lazy="false">
+    <class name="com.rsmart.certification.impl.hibernate.CertificateDefinitionHibernateImpl" table="certificate_definition" lazy="false">
 
-		<id name="id" length="36" type="java.lang.String" column="id">
-			<generator class="uuid.hex" />
-		</id>
+        <id name="id" length="36" type="java.lang.String" column="id">
+            <generator class="uuid.hex" />
+        </id>
 
-        <property name="name" type="java.lang.String" column="defn_name" length="255" unique="false"/>
+        <property name="name" type="java.lang.String" column="defn_name" length="255" not-null="true"/>
         <property name="description" type="java.lang.String" column="defn_descr" length="500"/>
         <property name="createDate" type="timestamp" column="create_date" not-null="true"/>
         <property name="creatorUserId" type="java.lang.String" column="creator_id" not-null="true"/>
+        <property name="siteId" type="java.lang.String" column="site_id" not-null="true"/>
         <property name="status" type="com.rsmart.certification.impl.hibernate.CertificateDefinitionStatusEnumUserType"
                   not-null="true"/>
-        <property name="siteId" type="java.lang.String" column="site_id" not-null="true"/>
-        <property name="shortUrl" type="java.lang.String" column="short_url" not-null="false"/>
+        <property name="progressHidden" type="java.lang.Boolean" column="progress_hidden"/>
         <set name="awardCriteria" lazy="false" cascade="save-update,delete">
             <key column="certificate_definition_id"/>
             <one-to-many class="com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl"/>
         </set>
-        
+
         <one-to-one name="documentTemplate"
                     class="com.rsmart.certification.impl.hibernate.DocumentTemplateHibernateImpl"
                     cascade="save-update,delete"/>
@@ -50,12 +50,15 @@
             <element column="value" type="string" not-null="true"/>
         </map>
 
-
+        <properties name="certdefunique" unique="true">
+            <property name="name"/>
+            <property name="siteId"/>
+        </properties>
    </class>
 
    <query name="getCertificateDefinitionsBySite">
        from CertificateDefinitionHibernateImpl
-           where siteId = ?
+           where siteId = :siteId
    </query>
    <query name="getCertificateDefinitionsBySiteAndStatus">
        from CertificateDefinitionHibernateImpl
@@ -69,13 +72,11 @@
     </query>
     <query name="deleteCertificateDefinition">
         delete from CertificateDefinitionHibernateImpl cd
-            where id = ?
+            where id = :id
     </query>
     <query name="getCertificateDefinitionByName">
         from CertificateDefinitionHibernateImpl
-            where siteId = ?
-              and name = ?
+            where siteId = :siteId
+              and name = :name
     </query>
-
-
 </hibernate-mapping>

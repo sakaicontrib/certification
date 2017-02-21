@@ -22,9 +22,9 @@
 <hibernate-mapping>
 
     <subclass name="com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl"
-                     extends="com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl"
-                     discriminator-value="com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl"
-                     lazy="false">
+              extends="com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl"
+              discriminator-value="com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl"
+              lazy="false">
     </subclass>
 
 </hibernate-mapping>

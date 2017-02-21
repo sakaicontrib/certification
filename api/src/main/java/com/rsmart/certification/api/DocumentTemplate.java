@@ -1,7 +1,5 @@
 package com.rsmart.certification.api;
 
-import java.io.InputStream;
-
 /**
  * This encapsulates a binary file containing a template that can be rendered into a printable certificate. The
  * template will have labeled fields that can be populated at rendering time. These fields can be used for elements
@@ -13,19 +11,31 @@ import java.io.InputStream;
  */
 public interface DocumentTemplate
 {
-	public static final String COLLECTION_ID = "/certification/templates/";
-	
+    /**
+     * The resource directory in which the templates get stored
+     */
+    public static final String COLLECTION_ID = "/certification/templates/";
+
+    /**
+     * The unique id of this document template
+     * @return
+     */
     public String getId();
 
+    /**
+     * The uploaded file name
+     * @return
+     */
     public String getName();
-    
+
+    /**
+     * The mime type of the uploaded file
+     * @return
+     */
     public String getOutputMimeType();
 
     /**
-     * @return the raw template without populated fields
-     * @throws TemplateReadException
+     * @return the resource id of the raw template without populated fields
      */
     public String getResourceId();
-   /* public InputStream getTemplateFileInputStream ()
-        throws TemplateReadException;*/
 }

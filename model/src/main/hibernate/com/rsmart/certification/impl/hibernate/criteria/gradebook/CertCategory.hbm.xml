@@ -19,6 +19,6 @@
 
 		<property name="removed" column="REMOVED" type="boolean" />
 
-  </class>
+	</class>
 
 </hibernate-mapping>

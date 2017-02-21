@@ -1,12 +1,32 @@
 package com.rsmart.certification.tool;
 
+import com.rsmart.certification.api.CertificateDefinition;
+import com.rsmart.certification.api.CertificateDefinitionStatus;
+import com.rsmart.certification.api.CertificateService;
+import com.rsmart.certification.api.DocumentTemplate;
+import com.rsmart.certification.api.DocumentTemplateException;
+import com.rsmart.certification.api.DocumentTemplateService;
+import com.rsmart.certification.api.ReportRow;
+import com.rsmart.certification.api.TemplateReadException;
+import com.rsmart.certification.api.VariableResolutionException;
+import com.rsmart.certification.api.criteria.Criterion;
+import com.rsmart.certification.api.criteria.CriterionProgress;
+import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -14,30 +34,18 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import org.apache.commons.lang3.StringUtils;
 
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.exception.IdUnusedException;
-import org.sakaiproject.tool.cover.SessionManager;
+import org.sakaiproject.site.api.Site;
+
 import org.springframework.beans.support.PagedListHolder;
 import org.springframework.beans.support.SortDefinition;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.view.RedirectView;
-
-import com.rsmart.certification.api.CertificateAward;
-import com.rsmart.certification.api.CertificateDefinition;
-import com.rsmart.certification.api.CertificateDefinitionStatus;
-import com.rsmart.certification.api.CertificateService;
-import com.rsmart.certification.api.DocumentTemplate;
-import com.rsmart.certification.api.DocumentTemplateException;
-import com.rsmart.certification.api.DocumentTemplateService;
-import com.rsmart.certification.api.TemplateReadException;
-import com.rsmart.certification.api.UnmetCriteriaException;
-import com.rsmart.certification.api.VariableResolutionException;
-import com.rsmart.certification.api.criteria.Criterion;
-import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 
 /**
  * User: duffy
@@ -45,510 +53,396 @@ import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
  * Time: 4:15:18 PM
  */
 @Controller
-public class CertificateListController
-    extends BaseCertificateController
+public class CertificateListController extends BaseCertificateController
 {
-	
-	public static final String PAGINATION_NEXT = "next";
-	public static final String PAGINATION_LAST = "last";
-	public static final String PAGINATION_PREV = "previous";
-	public static final String PAGINATION_FIRST = "first";
-	public static final String PAGINATION_PAGE = "page";
-	public static final String PAGE_SIZE = "pageSize";
-	public static final String PAGE_NO = "pageNo";
-	public static final List<Integer> PAGE_SIZE_LIST = Arrays.asList(10,25,50,100,Integer.MAX_VALUE);
-	
-	private String getAbsoluteUrlForRedirect(String redirectTo)
-	{
-        String placementId = getToolManager().getCurrentPlacement().getId();
-        String siteId = getToolManager().getCurrentPlacement().getContext();
-        String portalurl = ServerConfigurationService.getPortalUrl();
-        //SAKAI 10
-        // String redirectPrefix = portalurl + "/tool/" + placementId;
-        //This one is for SAKAI 11
-        String redirectPrefix = portalurl + "/site/" + siteId + "/tool/" + placementId;
-        String redirectString = "redirect:" + redirectPrefix + "/" + redirectTo;
-        return redirectString;
-	}
-	
-	@RequestMapping("/list.form")
-	public ModelAndView certListHandler(@RequestParam(value=PAGINATION_PAGE, required=false) String page,
-			@RequestParam(value=PAGE_SIZE, required=false) Integer pageSize,
-			@RequestParam(value=PAGE_NO, required=false) Integer pageNo, HttpServletRequest request) throws Exception
+    public static final String THIS_PAGE = "list.form";
+
+    //Pagination request params
+    public static final String PAGINATION_NEXT = "next";
+    public static final String PAGINATION_LAST = "last";
+    public static final String PAGINATION_PREV = "previous";
+    public static final String PAGINATION_FIRST = "first";
+    public static final String PAGINATION_PAGE = "page";
+    public static final String PAGE_SIZE = "pageSize";
+    public static final String PAGE_NO = "pageNo";
+    public static final List<Integer> PAGE_SIZE_LIST = Arrays.asList(10,25,50,100,200,Integer.MAX_VALUE);
+
+    //Other request params
+    public static final String PARAM_CERT_ID = "certId";
+    public static final String PARAM_EXPORT = "export";
+    public static final String PARAM_SORT = "sort";
+    public static final String PARAM_PROP = "prop";
+    public static final String PARAM_CRITERION = "criterion";
+
+    //Request params to filter the report view
+    public static final String PARAM_DISPLAY_FILTER_TYPE = "filterType";
+    public static final String PARAM_DISPLAY_FILTER_DATE_TYPE = "filterDateType";
+    public static final String PARAM_DISPLAY_FILTER_START_DATE = "filterStartDate";
+    public static final String PARAM_DISPLAY_FILTER_END_DATE = "filterEndDate";
+    public static final String PARAM_DISPLAY_FILTER_HISTORICAL = "filterHistorical";
+
+    //sakai.properties
+    private final String MAIL_SUPPORT_SAKAI_PROPERTY =  "mail.support";
+    private final String MAIL_SUPPORT = ServerConfigurationService.getString(MAIL_SUPPORT_SAKAI_PROPERTY);
+
+    private static final int DEFAULT_FILTER_DAYS;
+    static
     {
-		if(isAdministrator())
-		{
-			return certAdminListHandler(page, pageSize, pageNo, request);
-		}
-		else
-		{
-			return certParticipantListHandler(page, pageSize, pageNo, request);
-		}
-	}
+        String strDefaultFilterDays = ServerConfigurationService.getString("certification.reportFilter.defaultFilterDays");
+        int intDefaultFilterDays;
+        try
+        {
+            intDefaultFilterDays = Integer.parseInt(strDefaultFilterDays);
+        }
+        catch (Exception e)
+        {
+            //default is 1 year
+            intDefaultFilterDays = 365;
+        }
+
+        DEFAULT_FILTER_DAYS = intDefaultFilterDays;
+    }
+
+    // JSP views
+    private final String ADMIN_VIEW = "certviewAdmin";
+    private final String PARTICIPANT_VIEW = "certviewParticipant";
+    private final String UNAUTHORIZED_VIEW = "certviewUnauthorized";
+    private final String REPORT_VIEW = "reportView";
+
+    private final String CERTIFICATE_NAME_PROPERTY = "name";
+
+    //Keys for http session attributes
+    private final String SESSION_LIST_ATTRIBUTE = "certList";
+    private final String SESSION_REQUIREMENTS_ATTRIBUTE = "requirements";
+    private final String SESSION_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
+    private final String SESSION_REPORT_PROP_HEADERS_ATTRIBUTE = "reportPropHeaders";
+    private final String SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE = "reportCritHeaders";
+    private final String SESSION_REPORT_LIST_ATTRIBUTE = "reportList";
+    private final String SESSION_REQUIREMENT_LIST_ATTRIBUTE = "certRequirementList";
+    private final String SESSION_IS_AWARDED_ATTRIBUTE = "certIsAwarded";
+    private final String SESSION_ORDERED_CRITERIA = "orderedCriteria";
+    private final String SESSION_SORT_REPORT_ASC = "sortReportAsc";
+    private final String SESSION_SORT_REPORT_KEY = "sortReportKey";
+    private final String SESSION_SORT_REPORT_EXTRA_PROPERTY = "sortReportExtraProperty";
+
+    //Keys for mav models
+    private final String MODEL_KEY_CERTIFICATE_LIST = "certList";
+    private final String MODEL_KEY_PAGE_SIZE_LIST = "pageSizeList";
+    private final String MODEL_KEY_PAGE_NO = "pageNo";
+    private final String MODEL_KEY_PAGE_SIZE = "pageSize";
+    private final String MODEL_KEY_FIRST_ELEMENT = "firstElement";
+    private final String MODEL_KEY_LAST_ELEMENT = "lastElement";
+    private final String MODEL_KEY_CERTIFICATE = "cert";
+    private final String MODEL_KEY_REQUIREMENT_LIST_ATTRIBUTE = "certRequirementList";
+    private final String MODEL_KEY_IS_AWARDED_ATTRIBUTE = "certIsAwarded";
+    private final String MODEL_KEY_ERROR_ARGUMENTS_ATTRIBUTE = "errorArgs";
+    private final String MODEL_KEY_ERRORS_ATTRIBUTE = "errors";
+    private final String MODEL_KEY_USE_DEFAULT_DISPLAY_OPTIONS = "useDefaultDisplayOptions";
+    private final String MODEL_KEY_FILTER_START_DATE = "filterStartDate";
+    private final String MODEL_KEY_FILTER_END_DATE = "filterEndDate";
+    private final String MODEL_KEY_REQUIREMENTS_ATTRIBUTE = "requirements";
+    private final String MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
+    private final String MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE = "userPropHeaders";
+    private final String MODEL_KEY_CRIT_HEADERS_ATTRIBUTE = "critHeaders";
+    private final String MODEL_KEY_REPORT_LIST_ATTRIBUTE = "reportList";
+    private final String MODEL_KEY_HIGH_MEMBERS = "highMembers";
+
+    //UI Message keys
+    private final String MESSAGE_ERROR_NOT_ADMIN = "error.not.admin";
+    private final String MESSAGE_ERROR_NO_SELECTION = "error.no.selection";
+    private final String MESSAGE_ERROR_BAD_ID = "error.bad.id";
+    private final String MESSAGE_GRADE_NOT_NUMERIC = "form.error.grade.notNumeric";
+    private final String MESSAGE_TEMPLATE_PROCESSING_ERROR = "form.error.templateProcessingError";
+    private final String MESSAGE_FORM_PRINT_ERROR = "form.print.error";
+    private final String MESSAGE_REPORT_EXPORT_FNAME = "report.export.fname";
+    private final String MESSAGE_REPORT_EXPORT_ERROR = "report.export.error";
+    private final String MESSAGE_REPORT_TABLE_HEADER_NAME = "report.table.header.name";
+    private final String MESSAGE_REPORT_TABLE_HEADER_USER_ID = "report.table.header.userid";
+    private final String MESSAGE_REPORT_TABLE_HEADER_ROLE = "report.table.header.role";
+    private final String MESSAGE_REPORT_TABLE_HEADER_ISSUEDATE = "report.table.header.issuedate";
+    private final String MESSAGE_REPORT_TABLE_HEADER_AWARDED = "report.table.header.awarded";
+    private final String MESSAGE_EXPIRY_OFFSET_MONTH = "report.expiry.offset.month";
+    private final String MESSAGE_EXPIRY_OFFSET_MONTHS = "report.expiry.offset.months";
+
+    //HTTP Headers
+    private final String HEADER_CONTENT_DISPOSITION = "Content-Disposition";
+    private final String HEADER_CACHE_CONTROL = "Cache-Control";
+    private final String HEADER_PRAGMA = "Pragma";
+
+    //Date Formats
+    private final String PDF_FILE_NAME_DATE_FORMAT = "yyyy_MM_dd";
+    private final String CSV_FILE_NAME_FORMAT = "yyyy-MM-dd";
+    private final String FILTER_DATE_FORMAT = "MM-dd-yyyy";
+
+    //Mime types
+    private static final String PDF_MIME_TYPE = "application/pdf";
+    private static final String CSV_MIME_TYPE = "text/csv";
+
+    //Logging levels supported by logifNull()
+    private final String LEVEL_WARN = "warn";
+
+    @RequestMapping("/" + THIS_PAGE)
+    public ModelAndView certListHandler(@RequestParam(value=PAGINATION_PAGE, required=false) String page,
+            @RequestParam(value=PAGE_SIZE, required=false) Integer pageSize,
+            @RequestParam(value=PAGE_NO, required=false) Integer pageNo, HttpServletRequest request) throws Exception
+    {
+        if(isAdministrator())
+        {
+            return certAdminListHandler(page, pageSize, pageNo, request);
+        }
+        else if (isAwardable())
+        {
+            return certParticipantListHandler(page, pageSize, pageNo, request);
+        }
+        else
+        {
+            return certUnauthorizedListHandler(page, pageSize, pageNo, request);
+        }
+    }
 
     public ModelAndView certAdminListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
     {
-    	ModelAndView
-            mav = new ModelAndView("certviewAdmin");
+        ModelAndView mav = new ModelAndView(ADMIN_VIEW);
+        Map<String, Object> model = new HashMap<>();
+        List<CertificateDefinition> certDefList = new ArrayList<>();
+        HttpSession session = request.getSession();
+        PagedListHolder certList;
 
-    	Map<String, Object>
-            model = new HashMap<String, Object>();
-    	
-    	List<CertificateDefinition>
-            certDefList = new ArrayList<CertificateDefinition>();
-
-        HttpSession
-            session = request.getSession();
-
-        PagedListHolder
-            certList = null;
-
-    	if(page==null)
-		{
-    		String
-                siteId = siteId();
-
-			certDefList.addAll(getCertificateService().getCertificateDefinitionsForSite(siteId));
+        if(page == null)
+        {
+            String siteId = siteId();
+            certDefList.addAll(getCertificateService().getCertificateDefinitionsForSite(siteId));
 
             certList = new PagedListHolder(certDefList);
-	    	if(pageSize != null)
-	    	{
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	else
-	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(0);
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	if(pageNo != null)
-	    	{
-	    		certList.setPage(pageNo);
-	    	}
-            certList.setSort(
-                new SortDefinition()
+            if(pageSize != null)
+            {
+                certList.setPageSize(pageSize);
+            }
+            else
+            {
+                pageSize = PAGE_SIZE_LIST.get(3);
+                certList.setPageSize(pageSize);
+            }
+            if(pageNo != null)
+            {
+                certList.setPage(pageNo);
+            }
+            certList.setSort(new SortDefinition()
+            {
+                public String getProperty()
                 {
-                    public String getProperty() {
-                        return "name";
-                    }
-
-                    public boolean isIgnoreCase() {
-                        return true;
-                    }
-
-                    public boolean isAscending() {
-                        return true;
-                    }
+                    return CERTIFICATE_NAME_PROPERTY;
                 }
-            );
 
-            certList.resort();                
-		}
-    	else
-    	{
-    		certList = (PagedListHolder) session.getAttribute("certList");
+                public boolean isIgnoreCase()
+                {
+                    return true;
+                }
 
-    		if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
-    		{
-    			certList.nextPage();
-    		}
-    		else if(PAGINATION_LAST.equals(page))
-    		{
-    			certList.setPage(certList.getLastLinkedPage());
-    		}
-    		else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
-    		{
-    			certList.previousPage();
-    		}
-    		else if(PAGINATION_FIRST.equals(page))
-    		{
-    			certList.setPage(certList.getFirstLinkedPage());
-    		}
-    	}
+                public boolean isAscending()
+                {
+                    return true;
+                }
+            });
 
-        session.setAttribute("certList", certList);
-        model.put("certList", certList);
-        model.put("pageSizeList", PAGE_SIZE_LIST);
-        model.put("pageNo", certList.getPage());
-        model.put("pageSize", pageSize);
-        model.put("firstElement", (certList.getFirstElementOnPage()+1));
-        model.put("lastElement", (certList.getLastElementOnPage()+1));
-    	mav.addAllObjects(model);
-    	return mav;
+            certList.resort();
+        }
+        else
+        {
+            certList = (PagedListHolder) session.getAttribute(SESSION_LIST_ATTRIBUTE);
+
+            if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
+            {
+                certList.nextPage();
+            }
+            else if(PAGINATION_LAST.equals(page))
+            {
+                certList.setPage(certList.getLastLinkedPage());
+            }
+            else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
+            {
+                certList.previousPage();
+            }
+            else if(PAGINATION_FIRST.equals(page))
+            {
+                certList.setPage(certList.getFirstLinkedPage());
+            }
+        }
+
+        int numMembers = 0;
+        final int HIGH_NUMBER_OF_MEMBERS = 500;
+        Site currentSite = getCurrentSite();
+        if (currentSite != null)
+        {
+            Set<String> users = currentSite.getUsers();
+            if (users != null)
+            {
+                numMembers = users.size();
+            }
+        }
+
+        session.setAttribute(SESSION_LIST_ATTRIBUTE, certList);
+        if (numMembers > HIGH_NUMBER_OF_MEMBERS)
+        {
+            model.put(MODEL_KEY_HIGH_MEMBERS, Boolean.TRUE);
+        }
+        else
+        {
+            model.put(MODEL_KEY_HIGH_MEMBERS, Boolean.FALSE);
+        }
+
+        model.put(MODEL_KEY_CERTIFICATE_LIST, certList);
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, certList.getPage());
+        model.put(MODEL_KEY_PAGE_SIZE, pageSize);
+        model.put(MODEL_KEY_FIRST_ELEMENT, (certList.getFirstElementOnPage() + 1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (certList.getLastElementOnPage() + 1));
+        mav.addAllObjects(model);
+        return mav;
     }
-    
+
     public ModelAndView certParticipantListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
     {
-        final CertificateService
-            cs = getCertificateService();
-    	ModelAndView
-            mav = new ModelAndView("certviewParticipant");
-		Map<String, Object>
-            model = new HashMap<String, Object>();
-    	
-        Set<CertificateDefinition>
-            certDefs = null;
-    	List<CertificateDefinition>
-            filteredList = new ArrayList<CertificateDefinition>();
-    	Map<String, CertificateAward>
-            certAwardList = new HashMap<String, CertificateAward>();
-        HttpSession
-            session = request.getSession();
-        PagedListHolder
-            certList = null;
+        final CertificateService cs = getCertificateService();
+        ModelAndView mav = new ModelAndView(PARTICIPANT_VIEW);
+        Map<String, Object> model = new HashMap<>();
 
-        Set<Criterion>
-            unmet = (Set<Criterion>)SessionManager.getCurrentToolSession().getAttribute("unmetCriteria");
+        Set<CertificateDefinition> certDefs;
 
-        if (unmet != null)
+        Map<String, List<Map.Entry<String, String>>> certRequirementList = new HashMap<>();
+        Map<String, Boolean> certificateIsAwarded = new HashMap<>();
+
+        HttpSession session = request.getSession();
+        PagedListHolder certList;
+
+        // If this is the first time we're going to the page, or changing the paging size
+        if(page == null)
         {
-            SessionManager.getCurrentToolSession().removeAttribute("unmetCriterion");
-            request.setAttribute("unmetCriteria", unmet);
-        }
-                    
-    	if(page==null)
-		{
-            certDefs = cs.getCertificateDefinitionsForSite
-                        (siteId(),
-                         new CertificateDefinitionStatus[]
-                         {
-                            CertificateDefinitionStatus.ACTIVE,
-                            CertificateDefinitionStatus.INACTIVE
-                         });
-
-            List<String>
-                certDefIds = new ArrayList<String>();
+            certDefs = cs.getCertificateDefinitionsForSite(siteId(), new CertificateDefinitionStatus[]
+            {
+               CertificateDefinitionStatus.ACTIVE
+            });
 
             for(CertificateDefinition cfl : certDefs)
             {
-                certDefIds.add(cfl.getId());
+                List<Map.Entry<String, String>> requirementList = new ArrayList<>();
+                try
+                {
+                    requirementList = cs.getCertificateRequirementsForUser(cfl.getId(), userId(), siteId(), false);
+                }
+                catch (IdUnusedException e)
+                {
+                    logger.warn("While getting certificate requirements, found unused certificate id: " + cfl.getId());
+                }
+                certRequirementList.put (cfl.getId(), requirementList);
             }
-
-            String
-                cdIdArr[] = new String [certDefIds.size()];
-
-            certDefIds.toArray(cdIdArr);
-
-            certAwardList = cs.getCertificateAwardsForUser(cdIdArr);
 
             for (CertificateDefinition cd : certDefs)
             {
-                if (CertificateDefinitionStatus.ACTIVE.equals(cd.getStatus()) ||
-                    certAwardList.containsKey(cd.getId()))
+                boolean awarded = false;
+                if (isAwardable() && cd.isAwarded(userId(), false))
                 {
-                    filteredList.add(cd);
+                    awarded = true;
                 }
+
+                certificateIsAwarded.put(cd.getId(), awarded);
             }
-			
-	    	certList = new PagedListHolder();
-	    	if(pageSize != null)
-	    	{
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	else
-	    	{
-	    		pageSize = PAGE_SIZE_LIST.get(0);
-	    		certList.setPageSize(pageSize);
-	    	}
-	    	if(pageNo != null)
-	    	{
-	    		certList.setPage(pageNo);
-	    	}
-            certList.setSource(filteredList);
 
-            certList.setSort(
-                new SortDefinition()
+            certList = new PagedListHolder();
+            if(pageSize != null)
+            {
+                certList.setPageSize(pageSize);
+            }
+            else
+            {
+                pageSize = PAGE_SIZE_LIST.get(3);
+                certList.setPageSize(pageSize);
+            }
+            if(pageNo != null)
+            {
+                certList.setPage(pageNo);
+            }
+
+            certList.setSource(Arrays.asList(certDefs.toArray()));
+            certList.setSort(new SortDefinition()
+            {
+                public String getProperty()
                 {
-                    public String getProperty() {
-                        return "name";
-                    }
-
-                    public boolean isIgnoreCase() {
-                        return true;
-                    }
-
-                    public boolean isAscending() {
-                        return true;
-                    }
+                    return CERTIFICATE_NAME_PROPERTY;
                 }
-            );
+
+                public boolean isIgnoreCase()
+                {
+                    return true;
+                }
+
+                public boolean isAscending()
+                {
+                    return true;
+                }
+            });
 
             certList.resort();
-		}
-		else
-		{
-			certList = (PagedListHolder) session.getAttribute("certList");
-			certAwardList = (Map) session.getAttribute("certAwardList");
-
-    		if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
-    		{
-    			certList.nextPage();
-    		}
-    		else if(PAGINATION_LAST.equals(page))
-    		{
-    			certList.setPage(certList.getLastLinkedPage());
-    		}
-    		else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
-    		{
-    			certList.previousPage();
-    		}
-    		else if(PAGINATION_FIRST.equals(page))
-    		{
-    			certList.setPage(certList.getFirstLinkedPage());
-    		}
-		}
-
-    	session.setAttribute ("certList", certList);
-        session.setAttribute ("certAwardList", certAwardList);
-        model.put("certList", certList);
-        model.put("certAwardList", certAwardList);
-        model.put("pageSizeList", PAGE_SIZE_LIST);
-        model.put("pageNo", certList.getPage());
-        model.put("firstElement", (certList.getFirstElementOnPage()+1));
-        model.put("lastElement", (certList.getLastElementOnPage()+1));
-
-		mav.addAllObjects(model);
-		return mav;
-    }
-    
-    @RequestMapping("/checkstatus.form")
-    public ModelAndView checkCertAwardStatus(@RequestParam("certId") String certId, HttpServletRequest request,
-    		HttpServletResponse response)
-        throws Exception
-    {
-    	/*
-			should take a certificateDefinition ID as a parameter
-			check if CertificateAward already exists
-				(CertificateService.getCertificateAward)
-			otherwise
-				CertificateService.awardCertificate
-				
-			if user can't receive certificate an UnmetCriteriaException is thrown
-				- this contains a Set<Criterion> to display what hasn't been completed
-				
-			otherwise - forward to printCertificate
-    	 */
-        CertificateAward
-            certAward = null;
-        HashMap<String, Object>
-            model = new HashMap<String, Object>();
-
-        try
-        {
-            certAward = certificateService.getCertificateAward(certId);
         }
-        catch (IdUnusedException e)
+        else
         {
-            //no problem - it simply may not have been awarded yet
-        }
+            //They're changing pages
+            certList = (PagedListHolder) session.getAttribute(SESSION_LIST_ATTRIBUTE);
+            certRequirementList = (Map) session.getAttribute(SESSION_REQUIREMENT_LIST_ATTRIBUTE);
+            certificateIsAwarded = (Map) session.getAttribute(SESSION_IS_AWARDED_ATTRIBUTE);
 
-        try
-    	{
-    		if(certAward == null)
-    		{
-                certificateService.awardCertificate(certId, userId());
-    		}
-
-            return new ModelAndView(getAbsoluteUrlForRedirect("printPreview.form?certId=" + certId));
-    	}
-    	catch (UnmetCriteriaException umet)
-    	{
-    		Set<Criterion>
-                criterion = umet.getUnmetConditions();
-
-            SessionManager.getCurrentToolSession().setAttribute("unmetCriteria", criterion);
-            
-            return new ModelAndView(getAbsoluteUrlForRedirect("list.form"),model);
-            //return certListHandler(null, null, null, request);
-    	}
-        catch (IdUnusedException e)
-        {
-            //error this is a bogus ID
-            return new ModelAndView (getAbsoluteUrlForRedirect("list.form"), model);
-        }
-        catch (UnknownCriterionTypeException e)
-        {
-            //error processing the criteria
-            return new ModelAndView (getAbsoluteUrlForRedirect("list.form"), model);
-        }
-    }
-    
-    @RequestMapping("/printPreview.form")
-    public ModelAndView printPreviewCertificateHandler(@RequestParam("certId") String certId,
-                                        HttpServletRequest request,
-    		                            HttpServletResponse response)
-        throws TemplateReadException
-    {
-        CertificateService
-            certService = getCertificateService();
-        CertificateDefinition
-            definition = null;
-        CertificateAward
-            award = null;
-
-        try
-        {
-            definition = certService.getCertificateDefinition(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        try
-        {
-            award = getCertificateService().getCertificateAward(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        if (!isAwardPrintable(award))
-        {
-            //error
-        }
-
-        if (award == null)
-        {
-            //error
-        }
-        
-        
-        Map<String, Object>
-        model = new HashMap<String, Object>();
-
-        model.put("cert", definition);
-        model.put("award", award);
-        
-        //Below code is commented to remove the preview functionality issue #CLE-9696
-        /*DocumentTemplate
-            template = definition.getDocumentTemplate();
-        DocumentTemplateService
-            dts = getDocumentTemplateService();
-        boolean
-            previewable = dts.isPreviewable(template);
-        
-        model.put("previewable", previewable);
-
-        if (previewable)
-        {
-            model.put ("previewableMimeType", dts.getPreviewMimeType(template));
-        }*/
-
-        return new ModelAndView ("printPreview", model);
-    	/*
-    		should take a certificateDefinition ID as a parameter
-    		see if the user has a CertificateAward for the the CertDefn
-    		get the DocumentTemplate from the CertificateDefinition
-    		create a preview with DocumentTemplateService calls:
-    			isPreviewable()
-    			getPreviewMimeType()
-    			renderPreview()
-    		create a final rendering with:
-    			render()
-		*/
-    }
-
-    @RequestMapping("/printData.form")
-    public void previewDataHandler(@RequestParam("certId") String certId,
-                                        HttpServletRequest request,
-    		                            HttpServletResponse response)
-    {
-        CertificateService
-            certService = getCertificateService();
-        CertificateDefinition
-            definition = null;
-        CertificateAward
-            award = null;
-
-        try
-        {
-            definition = certService.getCertificateDefinition(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        try
-        {
-            award = getCertificateService().getCertificateAward(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        if (!isAwardPrintable(award))
-        {
-            //error
-        }
-
-        if (award == null)
-        {
-            //error
-        }
-
-        DocumentTemplate
-            template = definition.getDocumentTemplate();
-
-        DocumentTemplateService
-            dts = getDocumentTemplateService();
-
-        try
-        {
-            if (!dts.isPreviewable(template))
+            if(PAGINATION_NEXT.equals(page)  && !certList.isLastPage())
             {
-
+                certList.nextPage();
             }
-
-            response.setContentType(dts.getPreviewMimeType(template));
-
-            OutputStream
-                out = response.getOutputStream();
-            InputStream
-                in = dts.renderPreview(template, award, definition.getFieldValues());
-
-            byte
-                buff[] = new byte[2048];
-            int
-                numread = 0;
-
-            while ((numread = in.read(buff)) != -1)
+            else if(PAGINATION_LAST.equals(page))
             {
-                out.write(buff, 0, numread);
+                certList.setPage(certList.getLastLinkedPage());
+            }
+            else if(PAGINATION_PREV.equals(page) && !certList.isFirstPage())
+            {
+                certList.previousPage();
+            }
+            else if(PAGINATION_FIRST.equals(page))
+            {
+                certList.setPage(certList.getFirstLinkedPage());
             }
         }
-        catch (TemplateReadException e)
-        {
-            //error
-        }
-        catch (VariableResolutionException e)
-        {
-        }
-        catch (IOException e)
-        {
-        }
 
+        session.setAttribute (SESSION_LIST_ATTRIBUTE, certList);
+        session.setAttribute (SESSION_REQUIREMENT_LIST_ATTRIBUTE, certRequirementList);
+        session.setAttribute (SESSION_IS_AWARDED_ATTRIBUTE, certificateIsAwarded);
+        model.put(MODEL_KEY_CERTIFICATE_LIST, certList);
+        model.put(MODEL_KEY_REQUIREMENT_LIST_ATTRIBUTE, certRequirementList);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
+        model.put(MODEL_KEY_IS_AWARDED_ATTRIBUTE, certificateIsAwarded);
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, certList.getPage());
+        model.put(MODEL_KEY_FIRST_ELEMENT, (certList.getFirstElementOnPage() + 1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (certList.getLastElementOnPage() + 1));
+
+        mav.addAllObjects(model);
+        return mav;
+    }
+
+    public ModelAndView certUnauthorizedListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
+    {
+        ModelAndView mav = new ModelAndView(UNAUTHORIZED_VIEW);
+        return mav;
     }
 
     @RequestMapping("/delete.form")
-    public ModelAndView deleteCertificateHandler(@RequestParam("certId") String certId,
-                    HttpServletRequest request,
-                    HttpServletResponse response)
+    public ModelAndView deleteCertificateHandler(@RequestParam(PARAM_CERT_ID) String certId, HttpServletRequest request, HttpServletResponse response)
     {
-
-        HashMap<String, String>
-            model = new HashMap<String, String>();
-
+        HashMap<String, String> model = new HashMap<>();
         if (!isAdministrator())
         {
-            model.put(ERROR_MESSAGE, "error.not.admin");
+            model.put(ERROR_MESSAGE, MESSAGE_ERROR_NOT_ADMIN);
         }
 
-        if (certId == null || certId.trim().length() == 0)
+        if (StringUtils.isBlank( certId ))
         {
-            model.put(ERROR_MESSAGE, "error.no.selection");
+            model.put(ERROR_MESSAGE, MESSAGE_ERROR_NO_SELECTION);
         }
 
         try
@@ -557,142 +451,1076 @@ public class CertificateListController
         }
         catch (IdUnusedException e)
         {
-            model.put(ERROR_MESSAGE, "error.bad.id");
+            model.put(ERROR_MESSAGE, MESSAGE_ERROR_BAD_ID);
         }
         catch (DocumentTemplateException dte)
         {
-        	model.put(ERROR_MESSAGE, "form.error.templateProcessingError");
+            model.put(ERROR_MESSAGE, MESSAGE_TEMPLATE_PROCESSING_ERROR);
         }
 
         if (model.size () > 0)
         {
-            return new ModelAndView ("redirect:list.form", model);
+            return new ModelAndView (REDIRECT + THIS_PAGE, model);
         }
 
-        return new ModelAndView ("redirect:list.form");
+        return new ModelAndView (REDIRECT + THIS_PAGE);
     }
 
     @RequestMapping("/print.form")
-    public void printCertificateHandler(@RequestParam("certId") String certId,
-                                        HttpServletRequest request,
-    		                            HttpServletResponse response)
+    public ModelAndView printCertificateHandler(@RequestParam(PARAM_CERT_ID) String certId, HttpServletRequest request, HttpServletResponse response)
     {
-        CertificateService
-            certService = getCertificateService();
-        CertificateDefinition
-            definition = null;
-        CertificateAward
-            award = null;
+        ModelAndView mav = null;
+        OutputStream out;
+
+        //true if there's trouble creating the certificate
+        boolean creationError = false;
+        CertificateService certService = getCertificateService();
+        CertificateDefinition definition;
 
         try
         {
             definition = certService.getCertificateDefinition(certId);
         }
-        catch (IdUnusedException e)
+        catch (IdUnusedException iue)
         {
-            //error
-        }
-
-        try
-        {
-            award = getCertificateService().getCertificateAward(certId);
-        }
-        catch (IdUnusedException e)
-        {
-            //error
-        }
-
-        if (!isAwardPrintable(award))
-        {
-            //error
-        }
-
-        if (award == null)
-        {
-            //error
-        }
-
-        DocumentTemplate
-            template = definition.getDocumentTemplate();
-
-        DocumentTemplateService
-            dts = getDocumentTemplateService();
-
-        try
-        {
-            StringBuffer
-                fNameBuff = new StringBuffer();
-            SimpleDateFormat
-                sdf = new SimpleDateFormat("yyyy_MM_dd");
-            String
-                certName = definition.getName(),
-                templName = template.getName(),
-                extension = "";
-            int
-                dotIndex = -1;
-
-            if (templName != null && (dotIndex = templName.lastIndexOf('.')) > -1)
+            try
             {
-                extension = templName.substring(dotIndex);
+                mav = certParticipantListHandler(null, null, null, request);
+
+                //this gets mav's actual model (not a clone)
+                Map model = mav.getModel();
+
+                //add the error to mav's model
+                model.put(ERROR_MESSAGE, MESSAGE_ERROR_BAD_ID);
+                return mav;
             }
+            catch (Exception e)
+            {
+                //Guess there's nothing we can do
+                logger.error(userId() + " has attempted to download certificate for non existant certificate: " + certId+ ", failed to provide feedback");
+                return null;
+            }
+        }
 
-            certName = certName.replaceAll("[^a-zA-Z0-9]","_");
+        Date issueDate = definition.getIssueDate(userId(), false);
+        boolean awarded = false;
+        try
+        {
+            awarded = definition.isAwarded(userId(), false);
+        }
+        catch (Exception e) {}
 
-            fNameBuff.append (sdf.format(award.getCertificationTimeStamp())).append('_');
-            fNameBuff.append (certName).append(extension);
+        if (awarded && isAwardable())
+        {
+            DocumentTemplate template = definition.getDocumentTemplate();
+            DocumentTemplateService dts = getDocumentTemplateService();
 
-			response.setContentType(dts.getPreviewMimeType(template));
-            response.addHeader("Content-Disposition", "attachement; filename = " + fNameBuff.toString());
-            response.setHeader("Cache-Control", "");
-            response.setHeader("Pragma", "");
+            try
+            {
+                //get an input stream for the PDF
+                InputStream in = dts.render(template, definition, userId());
 
+                //Creating the pdf was a success
+                //proceed to create the http response
 
-            OutputStream
+                //Make the filename
+                StringBuilder fNameBuff = new StringBuilder();
+                SimpleDateFormat sdf = new SimpleDateFormat(PDF_FILE_NAME_DATE_FORMAT);
+                String  certName = definition.getName();
+                String templName = template.getName();
+                String extension = "";
+                int dotIndex = -1;
+
+                if (templName != null && (dotIndex = templName.lastIndexOf('.')) > -1)
+                {
+                    extension = templName.substring(dotIndex);
+                }
+
+                certName = certName.replaceAll("[^a-zA-Z0-9]+","-");
+
+                String strIssueDate = "";
+                if (issueDate != null)
+                {
+                    strIssueDate = sdf.format(issueDate);
+                }
+
+                fNameBuff.append (certName);
+                fNameBuff.append('_').append(strIssueDate);
+                fNameBuff.append(extension);
+
+                //Configure the http headers
+                response.setContentType(PDF_MIME_TYPE);
+                response.addHeader(HEADER_CONTENT_DISPOSITION, "inline; filename = " + fNameBuff.toString());
+                response.setHeader(HEADER_CACHE_CONTROL, "");
+                response.setHeader(HEADER_PRAGMA, "");
+
+                //put the pdf into the payload (2kb at a time)
+                byte buff[] = new byte[2048];
+                int numread;
                 out = response.getOutputStream();
-            InputStream
-                in = dts.render(template, award, definition.getFieldValues());
 
-            byte
-                buff[] = new byte[2048];
-            int
-                numread = 0;
+                while ((numread = in.read(buff)) != -1)
+                {
+                    out.write(buff, 0, numread);
+                }
 
-            while ((numread = in.read(buff)) != -1)
+                out.flush();
+                out.close();
+            }
+            catch (TemplateReadException | VariableResolutionException | IOException e)
             {
-                out.write(buff, 0, numread);
+                creationError = true;
             }
         }
-        catch (TemplateReadException e)
+
+        if (creationError)
         {
-            //error
-        }
-        catch (VariableResolutionException e)
-        {
-        }
-        catch (IOException e)
-        {
+            try
+            {
+                mav = certParticipantListHandler(null, null, null, request);
+
+                //this gets mav's actual model (not a clone)
+                Map model = mav.getModel();
+
+                //add these entries to mav's model
+                model.put(ERROR_MESSAGE, MESSAGE_FORM_PRINT_ERROR);
+                model.put(MODEL_KEY_ERROR_ARGUMENTS_ATTRIBUTE, MAIL_SUPPORT);
+            }
+            catch (Exception e)
+            {
+                //An exception while handling previous errors
+                //Guess there's nothing we can do
+                logger.error("Couldn't create the pdf for " + userId() + ", certId is " + certId + ", failed to provide feedback");
+                return null;
+            }
         }
 
+        return mav;
     }
-    
-   /* @RequestMapping("/admin/list/{pageno}")
-	public ModelAndView certListHandler(@PathVariable("pageno") String pageno) 
+
+    /**
+     * This method handles the report. This includes landing on the report view, handling the paging navigators,
+     * and exporting the CSV. However, returning to the certificates list is handled in JSP
+     * @param certId the certificate on which is being reported
+     * @param page the destination (next, previous, first, last)
+     * @param pageSize the page size (for the paging navigator)
+     * @param pageNo the destination (specified number)
+     * @param export true if exporting a CSV
+     * @param request HTTP request
+     * @param response HTTP response
+     * @return the ModelAndView object for JSP
+     * @throws Exception
+     */
+    @RequestMapping("/reportView.form")
+    public ModelAndView certAdminReportHandler(@RequestParam(PARAM_CERT_ID) String certId, @RequestParam(value=PAGINATION_PAGE, required=false) String page,
+            @RequestParam(value=PAGE_SIZE, required=false) Integer pageSize,
+            @RequestParam(value=PAGE_NO, required=false) Integer pageNo,
+            @RequestParam(value=PARAM_EXPORT, required=false) Boolean export,
+            HttpServletRequest request, HttpServletResponse response) throws Exception
     {
-		ModelAndView mav = new ModelAndView("certviewAdmin");
-		Map model = new HashMap();
-    	setCertificateService(new MockCertificateService());
-    	String siteid = toolManager.getCurrentPlacement().getContext();
-    	Set<CertificateDefinition> certDefList = getCertificateService().getCertificateDefinitionsForSite(siteId);
-    	
-    	List<String> certDefIds = new ArrayList<String>();
-    	for(CertificateDefinition cfl:certDefList)
-    	{
-    		certDefIds.add(cfl.getId());
-    	}
-    	
-    	Map<String, CertificateAward> certAwardList = getCertificateService().getCertificateAwardsForUser((String[])certDefIds.toArray());
-    	PagedListHolder certDefPageList = new PagedListHolder(certDefList);
-    	certDefPageList.setPageSize(5);
-		return mav;
-	}*/
+        if (!isAdministrator())
+        {
+            //only people who have permission to add/edit certificates can see this report
+            return null;
+        }
+
+        //The model that will be sent to the UI
+        Map<String, Object> model = new HashMap<>();
+
+        //Any errors that need to be sent to the UI
+        List<String> errors = new ArrayList<>();
+
+        //Will be used to 'cache' some data to speed up the paging navigator
+        HttpSession session = request.getSession();
+
+        /*The Report table's headers for columns that are related to the certificate definition's criteria
+         * (other headers are already handled in jsp)*/
+        List<Object> criteriaHeaders = new ArrayList<>();
+
+        //holds the contents of the table, the page number, the page size, etc.
+        PagedListHolder reportList;
+
+        //Pass the certificate definition to the UI (so it can print its name and use its id as necessary)
+        CertificateService certService = getCertificateService();
+        CertificateDefinition definition;
+
+        try
+        {
+            definition = certService.getCertificateDefinition(certId);
+            if (logIfNull(definition, "cannot retrieve certificate definition for certId = " + certId))
+            {
+                return null;
+            }
+
+            if ( !siteId().equals(definition.getSiteId()) )
+            {
+                logger.warn(userId() + " is trying to access a certificate outside of their site");
+                return null;
+            }
+        }
+        catch (IdUnusedException e)
+        {
+            //they sent an invalid certId in their http GET;
+            /*possible causes: they clicked on View Report after another user deleted the certificate definition,
+            or they attempted to do evil with a random http GET.
+            We don't care, show them nothing*/
+            return null;
+        }
+
+        model.put(MODEL_KEY_CERTIFICATE, definition);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
+
+        //Prepare the default filter start and end dates
+        //start date is specified by sakai.properties
+        Calendar filterStartDate = Calendar.getInstance();
+        filterStartDate.add(Calendar.DATE, -1 * DEFAULT_FILTER_DAYS);
+        SimpleDateFormat sdf = new SimpleDateFormat(FILTER_DATE_FORMAT);
+        String strFilterStartDate = sdf.format(filterStartDate.getTime());
+        model.put(MODEL_KEY_FILTER_START_DATE, strFilterStartDate);
+
+        //end date is always the current date
+        Calendar filterEndDate = Calendar.getInstance();
+        String strFilterEndDate = sdf.format(filterEndDate.getTime());
+        model.put(MODEL_KEY_FILTER_END_DATE, strFilterEndDate);
+
+        //we'll need this to get additional user properties
+        ExtraUserPropertyUtility extraPropsUtil = getExtraUserPropertyUtility();
+        boolean extraPropsEnabled = extraPropsUtil.isExtraUserPropertiesEnabled();
+
+        //determines if the current user has permission to view extra properties
+        boolean canShowUserProps = extraPropsEnabled && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
+        List<String> propHeaders = new ArrayList<>();
+        List<String> requirements = new ArrayList<>();
+        Integer expiryOffset = null;
+
+        if(page == null && export == null && pageSize == null)
+        {
+            //It's their first time hitting the page or they changed the page size
+            // -we'll load/refresh all the data
+            model.put(MODEL_KEY_USE_DEFAULT_DISPLAY_OPTIONS, true);
+
+            //get the requirements for the current user
+            Iterator<Criterion> itCriterion = definition.getAwardCriteria().iterator();
+            while (itCriterion.hasNext())
+            {
+                Criterion crit = itCriterion.next();
+                if ( !(crit instanceof WillExpireCriterionHibernateImpl) )
+                {
+                    //we only care about criteria that affect whether the certificate is awarded
+                    //WillExpireCriteironHibernateImpl has no effect on whether it is awarded
+                    requirements.add(crit.getExpression());
+                }
+            }
+
+            //Get the headers for the additional user properties
+            //keeps track of the order of the keys so that we know that the headers and the cells line up
+            List<String> propKeys;
+
+            //contains the headers that we'll push to jsp
+            if (canShowUserProps)
+            {
+                Map<String, String> propKeysTitles = extraPropsUtil.getExtraUserPropertiesKeyAndTitleMap();
+                propKeys = new ArrayList<>(propKeysTitles.keySet());
+
+                //perhaps valueSet() does the same thing, but I'm being cautious about the order
+                Iterator<String> itPropKeys = propKeys.iterator();
+                while (itPropKeys.hasNext())
+                {
+                    String key = itPropKeys.next();
+                    propHeaders.add(propKeysTitles.get(key));
+                }
+            }
+
+            //Use orderedCriteria to keep track of the order of the headers so that we can populate the table accordingly
+            ArrayList<Criterion> orderedCriteria = new ArrayList<>();
+
+            //iterate through the certificate definition's criteria, and grab headers for the criteria columns accordingly
+            itCriterion = definition.getAwardCriteria().iterator();
+            while (itCriterion.hasNext())
+            {
+                Criterion crit = itCriterion.next();
+                if (logIfNull(crit, "definition contained null criterion. certId: " + certId))
+                {
+                    return null;
+                }
+
+                if (crit instanceof WillExpireCriterionHibernateImpl)
+                {
+                    /* special case because expiration offset is used on the UI
+                     * and this is always the first column after the Issue Date
+                     * */
+                    WillExpireCriterionHibernateImpl wechi = (WillExpireCriterionHibernateImpl) crit;
+
+                    //expiration comes first (immediately after issue date)
+                    criteriaHeaders.addAll(0, crit.getReportHeaders());
+                    String strExpiryOffset = wechi.getExpiryOffset();
+                    if (logIfNull(strExpiryOffset, "no expiry offset found for criterion: "+ wechi.getId()))
+                    {
+                        return null;
+                    }
+
+                    expiryOffset = new Integer(strExpiryOffset);
+                }
+                else
+                {
+                    criteriaHeaders.addAll(crit.getReportHeaders());
+                }
+
+                //Expiration date should immediately follow issue date
+                if (crit instanceof WillExpireCriterionHibernateImpl)
+                {
+                    //0th position immediately follows the issue date
+                    orderedCriteria.add(0, crit);
+                }
+                else
+                {
+                    //all other criteria go at the back
+                    orderedCriteria.add(crit);
+                }
+            }
+
+            session.setAttribute(SESSION_ORDERED_CRITERIA, orderedCriteria);
+
+            //Prepare the Report table's contents
+            List<ReportRow> reportRows = new ArrayList<>();
+
+            /* Iterate through the list of users who have the ability to be awarded certificates,
+             * populate each row of the table accordingly*/
+            List<String> userIds = getAwardableUserIds();
+            try
+            {
+                reportRows = getReportRows( definition, "all", null, null, null, userIds, session );
+            }
+            catch( NumberFormatException ex )
+            {
+                model.put( ERROR_MESSAGE, MESSAGE_GRADE_NOT_NUMERIC );
+            }
+
+            //set up the paging navigator
+            //the 'if' surrounding this scope: page == null && export == null
+            //this happens when freshly arriving on this page or when changing the page size
+            reportList = new PagedListHolder(reportRows);
+
+            if(pageSize != null)
+            {
+                //they changed the page size
+                reportList.setPageSize(pageSize);
+            }
+            else
+            {
+                //fresh arrival, set the default page size
+                //set default to 100
+                pageSize = PAGE_SIZE_LIST.get(3);
+                reportList.setPageSize(pageSize);
+            }
+            if(pageNo != null)
+            {
+                reportList.setPage(pageNo);
+            }
+            reportList.setSort(new SortDefinition()
+            {
+                public String getProperty()
+                {
+                    //sort by the getName() method
+                    return CERTIFICATE_NAME_PROPERTY;
+                }
+
+                public boolean isIgnoreCase()
+                {
+                    return true;
+                }
+
+                public boolean isAscending()
+                {
+                    return true;
+                }
+            });
+
+            reportList.resort();
+        }
+        else if (export == null)
+        {
+            // !(page == null && export == null) && export == null -> page != null
+            // page != null -> they clicked a navigation button
+
+            //pull the headers and the report list from the http session
+            requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
+            expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
+            propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+            criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
+            reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
+
+            //navigate appropriately
+            if(PAGINATION_NEXT.equals(page) && !reportList.isLastPage())
+            {
+                reportList.nextPage();
+            }
+            else if(PAGINATION_LAST.equals(page))
+            {
+                reportList.setPage(reportList.getLastLinkedPage());
+            }
+            else if(PAGINATION_PREV.equals(page) && !reportList.isFirstPage())
+            {
+                reportList.previousPage();
+            }
+            else if(PAGINATION_FIRST.equals(page))
+            {
+                reportList.setPage(reportList.getFirstLinkedPage());
+            }
+            else if (pageSize != null)
+            {
+                reportList.setPageSize(pageSize);
+            }
+        }
+        else if (export)
+        {
+            // they clicked Export as CSV
+            //get the headers and the report list from the http session
+            requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
+            propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+            criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
+            reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
+
+            try
+            {
+                definition = certService.getCertificateDefinition(certId);
+
+                //prepare the file name for the http response header
+                DateFormat filenameDateFormat = new SimpleDateFormat(CSV_FILE_NAME_FORMAT);
+                String today = filenameDateFormat.format(new Date());
+                String report = messages.getString(MESSAGE_REPORT_EXPORT_FNAME);
+                String defName = definition.getName();
+                if (logIfNull(defName,"certificate name is null: "+ certId))
+                {
+                    errors.add(getReportExportErrorMessage());
+                    return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+                }
+
+                defName = defName.replaceAll("[^a-zA-Z0-9]+","-");
+
+                //fill in the csv's header
+                StringBuilder contents = new StringBuilder();
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_NAME), false);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_USER_ID), false);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ROLE), false);
+                if (canShowUserProps)
+                {
+                    if (logIfNull(propHeaders, "propHeaders is null"))
+                    {
+                        errors.add(getReportExportErrorMessage());
+                        return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+                    }
+
+                    Iterator<String> itPropHeaders = propHeaders.iterator();
+                    while (itPropHeaders.hasNext())
+                    {
+                        appendItem(contents, itPropHeaders.next(), false);
+                    }
+                }
+
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ISSUEDATE), false);
+                Iterator<Object> itHeaders = criteriaHeaders.iterator();
+                while (itHeaders.hasNext())
+                {
+                    appendItem(contents, (String) itHeaders.next(), false);
+                }
+
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_AWARDED), true);
+
+                // gets the original list of ReportRows
+                List<ReportRow> table;
+                try
+                {
+                    table = (List<ReportRow>) reportList.getSource();
+                }
+                catch( Exception ex )
+                {
+                    logger.error( "Couldn't cast reportList for the reportView. certId: " + certId);
+                    errors.add(getReportExportErrorMessage());
+                    return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+                }
+
+                //fill the rest of the csv
+                Iterator<ReportRow> itTable = table.iterator();
+                while (itTable.hasNext())
+                {
+                    //represents a line in the table
+                    ReportRow row = itTable.next();
+                    appendItem(contents, row.getName(), false);
+                    appendItem(contents, row.getUserId(), false);
+                    appendItem(contents, row.getRole(), false);
+                    if (canShowUserProps)
+                    {
+                        List<String> extraProps = row.getExtraProps();
+                        if (logIfNull(extraProps, "Extra props is null for certId: " + certId))
+                        {
+                            errors.add(getReportExportErrorMessage());
+                            return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+                        }
+                        Iterator<String> itExtraProps = extraProps.iterator();
+                        while (itExtraProps.hasNext())
+                        {
+                            appendItem(contents, itExtraProps.next(), false);
+                        }
+                    }
+
+                    appendItem(contents, row.getIssueDate(), false);
+                    Iterator<CriterionProgress> itCriterionCells = row.getCriterionCells().iterator();
+                    while (itCriterionCells.hasNext())
+                    {
+                        //TODO: null check?
+                        appendItem(contents, itCriterionCells.next().getProgress(), false);
+                    }
+
+                    appendItem(contents, row.getAwarded(), true);
+                }
+
+                //Everything went well, set up the http headers to send the file
+                response.setContentType(CSV_MIME_TYPE);
+                response.addHeader(HEADER_CONTENT_DISPOSITION, "attachment; filename = " + defName + "_" + report + "_" + today +".csv");
+                response.setHeader(HEADER_CACHE_CONTROL, "");
+                response.setHeader(HEADER_PRAGMA, "");
+
+                //send contents
+                String data = contents.toString();
+                try( OutputStream out = response.getOutputStream() )
+                {
+                    out.write(data.getBytes());
+                    out.flush();
+                }
+
+                //we're not updating their view
+                return null;
+            }
+            catch (IdUnusedException e)
+            {
+                //they sent an invalid certId in their http GET;
+                /*possible causes: they clicked on View Report after another user deleted the certificate definition,
+                or they attempted to do evil with a random http GET.
+                We don't care*/
+                logger.error("unused certificate id passed to report's csv export: "+ certId);
+                errors.add(getReportExportErrorMessage());
+                return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+            }
+        }
+        else
+        {
+            //should never happen
+            logger.warn("hit reportView.form with export=false. Should never happen");
+            return null;
+        }
+
+        //handle plurals when appropriate
+        String strExpiryOffset = null;
+        if (expiryOffset != null && expiryOffset == 1)
+        {
+            strExpiryOffset = "1 " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTH);
+        }
+        else if (expiryOffset != null)
+        {
+            strExpiryOffset = expiryOffset + " " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTHS);
+        }
+
+        //push the navigator and the headers to the http session
+        session.setAttribute(SESSION_REQUIREMENTS_ATTRIBUTE, requirements);
+        session.setAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE, expiryOffset);
+        session.setAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        session.setAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
+        session.setAttribute(SESSION_REPORT_LIST_ATTRIBUTE, reportList);
+
+        //populate the model as necessary
+        model.put(MODEL_KEY_ERRORS_ATTRIBUTE, errors);
+        model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
+        model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
+        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE,criteriaHeaders);
+        model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, reportList.getPage());
+        model.put(MODEL_KEY_PAGE_SIZE, reportList.getPageSize());
+        model.put(MODEL_KEY_FIRST_ELEMENT, (reportList.getFirstElementOnPage() + 1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (reportList.getLastElementOnPage() + 1));
+
+        //send the model to the jsp
+        ModelAndView mav = new ModelAndView(REPORT_VIEW, model);
+        return mav;
+    }
+
+    private String getReportExportErrorMessage()
+    {
+        return getMessages().getFormattedMessage(MESSAGE_REPORT_EXPORT_ERROR, new Object[]{MAIL_SUPPORT});
+    }
+
+    /**
+     * If an error occurs that prevents us from generating the report view,
+     * this will give us a return value such that the user will see the relevant error
+     *
+     * @param model
+     * @param errors
+     * @param requirements
+     * @param propHeaders
+     * @param criteriaHeaders
+     * @param reportList
+     * @return
+     */
+    private ModelAndView reportViewError(Map<String, Object> model, List<String> errors, List<String> requirements, List<String> propHeaders, List<Object> criteriaHeaders, PagedListHolder reportList)
+    {
+        //Include what we can, but ultimately ensure that we can display the errors to the user
+        if (model.get(MODEL_KEY_ERRORS_ATTRIBUTE) == null)
+        {
+            model.put(MODEL_KEY_ERRORS_ATTRIBUTE, errors);
+        }
+        if (model.get(MODEL_KEY_REQUIREMENTS_ATTRIBUTE) == null)
+        {
+            model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
+        }
+        if (model.get(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE) == null)
+        {
+            model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        }
+        if (model.get(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE) == null)
+        {
+            model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
+        }
+
+        PagedListHolder plh = (PagedListHolder) model.get(MODEL_KEY_REPORT_LIST_ATTRIBUTE);
+        if (plh == null)
+        {
+            if (reportList == null)
+            {
+                reportList = new PagedListHolder(new ArrayList<>());
+            }
+
+            plh = reportList;
+            model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
+        }
+
+        if (model.get(MODEL_KEY_PAGE_SIZE_LIST) == null)
+        {
+            model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        }
+        if (model.get(MODEL_KEY_PAGE_NO) == null)
+        {
+            model.put(MODEL_KEY_PAGE_NO, plh.getPage());
+        }
+        if (model.get(MODEL_KEY_PAGE_SIZE) == null)
+        {
+            model.put(MODEL_KEY_PAGE_SIZE, plh.getPageSize());
+        }
+        if (model.get(MODEL_KEY_FIRST_ELEMENT) == null)
+        {
+            model.put(MODEL_KEY_FIRST_ELEMENT, plh.getFirstElementOnPage() + 1);
+        }
+        if (model.get(MODEL_KEY_LAST_ELEMENT) == null)
+        {
+            model.put(MODEL_KEY_LAST_ELEMENT, plh.getLastElementOnPage() + 1);
+        }
+
+        return new ModelAndView(REPORT_VIEW, model);
+    }
+
+    @RequestMapping("/reportViewFilter.form")
+    public ModelAndView certAdminReportFilterHandler(@RequestParam(PARAM_CERT_ID) String certId,
+        @RequestParam(PARAM_DISPLAY_FILTER_TYPE) String filterType,
+        @RequestParam(PARAM_DISPLAY_FILTER_DATE_TYPE) String filterDateType,
+        @RequestParam(PARAM_DISPLAY_FILTER_START_DATE) String filterStartDate,
+        @RequestParam(PARAM_DISPLAY_FILTER_END_DATE) String filterEndDate,
+        @RequestParam(PARAM_DISPLAY_FILTER_HISTORICAL) Boolean includeHistorical,
+        HttpServletRequest request, HttpServletResponse response) throws Exception
+    {
+        if (!isAdministrator())
+        {
+            //only people who have permission to add/edit certificates can see this report
+            return null;
+        }
+
+        CertificateService certServ = getCertificateService();
+        CertificateDefinition definition;
+
+        try
+        {
+            definition = certServ.getCertificateDefinition(certId);
+        }
+        catch (IdUnusedException iue)
+        {
+            //TODO
+            return null;
+        }
+
+        if ( !siteId().equals(definition.getSiteId()) )
+        {
+            //TODO
+            return null;
+        }
+
+        Map<String, Object> model = new HashMap<>();
+        HttpSession session = request.getSession();
+
+        //use a set to avoid duplicates
+        Set<String> setUserIds = new HashSet<>();
+        setUserIds.addAll(getAwardableUserIds());
+        if (includeHistorical)
+        {
+            setUserIds.addAll(getHistoricalGradedUserIds());
+        }
+
+        List<String> userIds = new ArrayList<>();
+        userIds.addAll(setUserIds);
+
+        SimpleDateFormat sdf = new SimpleDateFormat(FILTER_DATE_FORMAT);
+        Date startDate = null;
+        Date endDate = null;
+
+        // We only care about date ranges if the filter type is awarded.
+        if ("awarded".equals(filterType))
+        {
+            try
+            {
+                startDate = sdf.parse(filterStartDate);
+            }
+            catch (ParseException e)
+            {
+                //leave the value as null - getReportRows will show everything up to the end date
+            }
+
+            try
+            {
+                endDate = sdf.parse(filterEndDate);
+            }
+            catch (ParseException e)
+            {
+                //leave the value as null - getReportRows will show everything after the start date
+                //if they're both null it will display everything
+            }
+
+            if (endDate != null)
+            {
+                if (startDate != null)
+                {
+                    //order them correctly
+                    if (endDate.before(startDate))
+                    {
+                        //swap
+                        Date temp = endDate;
+                        endDate = startDate;
+                        startDate = temp;
+                    }
+                }
+
+                //Add a day to the end date to make it inclusive
+                Calendar calEnd = Calendar.getInstance();
+                calEnd.setTime(endDate);
+                calEnd.add(Calendar.DATE, 1);
+                endDate = calEnd.getTime();
+            }
+        }
+
+        List<ReportRow> reportRows = null;
+        try
+        {
+            reportRows = getReportRows( definition, filterType, filterDateType, startDate, endDate, userIds, session );
+        }
+        catch( NumberFormatException ex )
+        {
+            model.put( ERROR_MESSAGE, MESSAGE_GRADE_NOT_NUMERIC );
+        }
+
+        //set up the paging navigator
+        //the 'if' surrounding this scope: page == null && export == null
+        //this happens when freshly arriving on this page or when changing the page size
+        PagedListHolder reportList = new PagedListHolder(reportRows);
+
+        //fresh arival, set the default page size
+        //set default to 100
+        int pageSize = PAGE_SIZE_LIST.get(3);
+        reportList.setPageSize(pageSize);
+        reportList.setSort(new SortDefinition()
+        {
+            public String getProperty()
+            {
+                //sort by the getName() method
+                return CERTIFICATE_NAME_PROPERTY;
+            }
+
+            public boolean isIgnoreCase()
+            {
+                return true;
+            }
+
+            public boolean isAscending()
+            {
+                return true;
+            }
+        });
+
+        reportList.resort();
+        session.setAttribute(SESSION_REPORT_LIST_ATTRIBUTE, reportList);
+        model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
+
+        List<String> requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
+        Integer expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
+        List<String> propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+        List<Object> criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
+
+        //handle plurals when appropriate
+        String strExpiryOffset = null;
+        if (expiryOffset != null && expiryOffset == 1)
+        {
+            strExpiryOffset = "1 " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTH);
+        }
+        else if (expiryOffset != null)
+        {
+            strExpiryOffset = expiryOffset + " " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTHS);
+        }
+
+        model.put(MODEL_KEY_CERTIFICATE, definition);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
+        model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
+        model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
+        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
+
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, reportList.getPage());
+        model.put(MODEL_KEY_PAGE_SIZE, reportList.getPageSize());
+        model.put(MODEL_KEY_FIRST_ELEMENT, (reportList.getFirstElementOnPage()+1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (reportList.getLastElementOnPage()+1));
+
+        ModelAndView mav = new ModelAndView(REPORT_VIEW, model);
+        return mav;
+    }
+
+    /**
+     * Generates rows for the reportView
+     * @param definition the certificate we are reporting on
+     * @param filterType possible values - all, unawarded, awarded.
+     * all - includes awarded and unawarded users
+     * unawarded - removes all awarded users from the report
+     * awarded - removes all unawarded users from the report, and (optionally?) filters to a specified date range on the issue date or the expiry date
+     * @param filterDateType when filterType is 'awarded', this determines which date type to filter on. Possible values are "issue date" or "expiry date"
+     * @param startDate when filterType is 'awarded', all dates of the filterDateType before this date will be excluded
+     * @param endDate when filterType is 'awarded', all dates of the filterDateType after this date will be excluded
+     * @param userIds the users to display in the report
+     * @param session the session which stores data we'll need (ie. orderedCriteria - the order of the criterion columns)
+     * @return a list of ReportRows representing the rows in the report
+     */
+    public List<ReportRow> getReportRows(CertificateDefinition definition, String filterType, String filterDateType, Date startDate, Date endDate,
+            List<String> userIds, HttpSession session) throws NumberFormatException
+    {
+        if (!isAdministrator())
+        {
+            //only people who have permission to add/edit certificates can see this report
+            return null;
+        }
+
+        //Verify they're not hacking to view results from another site
+        if ( !siteId().equals(definition.getSiteId()) )
+        {
+            logger.warn(userId() + " is trying to access a certificate outside of their site");
+            //TODO
+            return null;
+        }
+
+        List<Criterion> orderedCriteria = (List<Criterion>) session.getAttribute(SESSION_ORDERED_CRITERIA);
+        List<ReportRow> reportRows = getCertificateService().getReportRows(userIds, definition, filterType, filterDateType, startDate, endDate, orderedCriteria);
+        return reportRows;
+    }
+
+    /**
+     * Called when clicking the reportView's table's headers to sort the columns
+     * @param certId the reported certificate definition's id
+     * @param sortKey the key to be sorted on
+     * @param property if we're sorting an extra user property, this is its title
+     * @param request
+     * @param response
+     * @return the model and view of the reportView page with the sorted table
+     */
+    @RequestMapping("/reportViewSort.form")
+    public ModelAndView certAdminReportFilterHandler(@RequestParam(PARAM_CERT_ID) String certId, @RequestParam(PARAM_SORT) String sortKey,
+            @RequestParam(value=PARAM_PROP, required=false) String property,
+            HttpServletRequest request,
+            HttpServletResponse response)
+    {
+        if (!isAdministrator())
+        {
+            return null;
+        }
+
+        if (certId == null || sortKey == null)
+        {
+            //TODO
+            return null;
+        }
+
+        CertificateService certServ = getCertificateService();
+        CertificateDefinition definition;
+        try
+        {
+            definition = certServ.getCertificateDefinition(certId);
+        }
+        catch (IdUnusedException iue)
+        {
+            //TODO
+            return null;
+        }
+
+        if ( !siteId().equals(definition.getSiteId()) )
+        {
+            //TODO
+            return null;
+        }
+
+        Map<String, Object> model = new HashMap<>();
+        final HttpSession session = request.getSession();
+
+        //determines if we are sorting the report column in ascending order
+        Boolean sortReportAsc = (Boolean) session.getAttribute(SESSION_SORT_REPORT_ASC);
+        if (sortReportAsc == null)
+        {
+            sortReportAsc = Boolean.TRUE;
+            session.setAttribute(SESSION_SORT_REPORT_ASC, sortReportAsc);
+        }
+        else
+        {
+            //if it's the same column that we've previously clicked, flip sortReportAsc, otherwise set sortReportAsc to true
+            String oldKey = (String) session.getAttribute(SESSION_SORT_REPORT_KEY);
+            if (sortKey.equals(oldKey))
+            {
+                sortReportAsc = !sortReportAsc;
+            }
+            else
+            {
+                sortReportAsc = Boolean.TRUE;
+            }
+        }
+
+        session.setAttribute(SESSION_SORT_REPORT_KEY, sortKey);
+        session.setAttribute(SESSION_SORT_REPORT_ASC, sortReportAsc);
+        session.setAttribute(SESSION_SORT_REPORT_EXTRA_PROPERTY, property);
+
+        PagedListHolder reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
+        SortDefinition sortDefinition = new SortDefinition()
+        {
+            @Override
+            public String getProperty()
+            {
+                String key = (String) session.getAttribute(SESSION_SORT_REPORT_KEY);
+                if ("prop".equals(key))
+                {
+                    String property = (String) session.getAttribute(SESSION_SORT_REPORT_EXTRA_PROPERTY);
+                    List<String> propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+                    int propIndex = propHeaders.indexOf(property);
+                    return "extraProps[" + propIndex + "]";
+                }
+
+                return key;
+            }
+
+            public boolean isAscending()
+            {
+                return ((Boolean) session.getAttribute(SESSION_SORT_REPORT_ASC));
+            }
+
+            public boolean isIgnoreCase()
+            {
+                return true;
+            }
+        };
+
+        reportList.setSort(sortDefinition);
+        reportList.resort();
+        session.setAttribute(SESSION_REPORT_LIST_ATTRIBUTE, reportList);
+
+        model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
+        List<String> requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
+        Integer expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
+        List<String> propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+        List<Object> criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
+
+        //handle plurals when appropriate
+        String strExpiryOffset = null;
+        if (expiryOffset != null && expiryOffset == 1)
+        {
+            strExpiryOffset = "1 " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTH);
+        }
+        else if (expiryOffset != null)
+        {
+            strExpiryOffset = expiryOffset + " " + messages.getString(MESSAGE_EXPIRY_OFFSET_MONTHS);
+        }
+
+        model.put(MODEL_KEY_CERTIFICATE, definition);
+        model.put(MODEL_KEY_TOOL_URL, getToolUrl());
+        model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
+        model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
+        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
+
+        model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
+        model.put(MODEL_KEY_PAGE_NO, reportList.getPage());
+        model.put(MODEL_KEY_PAGE_SIZE, reportList.getPageSize());
+        model.put(MODEL_KEY_FIRST_ELEMENT, (reportList.getFirstElementOnPage() + 1));
+        model.put(MODEL_KEY_LAST_ELEMENT, (reportList.getLastElementOnPage() + 1));
+
+        ModelAndView mav = new ModelAndView(REPORT_VIEW, model);
+        return mav;
+    }
+
+    /**
+     * if the specified object is null, the specified message gets logged at the specified logging level
+     * @param obj
+     * @param message
+     * @param level
+     * @return
+     */
+    private boolean logIfNull(Object obj, String message, String level)
+    {
+        if (obj == null)
+        {
+            if (level == null)
+            {
+                logger.error(message);
+            }
+            else if (LEVEL_WARN.equals(level))
+            {
+                logger.warn(message);
+            }
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * if the specified object is null, the specified message gets logged at the error logging level
+     * @param obj
+     * @param message
+     * @return
+     */
+    private boolean logIfNull(Object obj, String message)
+    {
+        return logIfNull(obj, message, null);
+    }
+
+    /**
+     * Appends item to a StringBuilder for CSV format by surrounding them in double quotes, and separating lines when appropriate
+     * @param stringBuilder the StringBuilder we are appending to
+     * @param item the item that we are appending to the CSV
+     * @param eol true if this is the last item in the current line
+     */
+    private void appendItem(StringBuilder stringBuilder, String item, boolean eol)
+    {
+        stringBuilder.append('\"');
+        if (item!=null)
+        {
+            stringBuilder.append(item);
+        }
+        stringBuilder.append('\"');
+        if (!eol)
+        {
+            stringBuilder.append(',');
+        }
+        else
+        {
+            stringBuilder.append('\n');
+        }
+    }
 }

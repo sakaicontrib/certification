@@ -15,43 +15,46 @@
  */
 package com.rsmart.certification.impl;
 
+import java.util.Locale;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import org.sakaiproject.util.ResourceLoader;
+
 import org.springframework.context.MessageSource;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.util.Locale;
+public class LocaleHandlerInterceptor implements HandlerInterceptor
+{
+    private MessageSource messageSource;
 
+    public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object) throws Exception
+    {
+        ResourceLoader rb = new ResourceLoader();
+        Locale locale = rb.getLocale();
+        httpServletRequest.setAttribute("locale", locale.toString());
+        httpServletRequest.setAttribute("localeRef", locale);
+        httpServletRequest.setAttribute("messageSource", messageSource);
+        return true;
+    }
 
-/**
- *
- */
-public class LocaleHandlerInterceptor implements HandlerInterceptor {
-   private MessageSource messageSource;
-   public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object) throws Exception {
-      ResourceLoader rb = new ResourceLoader();
-      Locale locale = rb.getLocale();
-      httpServletRequest.setAttribute("locale", locale.toString());
-      httpServletRequest.setAttribute("localeRef", locale);
-      httpServletRequest.setAttribute("messageSource", messageSource);
-      return true;
-   }
+    public void postHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object, ModelAndView modelAndView) throws Exception
+    {
+    }
 
-   public void postHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object, ModelAndView modelAndView) throws Exception {
-      //To change body of implemented methods use File | Settings | File Templates.
-   }
+    public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object, Exception exception) throws Exception
+    {
+    }
 
-   public void afterCompletion(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object, Exception exception) throws Exception {
-      //To change body of implemented methods use File | Settings | File Templates.
-   }
+    public MessageSource getMessageSource()
+    {
+        return messageSource;
+    }
 
-   public MessageSource getMessageSource() {
-      return messageSource;
-   }
-
-   public void setMessageSource(MessageSource messageSource) {
-      this.messageSource = messageSource;
-   }
+    public void setMessageSource(MessageSource messageSource)
+    {
+        this.messageSource = messageSource;
+    }
 }

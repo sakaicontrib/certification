@@ -1,52 +1,40 @@
 package com.rsmart.certification.criteria.impl.gradebook;
 
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
-import org.sakaiproject.service.gradebook.shared.Assignment;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
-import org.sakaiproject.tool.api.ToolManager;
-import org.sakaiproject.util.ResourceLoader;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.sakaiproject.service.gradebook.shared.Assignment;
+import org.sakaiproject.service.gradebook.shared.GradebookService;
+import org.sakaiproject.tool.api.ToolManager;
+import org.sakaiproject.util.ResourceLoader;
 
 /**
  * User: duffy
  * Date: Jun 23, 2011
  * Time: 3:06:49 PM
  */
-public class GradebookItemTemplateVariable
-    implements CriteriaTemplateVariable
+public class GradebookItemTemplateVariable implements CriteriaTemplateVariable
 {
-    private GradebookCriteriaFactory
-        criteriaFactory = null;
-    private AssignmentFilter
-        filter = null,
-        dftFilter = new AssignmentFilter()
-                    {
-                        public boolean include(Assignment assignment)
-                        {
-                            return true;
-                        }
-                    };
-    private AssignmentLabeler
-        labeler = null,
-        dftLabeler = new AssignmentLabeler()
-                    {
-                        public String getLabel(Assignment assignment)
-                        {
-                            return (assignment == null) ? null : assignment.getName();
-                        }
-                    };
+    private GradebookCriteriaFactory criteriaFactory = null;
 
-    public GradebookItemTemplateVariable(GradebookCriteriaFactory fact, AssignmentFilter filter,
-                                         AssignmentLabeler adapter)
+    private AssignmentFilter filter = null;
+    private final AssignmentFilter dftFilter = (Assignment assignment) -> true;
+
+    private AssignmentLabeler labeler = null;
+    private final AssignmentLabeler dftLabeler = (Assignment assignment) -> (assignment == null) ? null : assignment.getName();
+
+    private static final String KEY_GRADEBOOK_ITEM = "gradebook.item";
+
+    public GradebookItemTemplateVariable(GradebookCriteriaFactory fact, AssignmentFilter filter, AssignmentLabeler adapter)
     {
         criteriaFactory = fact;
         this.filter = (filter != null) ? filter : dftFilter;
         labeler = (adapter != null) ? adapter : dftLabeler;
     }
-    
+
     public ResourceLoader getResourceLoader()
     {
         return criteriaFactory.getResourceLoader();
@@ -64,7 +52,7 @@ public class GradebookItemTemplateVariable
 
     public String getVariableKey()
     {
-        return "gradebook.item";
+        return KEY_GRADEBOOK_ITEM;
     }
 
     public String getVariableLabel()
@@ -79,29 +67,23 @@ public class GradebookItemTemplateVariable
 
     public Map<String, String> getValues()
     {
-        GradebookService
-            gbs = getGradebookService();
-        ToolManager
-            tm = getToolManager();
-        HashMap<String, String>
-            items = new HashMap<String, String>();
-        ResourceLoader
-            rl = getResourceLoader();
-        String
-            contextId = tm.getCurrentPlacement().getContext();
+        GradebookService gbs = getGradebookService();
+        ToolManager tm = getToolManager();
+        HashMap<String, String> items = new HashMap<>();
+        String contextId = tm.getCurrentPlacement().getContext();
 
         if (!gbs.isGradebookDefined(contextId))
         {
             return items;
         }
 
-        List<Assignment>
-            assignments = gbs.getAssignments(contextId);
-
+        List<Assignment> assignments = gbs.getAssignments(contextId);
         for (Assignment asn : assignments)
         {
             if (filter.include(asn))
+            {
                 items.put(Long.toString(asn.getId()), labeler.getLabel(asn));
+            }
         }
 
         return items;
@@ -111,6 +93,4 @@ public class GradebookItemTemplateVariable
     {
         return getValues().keySet().contains(value);
     }
-
-
 }

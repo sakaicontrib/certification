@@ -8,40 +8,42 @@
         <groupId>com.rsmart</groupId>
         <version>11-SNAPSHOT</version>
     </parent>
+
     <artifactId>certification-model</artifactId>
     <name>Certifcation Hibernate Model</name>
     <packaging>jar</packaging>
     <properties>
-      <deploy.target>shared</deploy.target>
+        <deploy.target>shared</deploy.target>
     </properties>
-    <dependencies>
-      <dependency>
-        <groupId>org.sakaiproject.edu-services.gradebook</groupId>
-        <artifactId>gradebook-service-api</artifactId>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.sakaiproject.kernel</groupId>
-        <artifactId>sakai-kernel-api</artifactId>
-      </dependency>
-      <dependency>
-        <groupId>com.rsmart</groupId>
-        <artifactId>certification-api</artifactId>
-        <version>${sakai.version}</version>
-        <scope>provided</scope>
-      </dependency>
-      <dependency>
-        <groupId>org.hibernate</groupId>
-        <artifactId>hibernate-core</artifactId>
-      </dependency>
-    </dependencies>
-    <build>
-      <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
-      <resources>
-        <resource>
-          <directory>${basedir}/src/main/hibernate</directory>
-        </resource>
-      </resources>
-    </build>
 
+    <dependencies>
+        <dependency>
+            <groupId>org.sakaiproject.edu-services.gradebook</groupId>
+            <artifactId>gradebook-service-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.sakaiproject.kernel</groupId>
+            <artifactId>sakai-kernel-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.rsmart</groupId>
+            <artifactId>certification-api</artifactId>
+            <version>${sakai.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.hibernate</groupId>
+            <artifactId>hibernate-core</artifactId>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <resources>
+            <resource>
+                <directory>${basedir}/src/main/hibernate</directory>
+            </resource>
+        </resources>
+    </build>
 </project>

@@ -5,25 +5,24 @@ package com.rsmart.certification.api;
  * Date: Jun 9, 2011
  * Time: 11:15:58 AM
  */
-public class CertificationException
-    extends Exception
+public class CertificationException extends Exception
 {
-    public CertificationException ()
+    public CertificationException()
     {
         super();
     }
 
-    public CertificationException (String message)
+    public CertificationException(String message)
     {
         super(message);
     }
 
-    public CertificationException (Throwable t)
+    public CertificationException(Throwable t)
     {
         super(t);
     }
 
-    public CertificationException (String message, Throwable t)
+    public CertificationException(String message, Throwable t)
     {
         super(message, t);
     }

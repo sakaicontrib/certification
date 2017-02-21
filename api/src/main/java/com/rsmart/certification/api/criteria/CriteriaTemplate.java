@@ -1,8 +1,6 @@
 package com.rsmart.certification.api.criteria;
 
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * User: duffy
@@ -12,7 +10,7 @@ import java.util.Set;
 public interface CriteriaTemplate
 {
     public String getId();
-    
+
     public String getExpression();
 
     public String getExpression(Criterion criterion);
@@ -21,7 +19,9 @@ public interface CriteriaTemplate
 
     public List<CriteriaTemplateVariable> getTemplateVariables();
 
-    public CriteriaTemplateVariable getTemplateVariable (int i);
+    public CriteriaTemplateVariable getTemplateVariable(int i);
 
     public CriteriaFactory getCriteriaFactory();
+
+    public String getMessage();
 }

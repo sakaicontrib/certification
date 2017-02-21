@@ -107,7 +107,7 @@ public class ListScroll {
       }
       return lastItem;
    }
-   
+
    public boolean getHideOnePageScroll() {
       return hideOnePageScroll;
    }

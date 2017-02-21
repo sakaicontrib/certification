@@ -15,87 +15,64 @@
   ~ Contributor(s): duffy
   -->
 
-<!--!DOCTYPE beans PUBLIC "-//SPRING//DTD BEAN//EN" "http://www.springframework.org/dtd/spring-beans.dtd"-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/mvc
+                           http://www.springframework.org/schema/mvc/spring-mvc.xsd
+                           http://www.springframework.org/schema/beans
+                           http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context
+                           http://www.springframework.org/schema/context/spring-context.xsd"
+       default-lazy-init="true" >
 
-<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-		xmlns:p="http://www.springframework.org/schema/p" xmlns:context="http://www.springframework.org/schema/context"
-		xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-				http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd"
-        default-lazy-init="true" >
+    <context:component-scan base-package="com.rsmart.certification.tool"/>
 
-   <context:component-scan base-package="com.rsmart.certification.tool"/>
-   
-   <bean id="messageSource" class="org.sakaiproject.util.ResourceLoaderMessageSource" p:basename="com.rsmart.certification.tool.Messages"/>
+    <bean id="messageSource"
+          class="org.sakaiproject.util.ResourceLoaderMessageSource">
+        <property name="basename" value="com.rsmart.certification.tool.Messages" />
+    </bean>
 
-   <bean id="localeResolver" class="com.rsmart.certification.impl.SakaiLocaleResolver"/>
+    <bean id="localeResolver" class="com.rsmart.certification.impl.SakaiLocaleResolver"/>
 
-    <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
-        <property name="exceptionMappings">
-            <props>
-                <!--prop key="com.rsmart.certification.api.FooException">error/foo</prop-->
-            </props>
+     <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+         <property name="exceptionMappings">
+             <props>
+             </props>
+         </property>
+     </bean>
+
+     <bean id="errorController" class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>
+
+    <bean id="multipartResolver"
+          class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <!-- one of the properties available; the maximum file size in bytes -->
+        <property name="maxUploadSize" value="10000000"/>
+    </bean>
+
+    <bean id="handlerMapping" class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
+        <property name="interceptors">
+            <list>
+                <!-- puts 'sakai_skin' into request as an attribute -->
+                <bean class="com.rsmart.certification.impl.SakaiStyleSheetInterceptor">
+                    <property name="siteService"><ref bean="org.sakaiproject.site.api.SiteService"/></property>
+                    <property name="toolManager"><ref bean="org.sakaiproject.tool.api.ToolManager"/></property>
+                </bean>
+
+                <!-- puts 'locale' into request as an attribute -->
+                <bean class="com.rsmart.certification.impl.LocaleHandlerInterceptor">
+                    <property name="messageSource" ref="messageSource"/>
+                </bean>
+            </list>
         </property>
     </bean>
 
-    <bean id="errorController"
-        class="org.springframework.web.servlet.mvc.UrlFilenameViewController"/>
-
-    <!--  <bean id="com.rsmart.certification.tool.CertificateListController"
-        class="com.rsmart.certification.tool.CertificateListController">
-        <property name="conditionService" ref="org.sakaiproject.condition.api.ConditionService"/>
-        <property name="certificateService" ref="com.rsmart.certification.CertificateService"/>
-        <property name="documentTemplateService" ref="com.rsmart.certification.DocumentTemplateService"/>
-     </bean>
-
-    <bean id="com.rsmart.certification.tool.CertificateEditController"
-          class="com.rsmart.certification.tool.CertificateEditController">
-        <property name="conditionService" ref="org.sakaiproject.condition.api.ConditionService"/>
-        <property name="certificateService" ref="com.rsmart.certification.CertificateService"/>
-        <property name="documentTemplateService" ref="com.rsmart.certification.DocumentTemplateService"/>
-    </bean>-->
-    <bean id="multipartResolver"
-		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-		<!-- one of the properties available; the maximum file size in bytes -->
-		<property name="maxUploadSize" value="10000000"/>
-	</bean>
-
-	<bean id="handlerMapping" class="org.springframework.web.servlet.mvc.annotation.DefaultAnnotationHandlerMapping">
-	    <property name="interceptors">
-	      <list>
-	    		<!-- puts 'sakai_skin' into request as an attribute -->
-
-              <bean class="com.rsmart.certification.impl.SakaiStyleSheetInterceptor">
-                      <property name="siteService"><ref bean="org.sakaiproject.site.api.SiteService"/></property>
-                      <property name="toolManager"><ref bean="org.sakaiproject.tool.api.ToolManager"/></property>
-              </bean>
-              <!-- puts 'locale' into request as an attribute -->
-               <bean class="com.rsmart.certification.impl.LocaleHandlerInterceptor">
-                  <property name="messageSource" ref="messageSource"/>
-               </bean>
-            </list>
-	    </property>
-  	</bean>
-  
-    <!--  <bean id="urlMapping" class="org.springframework.web.servlet.handler.SimpleUrlHandlerMapping">
-        <property name="interceptors">
-            <list>-->
-               <!-- puts 'locale' into request as an attribute -->
-               <!--<bean class="com.rsmart.sakai.common.web.springframework.LocaleHandlerInterceptor">
-                  <property name="messageSource" ref="messageSource"/>
-               </bean>
-            </list>
-        </property>
-        <property name="mappings">
-            <props>
-               <prop key="/add.form">com.rsmart.certification.tool.CertificateEditController</prop>
-               <prop key="/edit.form">com.rsmart.certification.tool.CertificateEditController</prop>
-               <prop key="/list.form">com.rsmart.certification.tool.CertificateListController</prop>
-            </props>
-        </property>
-    </bean>-->
-
-    <bean id="viewResolver" class="com.rsmart.certification.impl.SakaiInternalResourceViewResolver"
-    	p:viewClass="org.springframework.web.servlet.view.JstlView" p:prefix="/WEB-INF/jsp/" p:suffix=".jsp"/>
-
+    <bean id="viewResolver"
+          class="com.rsmart.certification.impl.SakaiInternalResourceViewResolver">
+        <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+        <property name="prefix" value="/WEB-INF/jsp/" />
+        <property name="suffix" value=".jsp" />
+    </bean>
 
 </beans>

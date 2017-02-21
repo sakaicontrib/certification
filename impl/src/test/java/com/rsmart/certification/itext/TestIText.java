@@ -3,15 +3,15 @@ package com.rsmart.certification.itext;
 import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
-import com.itextpdf.text.pdf.PdfWriter;
-import org.junit.Test;
 
 import java.io.FileOutputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+
+import org.junit.Test;
 
 /**
  * User: duffy
@@ -21,21 +21,13 @@ import static org.junit.Assert.*;
 public class TestIText
 {
     @Test
-    public void testReadPdfFields()
-        throws Exception
+    public void testReadPdfFields() throws Exception
     {
-        PdfReader
-            reader = new PdfReader("afghanistan.pdf");
-
-        AcroFields
-            acroFields = reader.getAcroFields();
-
-        Map<String, AcroFields.Item>
-            fields = acroFields.getFields();
-
-        Set<String>
-            fieldKeys = fields.keySet(),
-            textFieldKeys = new HashSet<String>();
+        PdfReader reader = new PdfReader("afghanistan.pdf");
+        AcroFields acroFields = reader.getAcroFields();
+        Map<String, AcroFields.Item> fields = acroFields.getFields();
+        Set<String> fieldKeys = fields.keySet();
+        Set<String> textFieldKeys = new HashSet<>();
 
         for (String key : fieldKeys)
         {
@@ -48,16 +40,12 @@ public class TestIText
 
         assertEquals(2, textFieldKeys.size());
 
-        FileOutputStream
-            fos = new FileOutputStream("completed.pdf");
-        PdfStamper
-            stamper = new PdfStamper (reader, fos);
-        AcroFields
-            toFill = stamper.getAcroFields();
+        FileOutputStream fos = new FileOutputStream("completed.pdf");
+        PdfStamper stamper = new PdfStamper (reader, fos);
+        AcroFields toFill = stamper.getAcroFields();
         stamper.setFormFlattening(true);
         stamper.setFreeTextFlattening(true);
-        int
-            i = 1;
+        int i = 1;
 
         for (String key : textFieldKeys)
         {

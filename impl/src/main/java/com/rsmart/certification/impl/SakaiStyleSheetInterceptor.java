@@ -21,30 +21,25 @@
 
 package com.rsmart.certification.impl;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.component.cover.ServerConfigurationService;
-import org.sakaiproject.site.api.SiteService;
-import org.sakaiproject.tool.api.ToolManager;
-import org.springframework.web.servlet.ModelAndView;
-import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.sakaiproject.component.cover.ServerConfigurationService;
+import org.sakaiproject.site.api.SiteService;
+import org.sakaiproject.tool.api.ToolManager;
 
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.handler.HandlerInterceptorAdapter;
 
-
-public class SakaiStyleSheetInterceptor extends HandlerInterceptorAdapter {
+public class SakaiStyleSheetInterceptor extends HandlerInterceptorAdapter
+{
     protected SiteService siteService;
     protected ToolManager toolManager;
 
-    private static Log M_log = LogFactory.getLog(SakaiStyleSheetInterceptor.class);
+    public SakaiStyleSheetInterceptor() {}
 
-    public SakaiStyleSheetInterceptor() {
-           }
-
-    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception {
+    public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception
+    {
         // code borrowed from sakai's VmServlet.setVmStdRef() method
         // form the skin based on the current site, and the defaults as configured
         //String skinRoot = ServerConfigurationService.getString("skin.root", "/sakai-shared/css/");
@@ -53,9 +48,11 @@ public class SakaiStyleSheetInterceptor extends HandlerInterceptorAdapter {
 
         String siteId = toolManager.getCurrentPlacement().getContext();
 
-        if (siteId != null) {
+        if (siteId != null)
+        {
             String siteSkin = siteService.getSiteSkin(siteId);
-            if (siteSkin != null) {
+            if (siteSkin != null)
+            {
                 skin = siteSkin;
             }
             request.setAttribute("sakai_skin_base", skinRoot + "/tool_base.css");
@@ -64,7 +61,8 @@ public class SakaiStyleSheetInterceptor extends HandlerInterceptorAdapter {
             //TODO figure out if this is still needed
             // form the portal root for the skin - removing the .css and adding "portalskins" before
             int pos = skin.indexOf(".css");
-            if (pos != -1) {
+            if (pos != -1)
+            {
                 skin = skin.substring(0, pos);
             }
 
@@ -72,19 +70,23 @@ public class SakaiStyleSheetInterceptor extends HandlerInterceptorAdapter {
             request.setAttribute("sakai_skin_id", skin);
         }
     }
-    public ToolManager getToolManager() {
+    public ToolManager getToolManager()
+    {
         return toolManager;
     }
 
-    public void setToolManager(ToolManager toolManager) {
+    public void setToolManager(ToolManager toolManager)
+    {
         this.toolManager = toolManager;
     }
 
-    public SiteService getSiteService() {
+    public SiteService getSiteService()
+    {
         return siteService;
     }
 
-    public void setSiteService(SiteService siteService) {
+    public void setSiteService(SiteService siteService)
+    {
         this.siteService = siteService;
     }
 }

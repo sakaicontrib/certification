@@ -6,41 +6,43 @@ import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
-import org.sakaiproject.util.ResourceLoader;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
+import org.sakaiproject.service.gradebook.shared.GradebookService;
+import org.sakaiproject.util.ResourceLoader;
+
 /**
  * User: duffy
  * Date: Jul 5, 2011
  * Time: 9:26:50 AM
  */
-public class FinalGradeScoreCriteriaTemplate
-    implements CriteriaTemplate
+public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate
 {
-    private static Log
-        LOG = LogFactory.getLog(FinalGradeScoreCriteriaTemplate.class);
+    private static final Log LOG = LogFactory.getLog(FinalGradeScoreCriteriaTemplate.class);
     ScoreTemplateVariable scoreVariable = null;
-    ArrayList<CriteriaTemplateVariable> variables = new ArrayList<CriteriaTemplateVariable>(1);
+    ArrayList<CriteriaTemplateVariable> variables = new ArrayList<>(1);
     GradebookCriteriaFactory factory = null;
     CertificateService certificateService = null;
-    GradebookService
-        gbService = null;
+    GradebookService gbService = null;
     ResourceLoader rl = null;
+
+    private final String EXPRESSION_KEY = "final.grade.score.criteria.expression";
+    private final String VARIABLE_SCORE = "score";
 
     public FinalGradeScoreCriteriaTemplate(final GradebookCriteriaFactory factory)
     {
         this.factory = factory;
         gbService = factory.getGradebookService();
         certificateService = factory.getCertificateService();
-        
-        scoreVariable =  new ScoreTemplateVariable("score", factory);
+
+        scoreVariable =  new ScoreTemplateVariable(VARIABLE_SCORE, factory);
         addVariable(scoreVariable);
     }
 
@@ -91,46 +93,30 @@ public class FinalGradeScoreCriteriaTemplate
 
     public String getExpression (Criterion criterion)
     {
-        SecureGradebookActionCallback
-            typeCallback = new SecureGradebookActionCallback()
-            {
-                public Object doSecureAction()
-                {
-                    return certificateService.getCategoryType(factory.contextId());
-                }
-            },
-            assnPointsCallback = new SecureGradebookActionCallback()
-            {
-                public Object doSecureAction()
-                {
-                    return certificateService.getAssignmentPoints(factory.contextId());
-                }
-            },
-            catOnlyAssnPointsCallback = new SecureGradebookActionCallback()
-            {
-            	public Object doSecureAction()
-            	{
-            		return certificateService.getCatOnlyAssignmentPoints(factory.contextId());
-            	}
-            };
+        if (criterion == null)
+        {
+            return rl.getFormattedMessage(EXPRESSION_KEY, new Object[]{});
+        }
 
-        Map<Long, Double>
-            assnPoints = null;
-        int
-            categoryType = -1;
+        SecureGradebookActionCallback typeCallback = () -> certificateService.getCategoryType(factory.contextId());
+        SecureGradebookActionCallback assnPointsCallback = () -> certificateService.getAssignmentPoints(factory.contextId());
+        SecureGradebookActionCallback catOnlyAssnPointsCallback = () -> certificateService.getCatOnlyAssignmentPoints(factory.contextId());
+
+        Map<Long, Double> assnPoints;
+        int categoryType;
 
         try
         {
             categoryType = (Integer) factory.doSecureGradebookAction(typeCallback);
             if(categoryType == GradebookService.CATEGORY_TYPE_ONLY_CATEGORY)
             {
-            	assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(catOnlyAssnPointsCallback);
+                assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(catOnlyAssnPointsCallback);
             }
             else
             {
-            	assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
+                assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
             }
-            
+
         }
         catch (Exception e)
         {
@@ -138,31 +124,7 @@ public class FinalGradeScoreCriteriaTemplate
             return rl.getString("error.cannotEvaluate");
         }
 
-        /*
-
-            calculate total possible points
-
-            switch (gb category type)
-
-                case CATEGORY_TYPE_NO_CATEGORY
-
-                    loop through assignments adding assignment points
-
-                case CATEGORY_TYPE_ONLY_CATEGORY
-
-                    loop through categories
-                        loop through assignments
-                            add assignment points
-
-                case CATEGORY_TYPE_WEIGHTED_CATEGORY
-
-                    total == 100
-
-         */
-
-        double
-            total = 0;
-
+        double total = 0;
         switch(categoryType)
         {
             case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
@@ -181,26 +143,21 @@ public class FinalGradeScoreCriteriaTemplate
             }
         }
 
-        DecimalFormat
-            df = new DecimalFormat("#0.00");
-        String
-            vars[] = new String[2];
+        DecimalFormat df = new DecimalFormat("#0.00");
+        Object vars[] = new String[2];
 
         vars[0] = df.format(total);
 
-        if (criterion == null)
-        {
-            vars[1] = "&lt;" + scoreVariable.getVariableLabel() + "&gt;";
-        }
-        else
-        {
-            FinalGradeScoreCriterionHibernateImpl
-               fgschi = (FinalGradeScoreCriterionHibernateImpl)criterion;
+        FinalGradeScoreCriterionHibernateImpl fgschi = (FinalGradeScoreCriterionHibernateImpl)criterion;
 
-            vars[1] = fgschi.getScore();
-        }
+        vars[1] = fgschi.getScore();
 
         return rl.getFormattedMessage(FinalGradeScoreCriteriaTemplate.class.getName(), vars);
     }
 
+    @Override
+    public String getMessage()
+    {
+        return "";
+    }
 }

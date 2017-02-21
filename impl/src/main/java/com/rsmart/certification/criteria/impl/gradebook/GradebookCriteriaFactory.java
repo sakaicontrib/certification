@@ -1,67 +1,90 @@
 package com.rsmart.certification.criteria.impl.gradebook;
 
+import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateService;
+import com.rsmart.certification.api.criteria.CriteriaFactory;
+import com.rsmart.certification.api.criteria.CriteriaTemplate;
 import com.rsmart.certification.api.criteria.CriteriaTemplateVariable;
+import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionCreationException;
 import com.rsmart.certification.api.criteria.InvalidBindingException;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
-import com.rsmart.certification.api.criteria.CriteriaFactory;
-import com.rsmart.certification.api.criteria.CriteriaTemplate;
-import com.rsmart.certification.api.criteria.Criterion;
+import com.rsmart.certification.api.criteria.UserProgress;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.FinalGradeScoreCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
+import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
+import org.sakaiproject.service.gradebook.shared.AssessmentNotFoundException;
 import org.sakaiproject.service.gradebook.shared.Assignment;
+import org.sakaiproject.service.gradebook.shared.CourseGrade;
+import org.sakaiproject.service.gradebook.shared.GradeDefinition;
+import org.sakaiproject.service.gradebook.shared.GradebookNotFoundException;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
-import org.sakaiproject.tool.api.Session;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
-
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * User: duffy
  * Date: Jun 23, 2011
  * Time: 11:44:38 AM
  */
-public class GradebookCriteriaFactory
-    implements CriteriaFactory
+public class GradebookCriteriaFactory implements CriteriaFactory
 {
-    private CertificateService
-        certService = null;
-    private GradebookService
-        gbService = null;
-    private ToolManager
-        toolManager = null;
-    private UserDirectoryService
-        userDirectoryService = null;
-    private HashMap<String, CriteriaTemplate>
-        criteriaTemplates = new HashMap<String, CriteriaTemplate>();
-    private HashSet<Class<? extends Criterion>>
-        criterionClasses = new HashSet<Class<? extends Criterion>>();
-    private GreaterThanScoreCriteriaTemplate
-        gbItemScoreTemplate = null;
-    private DueDatePassedCriteriaTemplate
-        gbDueDatePassedTemplate = null;
-    private FinalGradeScoreCriteriaTemplate
-    	gbFinalGradeScoreTemplate = null;
-    private ResourceLoader
-        resourceLoader = null;
-    private SecurityService
-        securityService = null;
-    private SessionManager
-        sessionManager = null;
-    private String
-        adminUser = null;
+    protected final Log logger = LogFactory.getLog(getClass());
+    private CertificateService certService = null;
+    private GradebookService gbService = null;
+    private ToolManager toolManager = null;
+    private UserDirectoryService userDirectoryService = null;
+    private SecurityService securityService = null;
+    private SessionManager sessionManager = null;
+
+    private final HashMap<String, CriteriaTemplate> criteriaTemplates = new HashMap<>();
+    private final HashSet<Class<? extends Criterion>> criterionClasses = new HashSet<>();
+
+    private GreaterThanScoreCriteriaTemplate gbItemScoreTemplate = null;
+    private DueDatePassedCriteriaTemplate gbDueDatePassedTemplate = null;
+    private FinalGradeScoreCriteriaTemplate gbFinalGradeScoreTemplate = null;
+    private WillExpireCriteriaTemplate gbWillExpireTemplate = null;
+
+    //Caces a map of gradebook item ids to gradebook items so they don't have to be queried multiple times (speeds up performance). Stored as map(gradebook id, gradebook item)
+    private final Map<Long, Assignment> cachedAssignments = new HashMap<>();
+
+    //Caches grades. Stored as map(gradebook item ids, map(user ids, grades))
+    private final Map<Long, Map<String, Double>> itemToUserToGradeMap = new HashMap<>();
+    private final Map<Long, Map<String, Date>> itemToUserToDateRecordedMap = new HashMap<>();
+
+    private ResourceLoader resourceLoader = null;
+
+    private static final String PERM_VIEW_OWN_GRADES = "gradebook.viewOwnGrades";
+    private static final String PERM_EDIT_ASSIGNMENTS = "gradebook.editAssignments";
+
+    private static final String ERROR_NO_GRADEBOOK = "value.noGradebook";
+    private static final String ERROR_EMPTY_GRADEBOOK = "value.emptyGradebook";
+    private static final String ERROR_NO_DUE_DATES = "value.noDueDates";
+    private static final String ERROR_MIN_REQUIRED = "value.minRequired";
+    private static final String ERROR_EXPIRY_OFFSET_REQUIRED = "value.expiryOffsetRequired";
+    private static final String ERROR_NAN = "value.notanumber";
+    private static final String ERROR_WHOLE_NUMBER_REQUIRED = "value.wholeNumberRequired";
+    private static final String ERROR_NEGATIVE_NUMBER = "value.negativenumber";
+    private static final String ERROR_TOO_HIGH = "value.toohigh";
 
     public void init()
     {
@@ -70,20 +93,25 @@ public class GradebookCriteriaFactory
 
         gbFinalGradeScoreTemplate = new FinalGradeScoreCriteriaTemplate(this);
         gbFinalGradeScoreTemplate.setResourceLoader(resourceLoader);
-        
+
         gbDueDatePassedTemplate = new DueDatePassedCriteriaTemplate(this);
         gbDueDatePassedTemplate.setResourceLoader(resourceLoader);
 
         gbFinalGradeScoreTemplate = new FinalGradeScoreCriteriaTemplate(this);
         gbFinalGradeScoreTemplate.setResourceLoader(resourceLoader);
 
+        gbWillExpireTemplate = new WillExpireCriteriaTemplate(this);
+        gbWillExpireTemplate.setResourceLoader(resourceLoader);
+
         criteriaTemplates.put(gbItemScoreTemplate.getId(), gbItemScoreTemplate);
         criteriaTemplates.put(gbDueDatePassedTemplate.getId(), gbDueDatePassedTemplate);
         criteriaTemplates.put(gbFinalGradeScoreTemplate.getId(), gbFinalGradeScoreTemplate);
+        criteriaTemplates.put(gbWillExpireTemplate.getId(), gbWillExpireTemplate);
 
         criterionClasses.add(GreaterThanScoreCriterionHibernateImpl.class);
         criterionClasses.add(DueDatePassedCriterionHibernateImpl.class);
         criterionClasses.add(FinalGradeScoreCriterionHibernateImpl.class);
+        criterionClasses.add(WillExpireCriterionHibernateImpl.class);
 
         if (certService != null)
         {
@@ -111,7 +139,7 @@ public class GradebookCriteriaFactory
         return gbService;
     }
 
-    public void setToolManager (ToolManager tm)
+    public void setToolManager(ToolManager tm)
     {
         toolManager = tm;
     }
@@ -121,7 +149,7 @@ public class GradebookCriteriaFactory
         return toolManager;
     }
 
-    public void setUserDirectoryService (UserDirectoryService uds)
+    public void setUserDirectoryService(UserDirectoryService uds)
     {
         userDirectoryService = uds;
     }
@@ -141,28 +169,24 @@ public class GradebookCriteriaFactory
         this.resourceLoader = resourceLoader;
     }
 
-    public SecurityService getSecurityService() {
+    public SecurityService getSecurityService()
+    {
         return securityService;
     }
 
-    public void setSecurityService(SecurityService securityService) {
+    public void setSecurityService(SecurityService securityService)
+    {
         this.securityService = securityService;
     }
 
-    public SessionManager getSessionManager() {
+    public SessionManager getSessionManager()
+    {
         return sessionManager;
     }
 
-    public void setSessionManager(SessionManager sessionManager) {
+    public void setSessionManager(SessionManager sessionManager)
+    {
         this.sessionManager = sessionManager;
-    }
-
-    public String getAdminUser() {
-        return adminUser;
-    }
-
-    public void setAdminUser(String adminUser) {
-        this.adminUser = adminUser;
     }
 
     protected final String contextId()
@@ -177,26 +201,31 @@ public class GradebookCriteriaFactory
 
     public Set<CriteriaTemplate> getCriteriaTemplates()
     {
-        HashSet<CriteriaTemplate>
-            values = new HashSet<CriteriaTemplate>();
-
+        HashSet<CriteriaTemplate> values = new HashSet<>();
         values.addAll(criteriaTemplates.values());
-
         return values;
     }
 
-    public CriteriaTemplate getCriteriaTemplate(Criterion criterion)
-        throws UnknownCriterionTypeException
+    public CriteriaTemplate getCriteriaTemplate(Criterion criterion) throws UnknownCriterionTypeException
     {
         if (GreaterThanScoreCriterionHibernateImpl.class.isAssignableFrom (criterion.getClass()))
+        {
             return gbItemScoreTemplate;
+        }
         else if (FinalGradeScoreCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
-        	return gbFinalGradeScoreTemplate;
+        {
+            return gbFinalGradeScoreTemplate;
+        }
         else if (DueDatePassedCriterionHibernateImpl.class.isAssignableFrom (criterion.getClass()))
+        {
             return gbDueDatePassedTemplate;
+        }
+        else if (WillExpireCriterionHibernateImpl.class.isAssignableFrom (criterion.getClass()))
+        {
+            return gbWillExpireTemplate;
+        }
 
         throw new UnknownCriterionTypeException(criterion.getClass().getName());
-
     }
 
     public Set<Class<? extends Criterion>> getCriterionTypes()
@@ -204,272 +233,271 @@ public class GradebookCriteriaFactory
         return criterionClasses;
     }
 
-    public boolean isCriterionMet(Criterion criterion)
-        throws UnknownCriterionTypeException
+    public boolean isCriterionMet(Criterion criterion) throws UnknownCriterionTypeException
     {
         if (!criterionClasses.contains(criterion.getClass()))
+        {
             throw new UnknownCriterionTypeException (criterion.getClass().getName());
+        }
 
-        return isCriterionMet (criterion, userId(), contextId());
+        return isCriterionMet (criterion, userId(), contextId(), false);
     }
 
-    protected Object doSecureGradebookAction(SecureGradebookActionCallback callback)
-        throws Exception
+    protected Object doSecureGradebookAction(SecureGradebookActionCallback callback) throws Exception
     {
-        final SessionManager
-            sessionManager = getSessionManager();
-        final SecurityService
-            securityService = getSecurityService();
+        final String contextId = contextId();
 
-        final Session
-            sakaiSession = sessionManager.getCurrentSession();
-        final String
-            contextId = contextId(),
-            currentUserId = userId(),
-            currentUserEid = getUserDirectoryService().getCurrentUser().getEid(),
-            adminUser = getAdminUser();
+        SecurityAdvisor yesMan = new SecurityAdvisor()
+        {
+            public SecurityAdvice isAllowed(String userId, String function, String reference)
+            {
+                String compTo;
+                if (contextId.startsWith("/site/"))
+                {
+                    compTo = contextId;
+                }
+                else
+                {
+                    compTo = "/site/" + contextId;
+                }
+
+                if (reference.equals(compTo) && (PERM_VIEW_OWN_GRADES.equals(function) ||
+                                                 PERM_EDIT_ASSIGNMENTS.equals(function)))
+                {
+                    return SecurityAdvice.ALLOWED;
+                }
+                else
+                {
+                    return SecurityAdvice.PASS;
+                }
+            }
+        };
 
         try
         {
-            sakaiSession.setUserId(adminUser);
-            sakaiSession.setUserEid(adminUser);
-
-            securityService.pushAdvisor
-                (
-                    new SecurityAdvisor ()
-                    {
-                        public SecurityAdvice isAllowed(String userId, String function, String reference)
-                        {
-                            String
-                                compTo = null;
-
-                            if (contextId.startsWith("/site/"))
-                            {
-                                compTo = contextId;
-                            }
-                            else
-                            {
-                                compTo = "/site/" + contextId;
-                            }
-
-                            if (reference.equals(compTo) && ("gradebook.viewOwnGrades".equals(function) ||
-                                                             "gradebook.editAssignments".equals(function)))
-                            {
-                                return SecurityAdvice.ALLOWED;
-                            }
-                            else
-                            {
-                                return SecurityAdvice.PASS;
-                            }
-                        }
-                    }
-                );
-
+            securityService.pushAdvisor( yesMan );
             return callback.doSecureAction();
         }
         finally
         {
             securityService.popAdvisor();
-
-            sakaiSession.setUserId(currentUserId);
-            sakaiSession.setUserEid(currentUserEid);
         }
     }
 
-    public boolean isCriterionMet(final Criterion criterion, final String userId, final String contextId)
+    public boolean isCriterionMet(final Criterion criterion, final String userId, final String contextId, final boolean useCaching)
         throws UnknownCriterionTypeException
     {
         if (!criterionClasses.contains(criterion.getClass()))
+        {
             throw new UnknownCriterionTypeException (criterion.getClass().getName());
+        }
 
         if (GreaterThanScoreCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
         {
-            GreaterThanScoreCriterionHibernateImpl
-                gischi = (GreaterThanScoreCriterionHibernateImpl)criterion;
-            final GradebookService
-                gbs = getGradebookService();
-            final Long
-                itemId = gischi.getItemId();
+            GreaterThanScoreCriterionHibernateImpl gischi = (GreaterThanScoreCriterionHibernateImpl)criterion;
+            final GradebookService gbs = getGradebookService();
+            final Long itemId = gischi.getItemId();
 
             if (itemId == null)
             {
-                //log it
+                logger.error("isCriterionMet called on GreaterThanScoreCriterionHibernateImpl whose gradebook itemId is null");
                 return false;
             }
 
-            String
-                score = null;
-
-            try
+            Double score = null;
+            //grab from the cache if available
+            Map<String, Double> userToGradeMap;
+            boolean cached = false;
+            if (useCaching)
             {
-                score = (String) doSecureGradebookAction (new SecureGradebookActionCallback()
+                userToGradeMap = itemToUserToGradeMap.get(itemId);
+                if (userToGradeMap != null && userToGradeMap.containsKey(userId))
                 {
-                    public Object doSecureAction()
+                    cached = true;
+                    score = userToGradeMap.get(userId);
+                }
+                else
+                {
+                    userToGradeMap = new HashMap<>();
+                    itemToUserToGradeMap.put(itemId, userToGradeMap);
+                }
+            }
+
+            if (!useCaching || !cached)
+            {
+                try
+                {
+                    score = (Double) doSecureGradebookAction (new SecureGradebookActionCallback()
                     {
-                        // pull the assignment from the gradebook to check the score
-            Assignment
-                            assn = null;
+                        public Object doSecureAction()
+                        {
+                            // pull the assignment from the gradebook to check the score
+                            Assignment assn = cachedAssignments.get(itemId);
+                            if (assn == null)
+                            {
+                                assn = gbs.getAssignment(contextId, itemId);
+                                if (useCaching)
+                                {
+                                    cachedAssignments.put(itemId, assn);
+                                }
+                            }
 
+                            if (assn == null)
+                            {
+                                logger.error("isCriterionMet couldn't retrieve the assignment; itemId = " + itemId);
 
-                        // actually get the assignment
-                assn = gbs.getAssignment(contextId, itemId);
+                                //if we returned null, the cache would think we missed this entry. -1 means we hit the entry, but there's no grade
+                                return null;
+                            }
+                            else if (!assn.isReleased())
+                            {
+                                return null;
+                            }
 
-                        if (assn == null)
-            {
-                //log it
-                return false;
+                            String assignmentScoreString = gbs.getAssignmentScoreString (contextId, itemId, userId);
+                            if (assignmentScoreString == null)
+                            {
+                                return null;
+                            }
+
+                            return Double.parseDouble(assignmentScoreString);
+                        }
+                    });
+                }
+                catch (Exception e)
+                {
+                    logger.error("isCriterionMet on GreatherThanScoreCriterion - An exception was thrown while retrieving " + userId+"'s score for itemId: " + itemId, e);
+                    return false;
+                }
+
+                if (useCaching)
+                {
+                    //cache the score
+                    itemToUserToGradeMap.get(itemId).put(userId, score);
+                }
             }
 
-                        return gbs.getAssignmentScoreString (contextId, itemId, userId);
-                    }
-                });
-            }
-            catch (Exception e)
-            {
-                //log
-                return false;
-            }
-
-            return (score != null && Math.round(Double.parseDouble(score)*100.0)/100.0 >= Double.parseDouble(gischi.getScore()));
+            return (score != null && score >= Double.parseDouble(gischi.getScore()));
         }
         else if (FinalGradeScoreCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
         {
-        	FinalGradeScoreCriterionHibernateImpl
-        		fgschi = (FinalGradeScoreCriterionHibernateImpl)criterion;
-        	final CertificateService certService = getCertificateService();
-        	double score = 0;
-        	try
-        	{
-	        	score =  (Double)doSecureGradebookAction(new SecureGradebookActionCallback()
-	            {
-	        		public Object doSecureAction()
-	        		{
-	        			//TODO
-	        			//get gradebook for the site
-	        			//check category type
-	        			// if category type is CATEGORY_TYPE_WEIGHTED_CATEGORY than it is weighted category
-	        			//loop through category definitions
-	        			//get assignments for each category and multiply weight of category to weight of assignment to possible points
-	        			
-	        			//if category type is CATEGORY_TYPE_NO_CATEGORY it does not have category 
-	        			//get all assignments and add possible points
-	        			
-	        			//if category type is CATEGORY_TYPE_ONLY_CATEGORY than loop through category definitions
-	        			//get assignments for each category and add assignments possible points
-	        			
-	        			Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
-	        			Map<Long,Double> assgnWeights = certService.getAssignmentWeights(contextId);
-	        			Map<Long,Double> assgnScores = certService.getAssignmentScores(contextId, userId);
-	        			Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
-	        			
-	        			double studentTotalScore = 0;
-	        			
-	        			int categoryType = certService.getCategoryType(contextId);
-	        			
-	        			switch(categoryType)
-	        			{
-	        				case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
-	        				{
-			        			for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
-			        			{
-			        				Double score = assgnScore.getValue();
-	        						studentTotalScore += score == null ? 0:score;
-			        			}
-			        			break;
-	        				}
-	        				case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
-	        				{
-	        					for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
-	        					{
-	        						if(catWeights.containsKey(assgnScore.getKey()))
-	        						{
-	        							Double score = assgnScore.getValue();
-		        						studentTotalScore += score == null ? 0:score;
-	        						}
-	        					}
-	        					break;
-	        				}
-	        				case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
-	        				{
-	        					//List<CategoryDefinition> categories = gbs.getCategoryDefinitions(contextId);
-	        					//Map<String, Double> categoryWeightMap = new HashMap();
-	        					
-//	        					for(CategoryDefinition category : categories)
-//	        					{
-//        							categoryWeightMap.put(category.getName(), category.getWeight());
-//	        					}
-	        					
-	        					for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
-	        					{
-	        						//String catName = assign.getCategoryName();
-	        						if(catWeights.containsKey(assgnScore.getKey()))
-	        						{
-	        							//String strScore = gbs.getAssignmentScoreString(contextId, assign.getId(), userId);
-		        						Double score = assgnScore.getValue(),
-		        							   points = assgnPoints.get(assgnScore.getKey()),
-		        							   catWeight = catWeights.get(assgnScore.getKey()),
-		        							   assgnWeight = assgnWeights.get(assgnScore.getKey());
-		        						
-		        						studentTotalScore += 100* (((score == null) ? 0:score) /
-		        											 ((points == null) ? 1:points))*
-		        											 ((catWeight == null ? 1:catWeight)) *
-		        											 ((assgnWeight == null ? 1:assgnWeight));	   
-		        					}
-	        					}
-	        					break;
-	        				}
-	        			}
-	        			
-	        			return studentTotalScore;
-
-                    }
-	            });
-	        	
-        	}
-        	catch (Exception e)
-            {
-                //log
-                return false;
-            }
-        	
-        	return (score >= Double.parseDouble(fgschi.getScore()));
-        }
-        else if (DueDatePassedCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
-        {
-            DueDatePassedCriterionHibernateImpl
-                ddpchi = (DueDatePassedCriterionHibernateImpl)criterion;
-            final GradebookService
-                gbs = getGradebookService();
-            final Long
-                itemId = ddpchi.getItemId();
-
-            if (itemId == null)
-            {
-                //log it
-                return false;
-            }
-
-            Assignment
-                assn = null;
+            FinalGradeScoreCriterionHibernateImpl fgschi = (FinalGradeScoreCriterionHibernateImpl) criterion;
+            double score;
 
             try
             {
-                assn = (Assignment) doSecureGradebookAction(new SecureGradebookActionCallback()
+                score =  (Double) doSecureGradebookAction(new SecureGradebookActionCallback()
                 {
                     public Object doSecureAction()
                     {
-                        return gbs.getAssignment(contextId, itemId);
+                        //get gradebook for the site
+                        //check category type
+                        // if category type is CATEGORY_TYPE_WEIGHTED_CATEGORY than it is weighted category
+                        //loop through category definitions
+                        //get assignments for each category and multiply weight of category to weight of assignment to possible points
+
+                        //if category type is CATEGORY_TYPE_NO_CATEGORY it does not have category
+                        //get all assignments and add possible points
+
+                        //if category type is CATEGORY_TYPE_ONLY_CATEGORY than loop through category definitions
+                        //get assignments for each category and add assignments possible points
+
+                        Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
+                        Map<Long,Double> assgnWeights = certService.getAssignmentWeights(contextId);
+                        Map<Long,Double> assgnScores = certService.getAssignmentScores(contextId, userId);
+                        Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
+
+                        double studentTotalScore = 0;
+                        int categoryType = certService.getCategoryType(contextId);
+
+                        switch(categoryType)
+                        {
+                            case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
+                            {
+                                for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
+                                {
+                                    Double score = assgnScore.getValue();
+                                    studentTotalScore += score == null ? 0:score;
+                                }
+
+                                break;
+                            }
+                            case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
+                            {
+                                for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
+                                {
+                                    if(catWeights.containsKey(assgnScore.getKey()))
+                                    {
+                                        Double score = assgnScore.getValue();
+                                        studentTotalScore += score == null ? 0:score;
+                                    }
+                                }
+
+                                break;
+                            }
+                            case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
+                            {
+                                for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet())
+                                {
+                                    if(catWeights.containsKey(assgnScore.getKey()))
+                                    {
+                                        Double score = assgnScore.getValue(),
+                                               points = assgnPoints.get(assgnScore.getKey()),
+                                               catWeight = catWeights.get(assgnScore.getKey()),
+                                               assgnWeight = assgnWeights.get(assgnScore.getKey());
+
+                                        studentTotalScore += 100 * (((score == null) ? 0 : score) /
+                                                             ((points == null) ? 1 : points)) *
+                                                             ((catWeight == null ? 1 : catWeight)) *
+                                                             ((assgnWeight == null ? 1 : assgnWeight));
+                                    }
+                                }
+
+                                break;
+                            }
+                        }
+
+                        return studentTotalScore;
                     }
                 });
             }
             catch (Exception e)
             {
-                //log it
+                logger.error("isCriterionMet - Exception thrown while retrieving the final course grade for " + userId +" in contextId:" + contextId, e);
+                return false;
+            }
+
+            return (score >= Double.parseDouble(fgschi.getScore()));
+        }
+        else if (DueDatePassedCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
+        {
+            DueDatePassedCriterionHibernateImpl ddpchi = (DueDatePassedCriterionHibernateImpl)criterion;
+            final GradebookService gbs = getGradebookService();
+            final Long itemId = ddpchi.getItemId();
+
+            if (itemId == null)
+            {
+                logger.error("isCriterionMet called with DueDatePassedCriterion where itemId is null");
+                return false;
+            }
+
+            Assignment assn;
+            try
+            {
+                assn = (Assignment) doSecureGradebookAction(() -> gbs.getAssignment(contextId, itemId));
+            }
+            catch (Exception e)
+            {
+                logger.error("isCriterionMet on DueDatePassedCriterion - An exception was thrown while retrieving a gradebook item; itemId: " + itemId, e);
                 return false;
             }
 
             return (assn != null && (new Date()).compareTo(assn.getDueDate()) > 0);
-
+        }
+        else if (WillExpireCriterionHibernateImpl.class.isAssignableFrom(criterion.getClass()))
+        {
+            //we don't want to enforce this one
+            return true;
         }
         else
         {
@@ -480,57 +508,133 @@ public class GradebookCriteriaFactory
     public Criterion createCriterion(CriteriaTemplate template, Map<String, String> bindings)
             throws InvalidBindingException, CriterionCreationException, UnknownCriterionTypeException
     {
-
-        List<CriteriaTemplateVariable>
-            variables = template.getTemplateVariables();
-        final ResourceLoader
-            rl = getResourceLoader();
+        List<CriteriaTemplateVariable> variables = template.getTemplateVariables();
+        final ResourceLoader rl = getResourceLoader();
+        GradebookService gbs = getGradebookService();
+        String contextId = getToolManager().getCurrentPlacement().getContext();
 
         for (CriteriaTemplateVariable variable : variables)
         {
-            String
-                value = bindings.get(variable.getVariableKey());
-
+            String value = bindings.get(variable.getVariableKey());
             if (value == null || !variable.isValid(value))
             {
-                InvalidBindingException
-                     ibe = new InvalidBindingException ();
+                if (template instanceof DueDatePassedCriteriaTemplate)
+                {
+                    InvalidBindingException ibe = new InvalidBindingException();
+                    ibe.setBindingKey(variable.getVariableKey());
+                    ibe.setBindingValue(value);
 
-                ibe.setBindingKey(variable.getVariableKey());
-                ibe.setBindingValue(value);
+                    if (!gbs.isGradebookDefined(contextId))
+                    {
+                        //This site does not have a gradebook
+                        ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_NO_GRADEBOOK, new Object[] {value} ));
+                        throw ibe;
+                    }
+                    else if (gbs.getAssignments(contextId).isEmpty())
+                    {
+                        //This is an empty gradebook
+                        ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EMPTY_GRADEBOOK, new Object[] {value} ));
+                        throw ibe;
+                    }
+                    else
+                    {
+                        //This gradebook is not empty, but there are no items with due dates
+                        ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_NO_DUE_DATES, new Object[] {value} ));
+                        throw ibe;
+                    }
+                }
+                else if (variable.getVariableKey().equals(KEY_SCORE))
+                {
+                    if (!"".equals(value))
+                    {
+                        try
+                        {
+                            Double.parseDouble(value);
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            InvalidBindingException ibe = new InvalidBindingException();
+                            ibe.setBindingKey(KEY_SCORE);
+                            ibe.setBindingValue(value);
+                            ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {value} ));
+                            throw ibe;
+                        }
+                    }
 
-                ibe.setLocalizedMessage(rl.getFormattedMessage("value.invalid",
-                                                                 new String[]
-                                                                     {value}
-                                                              )
-                                        );
+                    InvalidBindingException ibe = new InvalidBindingException ();
+                    ibe.setBindingKey(variable.getVariableKey());
+                    ibe.setBindingValue(value);
+                    ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_MIN_REQUIRED, new Object[] {value} ));
+                    throw ibe;
+                }
+                else if (variable.getVariableKey().equals(KEY_EXPIRY_OFFSET))
+                {
+                    if (!"".equals(value))
+                    {
+                        try
+                        {
+                            Double.parseDouble(value);
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            InvalidBindingException ibe = new InvalidBindingException();
+                            ibe.setBindingKey(KEY_EXPIRY_OFFSET);
+                            ibe.setBindingValue(value);
+                            ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {value} ));
+                            throw ibe;
+                        }
 
-                throw ibe;
+                        try
+                        {
+                            Integer.parseInt(value);
+                        }
+                        catch (NumberFormatException nfe)
+                        {
+                            InvalidBindingException ibe = new InvalidBindingException();
+                            ibe.setBindingKey(KEY_EXPIRY_OFFSET);
+                            ibe.setBindingValue(value);
+                            ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_WHOLE_NUMBER_REQUIRED, new Object[] {value} ));
+                            throw ibe;
+                        }
+                    }
+
+                    InvalidBindingException ibe = new InvalidBindingException ();
+                    ibe.setBindingKey(variable.getVariableKey());
+                    ibe.setBindingValue(value);
+                    ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EXPIRY_OFFSET_REQUIRED, new Object[] {value} ));
+                    throw ibe;
+                }
+                else if (!gbs.isGradebookDefined(contextId))
+                {
+                    //This site does not have a gradebook
+                    InvalidBindingException ibe = new InvalidBindingException ();
+                    ibe.setBindingKey(variable.getVariableKey());
+                    ibe.setBindingValue(value);
+                    ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_NO_GRADEBOOK, new Object[] {value} ));
+                    throw ibe;
+                }
+                else
+                {
+                    InvalidBindingException ibe = new InvalidBindingException ();
+                    ibe.setBindingKey(variable.getVariableKey());
+                    ibe.setBindingValue(value);
+                    ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EMPTY_GRADEBOOK, new Object[] {value} ));
+                    throw ibe;
+                }
             }
         }
 
         if (GreaterThanScoreCriteriaTemplate.class.isAssignableFrom(template.getClass()))
         {
-            GreaterThanScoreCriterionHibernateImpl
-                criterion = new GreaterThanScoreCriterionHibernateImpl();
-
-            Long
-                itemId = new Long(bindings.get("gradebook.item"));
-            GradebookService
-                gbs = getGradebookService();
-            String
-                contextId = getToolManager().getCurrentPlacement().getContext();
-            Assignment
-                assn = gbs.getAssignment(contextId, itemId);
-            String
-                scoreStr = bindings.get("score");
+            GreaterThanScoreCriterionHibernateImpl criterion = new GreaterThanScoreCriterionHibernateImpl();
+            criterion.setCriteriaFactory(this);
+            Long itemId = new Long(bindings.get(KEY_GRADEBOOK_ITEM));
+            Assignment assn = gbs.getAssignment(contextId, itemId);
+            String scoreStr = bindings.get(KEY_SCORE);
 
             criterion.setAssignment(assn);
-//            criterion.setItemId(assn.getId());
-//            criterion.setItemName(assn.getName());
 
-            double
-                score = -1;
+            double score = -1;
 
             try
             {
@@ -538,199 +642,698 @@ public class GradebookCriteriaFactory
             }
             catch (NumberFormatException nfe)
             {
-                InvalidBindingException
-                    ibe = new InvalidBindingException();
-
-                ibe.setBindingKey("score");
+                InvalidBindingException ibe = new InvalidBindingException();
+                ibe.setBindingKey(KEY_SCORE);
                 ibe.setBindingValue(scoreStr);
-
-                ibe.setLocalizedMessage (rl.getFormattedMessage("value.notanumber",
-                                                                new String[] {scoreStr}));
-
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {scoreStr} ));
                 throw ibe;
             }
 
             if (score < 0)
             {
-                InvalidBindingException
-                    ibe = new InvalidBindingException();
-
-                ibe.setBindingKey("score");
+                InvalidBindingException ibe = new InvalidBindingException();
+                ibe.setBindingKey(KEY_SCORE);
                 ibe.setBindingValue(scoreStr);
-
-                ibe.setLocalizedMessage (rl.getFormattedMessage("value.negativenumber",
-                                                                new String[] {scoreStr}));
-
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {scoreStr}));
                 throw ibe;
             }
 
             if (score > assn.getPoints())
             {
-                InvalidBindingException
-                    ibe = new InvalidBindingException("" + assn.getPoints());
-
-                ibe.setBindingKey("score");
+                InvalidBindingException ibe = new InvalidBindingException("" + assn.getPoints());
+                ibe.setBindingKey(KEY_SCORE);
                 ibe.setBindingValue(scoreStr);
 
-                ibe.setLocalizedMessage (rl.getFormattedMessage("value.toohigh",
-                                                                new Object[] {scoreStr}));
+                if (assn.getPoints()==0)
+                {
+                    ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EMPTY_GRADEBOOK, new Object[] {scoreStr} ));
+                }
+                else
+                {
+                    ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_TOO_HIGH, new Object[] {scoreStr}));
+                }
 
                 throw ibe;
             }
 
             criterion.setScore(scoreStr);
-
+            criterion.setId(Long.toString(System.currentTimeMillis()));
             return criterion;
         }
         else if (FinalGradeScoreCriteriaTemplate.class.isAssignableFrom(template.getClass()))
         {
-        	FinalGradeScoreCriterionHibernateImpl criterion = new FinalGradeScoreCriterionHibernateImpl();
-        	
-         //GradebookService
-         //    gbs = getGradebookService();
-         String
-             contextId = getToolManager().getCurrentPlacement().getContext();
-         String
-             scoreStr = bindings.get("score");
+            if (!gbs.isGradebookDefined(contextId))
+            {
+                //This site does not have a gradebook
+                InvalidBindingException ibe = new InvalidBindingException ();
+                ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EMPTY_GRADEBOOK, new Object[] {} ));
+                throw ibe;
+            }
 
-            //TODO
-         	//List<Assignment> assignments = gbs.getAssignments(contextId);
-         	Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
-			//Map<Long,Double> assgnWeights = certService.getAssignmentWeights(contextId);
-			Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
+            FinalGradeScoreCriterionHibernateImpl criterion = new FinalGradeScoreCriterionHibernateImpl();
+            criterion.setCriteriaFactory(this);
+            String scoreStr = bindings.get(KEY_SCORE);
 
-			double totalAvailable = 0;
-         	
-         	int categoryType = certService.getCategoryType(contextId);
-         	
-         	switch(categoryType)
-         	{
-	         	case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
-	         	{
-	         		for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet())
-	         		{
-	         			Double point = assgnPoint.getValue();
-    					totalAvailable += point == null ? 0:point; 
-	         		}
-	         		break;
-	         	}
-	         	case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
-	         	{
-	         		for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet())
-	         		{
-	         			if(catWeights.containsKey(assgnPoint.getKey()))
-	         			{
-	         				Double point = assgnPoint.getValue();
-	    					totalAvailable += point == null ? 0:point;
-	         			}
-	         		}
-	         		break;
-	         	}
-	         	case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
-	         	{
-	         		totalAvailable = 100;
-	         		/*for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet())
-	         		{
-	         			if(catWeights.containsKey(assgnPoint.getKey()))
-	         			{
-	         				Double catWeight = catWeights.get(assgnPoint.getKey()),
-	         					   assignWeight = assgnWeights.get(assgnPoint.getKey()),
-	         					   points = assgnPoint.getValue();
-	         				
-	         				totalAvailable += ((catWeight == null) ? 1:catWeight) *
-	         								  ((assignWeight == null) ? 1:assignWeight) *
-	         								  ((points == null) ? 0:points);
-	         			}
-	         		}*/
-	         		break;
-	         	}
-         	}
+            Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
+            Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
 
-         double
-             score = -1;
+            double totalAvailable = 0;
 
-         try
-         {
-             score = Double.parseDouble(scoreStr);
-         }
-         catch (NumberFormatException nfe)
-         {
-             InvalidBindingException
-                 ibe = new InvalidBindingException();
+            int categoryType = certService.getCategoryType(contextId);
 
-             ibe.setBindingKey("score");
-             ibe.setBindingValue(scoreStr);
+            switch(categoryType)
+            {
+                case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
+                {
+                    for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet())
+                    {
+                        Double point = assgnPoint.getValue();
+                        totalAvailable += point == null ? 0:point;
+                    }
+                    break;
+                }
+                case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
+                {
+                    for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet())
+                    {
+                        if(catWeights.containsKey(assgnPoint.getKey()))
+                        {
+                            Double point = assgnPoint.getValue();
+                            totalAvailable += point == null ? 0:point;
+                        }
+                    }
+                    break;
+                }
+                case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
+                {
+                    totalAvailable = 100;
+                    break;
+                }
+            }
 
-             ibe.setLocalizedMessage (rl.getFormattedMessage("value.notanumber",
-                                                             new String[] {scoreStr}));
+            double score = -1;
+            InvalidBindingException ibe = new InvalidBindingException();
+            ibe.setBindingKey(KEY_SCORE);
+            ibe.setBindingValue(scoreStr);
 
-             throw ibe;
-         }
+            try
+            {
+                score = Double.parseDouble(scoreStr);
+            }
+            catch (NumberFormatException nfe)
+            {
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {scoreStr}));
+                throw ibe;
+            }
 
-         if (score < 0)
-         {
-             InvalidBindingException
-                 ibe = new InvalidBindingException();
+            if (score < 0)
+            {
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {scoreStr}));
+                throw ibe;
+            }
 
-             ibe.setBindingKey("score");
-             ibe.setBindingValue(scoreStr);
+            if (score > totalAvailable)
+            {
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_TOO_HIGH, new Object[] {scoreStr}));
+                throw ibe;
+            }
 
-             ibe.setLocalizedMessage (rl.getFormattedMessage("value.negativenumber",
-                                                             new String[] {scoreStr}));
-
-             throw ibe;
-         }
-
-         if (score > totalAvailable)
-         {
-             InvalidBindingException
-                 ibe = new InvalidBindingException("" + totalAvailable);
-
-             ibe.setBindingKey("score");
-             ibe.setBindingValue(scoreStr);
-
-             ibe.setLocalizedMessage (rl.getFormattedMessage("value.toohigh",
-                                                             new Object[] {scoreStr}));
-
-             throw ibe;
-         }
-
-         criterion.setScore(scoreStr);
-
-         return criterion;
+            criterion.setScore(scoreStr);
+            criterion.setId(Long.toString(System.currentTimeMillis()));
+            return criterion;
         }
         else if (DueDatePassedCriteriaTemplate.class.isAssignableFrom(template.getClass()))
         {
-            DueDatePassedCriterionHibernateImpl
-                criterion = new DueDatePassedCriterionHibernateImpl();
-
-            Long
-                itemId = new Long(bindings.get("gradebook.item"));
-            GradebookService
-                gbs = getGradebookService();
-            String
-                contextId = getToolManager().getCurrentPlacement().getContext();
-            Assignment
-                assn = gbs.getAssignment(contextId, itemId);
-
+            DueDatePassedCriterionHibernateImpl criterion = new DueDatePassedCriterionHibernateImpl();
+            criterion.setCriteriaFactory(this);
+            Long itemId = new Long(bindings.get(KEY_GRADEBOOK_ITEM));
+            Assignment assn = gbs.getAssignment(contextId, itemId);
+            criterion.setId(Long.toString(System.currentTimeMillis()));
             criterion.setAssignment(assn);
-//            criterion.setItemId(assn.getId());
-//            criterion.setItemName(assn.getName());
+            return criterion;
+        }
+        else if (WillExpireCriteriaTemplate.class.isAssignableFrom(template.getClass()))
+        {
+            WillExpireCriterionHibernateImpl criterion = new WillExpireCriterionHibernateImpl();
+            criterion.setCriteriaFactory(this);
+            criterion.setId(Long.toString(System.currentTimeMillis()));
+            String strExpiryOffset = bindings.get(KEY_EXPIRY_OFFSET);
 
+            InvalidBindingException ibe = new InvalidBindingException();
+            ibe.setBindingKey(KEY_EXPIRY_OFFSET);
+            ibe.setBindingValue(strExpiryOffset);
+            int expiryOffset = -1;
+            try
+            {
+                expiryOffset = Integer.parseInt(strExpiryOffset);
+            }
+            catch (NumberFormatException e)
+            {
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {strExpiryOffset} ));
+                throw ibe;
+            }
+            if (expiryOffset < 0)
+            {
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {strExpiryOffset} ));
+                throw ibe;
+            }
+
+            criterion.setExpiryOffset(strExpiryOffset);
             return criterion;
         }
         throw new UnknownCriterionTypeException (template.getClass().getName());
     }
 
-    public CriteriaTemplate getCriteriaTemplate (String id)
-        throws UnknownCriterionTypeException
+    public CriteriaTemplate getCriteriaTemplate(String id) throws UnknownCriterionTypeException
     {
-        CriteriaTemplate
-            template = criteriaTemplates.get(id);
-
+        CriteriaTemplate template = criteriaTemplates.get(id);
         if (template == null)
+        {
             throw new UnknownCriterionTypeException (id);
+        }
 
         return template;
+    }
+
+    public Double getScore(final Long itemId, final String userId, final String contextId, boolean useCaching) throws NumberFormatException
+    {
+        //grab from the cache if available
+        Map<String, Double> userToGradeMap = null;
+        if (useCaching)
+        {
+            userToGradeMap = itemToUserToGradeMap.get(itemId);
+            if (userToGradeMap != null && userToGradeMap.containsKey(userId))
+            {
+                return userToGradeMap.get(userId);
+            }
+            else
+            {
+                userToGradeMap = new HashMap<>();
+                itemToUserToGradeMap.put(itemId, userToGradeMap);
+            }
+        }
+
+        final GradebookService gbs = getGradebookService();
+        try
+        {
+            Double score = (Double) doSecureGradebookAction (new SecureGradebookActionCallback()
+            {
+                public Object doSecureAction()
+                {
+                    // pull the assignment from the gradebook to check the score
+                    Assignment assn = gbs.getAssignment(contextId, itemId);
+                    if (assn == null || !assn.isReleased())
+                    {
+                        logger.error("getScore - could not retrieve assignment for " + userId +"; itemId: " + itemId);
+                        return null;
+                    }
+
+                    return Double.parseDouble( gbs.getAssignmentScoreString( contextId, itemId, userId ) );
+                }
+            });
+
+            if (useCaching)
+            {
+                userToGradeMap.put(userId, score);
+            }
+
+            return score;
+        }
+        catch (Exception e)
+        {
+            logger.error ("getScore - an exception occurred while retrieving the score for " + userId +"; itemId: " + itemId, e);
+            return null;
+        }
+    }
+
+    public Double getFinalScore(final String userId, final String contextId) throws NumberFormatException
+    {
+        try
+        {
+            return (Double)doSecureGradebookAction(new SecureGradebookActionCallback()
+            {
+                public Object doSecureAction()
+                {
+                    GradebookService gs = getGradebookService();
+                    CourseGrade courseGrade = gs.getCourseGradeForStudent( contextId, userId );
+                    String calculatedGrade = courseGrade.getCalculatedGrade();
+
+                    // If the string is null or empty, infer this as a zero
+                    if( StringUtils.isBlank( calculatedGrade ) )
+                    {
+                        return 0.0;
+                    }
+
+                    // Otherwise, parse the string to a Double leaving exceptions to be caught by the caller
+                    else
+                    {
+                        return Double.parseDouble( calculatedGrade );
+                    }
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            logger.error("getFinalScore - an exception occured while retrieving the final score for " + userId + " in " + contextId, e);
+            return null;
+        }
+    }
+
+    public Date getDateRecorded(final Long itemId, final String userId, final String contextId, boolean useCaching)
+    {
+        boolean cached = false;
+        Date dateRecorded = null;
+        Map<String, Date> userToDateRecorded = null;
+        if (useCaching)
+        {
+            userToDateRecorded = itemToUserToDateRecordedMap.get(itemId);
+            if (userToDateRecorded == null)
+            {
+                userToDateRecorded = new HashMap<>();
+                itemToUserToDateRecordedMap.put(itemId, userToDateRecorded);
+            }
+            else
+            {
+                if (userToDateRecorded.containsKey(userId))
+                {
+                    cached = true;
+                    dateRecorded = userToDateRecorded.get(userId);
+                }
+            }
+        }
+
+        //retrieve it every time if we're not using caching. If we are using caching, we retrieve it if it's not cached
+        if (!useCaching || !cached)
+        {
+            final GradebookService gbs = getGradebookService();
+
+            try
+            {
+                GradeDefinition gradeDefn = gbs.getGradeDefinitionForStudentForItem(contextId, itemId, userId);
+                dateRecorded = gradeDefn.getDateRecorded();
+            }
+            catch(GradebookNotFoundException | AssessmentNotFoundException e)
+            {
+                dateRecorded = null;
+            }
+            if (useCaching)
+            {
+                userToDateRecorded.put(userId, dateRecorded);
+            }
+        }
+
+        return dateRecorded;
+    }
+
+    public Date getFinalGradeDateRecorded(final String userId,final String contextId)
+    {
+        try
+        {
+            return (Date) doSecureGradebookAction(new SecureGradebookActionCallback()
+            {
+                public Object doSecureAction()
+                {
+                    //Just following the getFinalScore code, but ignoring grades and looking at dates
+                    Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
+                    Map<Long,Date> assgnDates = certService.getAssignmentDatesRecorded(contextId, userId);
+                    Date lastDate = null;
+                    int categoryType = certService.getCategoryType(contextId);
+
+                    switch(categoryType)
+                    {
+                        case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
+                        {
+                            for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet())
+                            {
+                                if (lastDate==null)
+                                {
+                                    lastDate = assgnDate.getValue();
+                                }
+                                else if (assgnDate.getValue() != null)
+                                {
+                                    if (assgnDate.getValue().after(lastDate))
+                                    {
+                                        lastDate = assgnDate.getValue();
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                        case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
+                        {
+                            for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet())
+                            {
+                                if(catWeights.containsKey(assgnDate.getKey()))
+                                {
+                                    if (lastDate==null)
+                                    {
+                                        lastDate = assgnDate.getValue();
+                                    }
+                                    else if (assgnDate.getValue() != null)
+                                    {
+                                        if (assgnDate.getValue().after(lastDate))
+                                        {
+                                            lastDate = assgnDate.getValue();
+                                        }
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                        case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
+                        {
+                            for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet())
+                            {
+                                if(catWeights.containsKey(assgnDate.getKey()))
+                                {
+                                    if (lastDate == null)
+                                    {
+                                        lastDate = assgnDate.getValue();
+                                    }
+                                    else if (assgnDate.getValue() != null)
+                                    {
+                                        if (assgnDate.getValue().after(lastDate))
+                                        {
+                                            lastDate = assgnDate.getValue();
+                                        }
+                                    }
+                                }
+                            }
+
+                            break;
+                        }
+                    }
+
+                    return lastDate;
+                }
+            });
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
+    }
+
+    public Date getDateIssued(final String userId, final String contextId, CertificateDefinition certDef, boolean useCaching)
+    {
+        Set<Criterion> criteria = certDef.getAwardCriteria();
+
+        //The last date in chronological order will be selected
+        Date lastDate = null;
+
+        Iterator<Criterion> itCriteria = criteria.iterator();
+        while (itCriteria.hasNext())
+        {
+            Criterion crit = itCriteria.next();
+            try
+            {
+                if (!isCriterionMet(crit, userId, contextId, useCaching))
+                {
+                    return null;
+                }
+            }
+            catch (UnknownCriterionTypeException e)
+            {
+                return null;
+            }
+
+            Date date = crit.getDateMet(userId, contextId, useCaching);
+            if (lastDate == null)
+            {
+                lastDate = date;
+            }
+            else if (date != null && date.after(lastDate))
+            {
+                lastDate = date;
+            }
+        }
+
+        return lastDate;
+    }
+
+    public void clearCaches()
+    {
+        cachedAssignments.clear();
+        itemToUserToGradeMap.clear();
+        itemToUserToDateRecordedMap.clear();
+    }
+
+    @Override
+    public Map<String, Map<Criterion, UserProgress>> getProgressForUsers(String contextId, List<String> userIds, Class type, List<Criterion> critCollection)
+            throws NumberFormatException
+    {
+        Map<String, Map<Criterion, UserProgress>> progressForUsers = new HashMap<>();
+        if (type == null)
+        {
+            throw new IllegalArgumentException("criteria type cannot be null");
+        }
+
+        if (type.equals(DueDatePassedCriterionHibernateImpl.class))
+        {
+            return getDueDatePassedProgressForUsers(contextId, userIds, critCollection);
+        }
+        else if (type.equals(FinalGradeScoreCriterionHibernateImpl.class))
+        {
+            return getFinalGradeScoreProgressForUsers(contextId, userIds, critCollection);
+        }
+        else if (type.equals(GreaterThanScoreCriterionHibernateImpl.class))
+        {
+            return getGreaterThanScoreProgressForUsers(contextId, userIds, critCollection);
+        }
+        else if (type.equals(WillExpireCriterionHibernateImpl.class))
+        {
+            return getWillExpireProgressForUsers(userIds, critCollection);
+        }
+
+        return progressForUsers;
+    }
+
+    /**
+     * Compares the criterion's class against type. Throws IllegalArgumentException if they are not equal
+     */
+    private void validateCriterionType(Criterion criterion, Class type)
+    {
+        if (criterion == null || !criterion.getClass().equals(type))
+        {
+            throw new IllegalArgumentException("Expected " + type + ". Got: " + criterion);
+        }
+    }
+
+    private Map<String, Map<Criterion, UserProgress>> getDueDatePassedProgressForUsers(String contextId, List<String> userIds, List<Criterion> critCollection)
+    {
+        Map<String, Map<Criterion, UserProgress>> userCritProgress = new HashMap<>();
+        for (Criterion criterion : critCollection)
+        {
+            validateCriterionType(criterion, DueDatePassedCriterionHibernateImpl.class);
+
+            // Get the due date.
+
+            // Start with the gradable object associated with this criterion
+            DueDatePassedCriterionHibernateImpl castedCriterion = (DueDatePassedCriterionHibernateImpl) criterion;
+            Long itemId = castedCriterion.getItemId();
+
+            // get the due date from the assignment in gradebook service
+            GradebookService gbs = getGradebookService();
+            Assignment assn = gbs.getAssignment(contextId, itemId);
+            Date dueDate = assn.getDueDate();
+
+            // Due date passed - all students pass if the assignment's due date is in the past
+            boolean everybodyPasses = dueDate.before(new Date());
+            Date dateAwarded = everybodyPasses ? dueDate : null;
+
+            for (String userId : userIds)
+            {
+                // We need to show the user's progress toward the criterion regardless of whether they passed.
+                Map<Criterion, UserProgress> critProgress = getCritProgressMapForUser(userCritProgress, userId);
+
+                // Their progress is simply the due date.
+                String strProgress = DueDatePassedCriterionHibernateImpl.REPORT_DATE_FORMAT.format(dueDate);
+                UserProgress progress = new UserProgress(userId, criterion, strProgress, everybodyPasses, dateAwarded);
+                critProgress.put(criterion, progress);
+            }
+        }
+
+        return userCritProgress;
+    }
+
+    private Map<String, Map<Criterion, UserProgress>> getFinalGradeScoreProgressForUsers(String contextId, List<String> userIds, List<Criterion> critCollection)
+            throws NumberFormatException
+    {
+        Map<String, Map<Criterion, UserProgress>> userCritProgress = new HashMap<>();
+
+        /*
+         * It doesn't matter how many FinalGradeScore criteria there are,
+         * the calculations only need to be done once.
+         * Eventually, the number of FinalGradeScore criteria will be limited to one,
+         * but that's not implemented at the time of writing.
+         */
+        // TODO: we'd like to use the gb code's calculations (GradebookManagerHibernateImpl.getPointsEarnedCourseGradeRecords) and use that logic everywhere that calculates final grades
+        Map<String, Double> userToScoreMap= new HashMap<>();
+        Map<String, Date> userToDateRecordedMap = new HashMap<>();
+        if (critCollection != null && !critCollection.isEmpty())
+        {
+            for (String userId : userIds)
+            {
+                // TODO: if using the GradebookManager's final course grade calculation is too much to ask for, then we should create getFinalScores(final List<String> userIds, final String contextId);
+                userToScoreMap.put(userId, getFinalScore(userId, contextId));
+
+                // TODO: if 'getFinalScores' is too much to ask for, getting this date may be duplicating queries in 'getFinalGradeScore'
+                userToDateRecordedMap.put(userId, getFinalGradeDateRecorded(userId, contextId));
+            }
+        }
+
+        for (Criterion criterion : critCollection)
+        {
+            validateCriterionType(criterion, FinalGradeScoreCriterionHibernateImpl.class);
+            FinalGradeScoreCriterionHibernateImpl castedCriterion = (FinalGradeScoreCriterionHibernateImpl) criterion;
+
+            // get the required score
+            String strReqScore = castedCriterion.getScore();
+            Double reqScore = null;
+            try
+            {
+                reqScore = Double.parseDouble(strReqScore);
+            }
+            catch (NumberFormatException e)
+            {
+                logger.error("Could not parse the required score as a double. Criterion is: " + criterion);
+            }
+
+            for (String userId : userIds)
+            {
+                // Prepare the UserProgress object
+                Double score = userToScoreMap.get(userId);
+                String strScore = score == null ? null : score.toString();
+                Date dateRecorded = userToDateRecordedMap.get(userId);
+                UserProgress progress = new UserProgress(userId, criterion, strScore, score >= reqScore, dateRecorded);
+
+                // add progress to the user's map of criteria to UserProgress (creates an empty map for the user if it doesn't exist)
+                Map critProgressMap = getCritProgressMapForUser(userCritProgress, userId);
+                critProgressMap.put(criterion, progress);
+            }
+        }
+
+        return userCritProgress;
+    }
+
+    private Map<String, Map<Criterion, UserProgress>> getGreaterThanScoreProgressForUsers(String contextId, List<String> userIds, List<Criterion> critCollection)
+    {
+        // The return value. If we have a user and a criterion to look up, we can call userCritProgress.get(userId).get(criterion) to get the user's progress.
+        Map<String, Map<Criterion, UserProgress>> userCritProgress = new HashMap<>();
+
+        // The list of gradable object ids associated with the GreaterThanScore criteria in critCollection
+        List<Long> gradableObjectIds = new ArrayList<>();
+
+        // Maps gradableObjectIds back to the criteria they came from
+        // Note: if we have the two GreaterThanScore criteria on the same gradebook item, the result of invoking .get(gboId) will be undefined. But we'll disallow this in the future.
+        Map<Long, GreaterThanScoreCriterionHibernateImpl> gradableObjectToCriterionMap = new HashMap<>();
+        for (Criterion criterion : critCollection)
+        {
+            validateCriterionType(criterion, GreaterThanScoreCriterionHibernateImpl.class);
+
+            GreaterThanScoreCriterionHibernateImpl castedCriterion = (GreaterThanScoreCriterionHibernateImpl) criterion;
+            Long gboId = castedCriterion.getItemId();
+            gradableObjectIds.add(gboId);
+
+            gradableObjectToCriterionMap.put(gboId, castedCriterion);
+        }
+
+        // Get a mapping of gradableObjectIds to lists grade definitions on their respective gradable objects.
+        GradebookService gbs = getGradebookService();
+        Map<Long, List<GradeDefinition>> gradesMap = gbs.getGradesWithoutCommentsForStudentsForItems(contextId, gradableObjectIds, userIds);
+
+        // Iterate over the results to get the users' progress
+        for (Map.Entry<Long, List<GradeDefinition>> gboGradeDef : gradesMap.entrySet())
+        {
+            long gboId = gboGradeDef.getKey();
+            List<GradeDefinition> gradeDefs = gboGradeDef.getValue();
+
+            // Get the criterion that originally pointed at this gradable object ID
+            GreaterThanScoreCriterionHibernateImpl criterion = gradableObjectToCriterionMap.get(gboId);
+
+            /*
+             * Note we're only iterating over entires where the grades exist.
+             * If the grade's not there, that's okay. The javadoc explains if a UserProgress is missing,
+             * it is to be treated as though the user has no progress
+             */
+            for (GradeDefinition gradeDef : gradeDefs)
+            {
+                String userId = gradeDef.getStudentUid();
+                // Gets the user's mapping of criteria to UserProgress from the map; creates and adds an empty map if it's not there
+                Map<Criterion, UserProgress> critProgress = getCritProgressMapForUser(userCritProgress, userId);
+
+                // Get the require score, the score and the date; populate UserProgress and add put it in critProgress
+                Double scoreRequired = null;
+                try
+                {
+                    scoreRequired = Double.parseDouble(criterion.getScore());
+                }
+                catch (NumberFormatException e)
+                {
+                    logger.error("Could not parse the required score as a double. Criterion is: " + criterion);
+                }
+
+                String progress = gradeDef.getGrade();
+                Double grade;
+                boolean passed = false;
+                Date dateAwarded = null;
+                try
+                {
+                    if (progress != null)
+                    {
+                        grade = Double.parseDouble(progress);
+                        if (grade >= scoreRequired)
+                        {
+                            passed = true;
+                            dateAwarded = gradeDef.getDateRecorded();
+                        }
+                    }
+                }
+                catch (NumberFormatException e)
+                {
+                    logger.error("Could not parse student's progress toward this gradebook item as a double. Progress is: " + progress);
+                }
+
+                UserProgress userProgress = new UserProgress(userId, criterion, progress, passed, dateAwarded);
+                critProgress.put(criterion, userProgress);
+            }
+        }
+
+        return userCritProgress;
+    }
+
+    private Map<String, Map<Criterion, UserProgress>> getWillExpireProgressForUsers(List<String> userIds, List<Criterion> critCollection)
+    {
+        // Everybody passes. Missing criteria are treated as though there's no progress which would result in failures, so we need to populate all of these as passed.
+        Map<String, Map<Criterion, UserProgress>> userCritProgress = new HashMap<>();
+        for (Criterion criterion : critCollection)
+        {
+            validateCriterionType(criterion, WillExpireCriterionHibernateImpl.class);
+            for (String userId : userIds)
+            {
+                Map<Criterion, UserProgress> critProgressMap = getCritProgressMapForUser(userCritProgress, userId);
+                UserProgress progress = new UserProgress(userId, criterion, null, true, null);
+                critProgressMap.put(criterion, progress);
+            }
+        }
+
+        return userCritProgress;
+    }
+
+    /**
+     * Helper method - returns userCritProgress.get(userId), but if it doesn't exist then a new HashMap<Criterion, UserProgress> is created for that user and then returned.
+     */
+    private Map<Criterion, UserProgress> getCritProgressMapForUser(Map<String, Map<Criterion, UserProgress>> userCritProgress, String userId)
+    {
+        Map<Criterion, UserProgress> critProgressMap = userCritProgress.get(userId);
+        if (critProgressMap == null)
+        {
+            critProgressMap = new HashMap<>();
+            userCritProgress.put(userId, critProgressMap);
+        }
+
+        return critProgressMap;
     }
 }

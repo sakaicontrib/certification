@@ -16,6 +16,6 @@ public interface CriteriaTemplateVariable
     public boolean isMultipleChoice();
 
     public Map<String, String> getValues();
-    
+
     public boolean isValid (String value);
 }

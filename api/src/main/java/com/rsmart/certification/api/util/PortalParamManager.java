@@ -20,11 +20,11 @@
 
 package com.rsmart.certification.api.util;
 
-import javax.servlet.ServletRequest;
 import java.util.Map;
 
-public interface PortalParamManager {
+import javax.servlet.ServletRequest;
 
+public interface PortalParamManager
+{
    public Map getParams(ServletRequest request);
-
 }

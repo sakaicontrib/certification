@@ -1,42 +1,35 @@
 package com.rsmart.certification.impl;
 
-import com.rsmart.certification.api.CertificateAward;
+import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.VariableResolutionException;
-
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 
 /**
  * User: duffy
  * Date: Jul 7, 2011
  * Time: 8:28:13 AM
  */
-public class AwardVariableResolver
-    extends AbstractVariableResolver
+public class AwardVariableResolver extends AbstractVariableResolver
 {
-    private static final String
-        CERT_NAME                       = "cert.name",
-        CERT_AWARDDATE                  = "cert.date";
+    private static final String MESSAGE_NAMEOFCERT = "variable.nameOfCert";
+    private static final String MESSAGE_UNASSIGNED = "variable.unassigned";
 
     public AwardVariableResolver()
     {
-        addVariable (CERT_NAME, "name of this certificate");
-        addVariable (CERT_AWARDDATE, "date of award");
+        String name = getMessages().getString(MESSAGE_NAMEOFCERT);
+        String unassigned = getMessages().getString(MESSAGE_UNASSIGNED);
+        addVariable(CERT_NAME, name);
+        addVariable (UNASSIGNED, unassigned);
     }
-    
-    public String getValue(CertificateAward award, String varLabel)
-        throws VariableResolutionException
+
+    public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException
     {
         if (CERT_NAME.equals(varLabel))
         {
-            return award.getCertificateDefinition().getName();
+            return certDef.getName();
         }
-        else if (CERT_AWARDDATE.equals(varLabel))
+        else if (UNASSIGNED.equals(varLabel))
         {
-            DateFormat
-                dateFormat = SimpleDateFormat.getDateInstance();
-
-            return dateFormat.format(award.getCertificationTimeStamp());
+            return "";
         }
 
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");
