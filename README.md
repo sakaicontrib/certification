@@ -8,13 +8,13 @@ Sakai10 Branch is the one needed for Sakai 10.
 
 ## Extra Properties
 
-Extra user properties are implemented in Certification for the purpose of displaying in the reporting interface only. They are not
-currently implemented as additional criterion for earning certificates. These properties are provisioned through LDAP, and are
-accessed through user.getProperties(). It can however be used without LDAP, with the caveat that the data would have to be manually
-provisioned into the sakai_user_property table.
+Extra user properties are implemented in Certification for the purpose of displaying in the reporting interface 
+only. They are not currently implemented as additional criterion for earning certificates. These properties are 
+provisioned through LDAP, and are accessed through user.getProperties(). It can however be used without LDAP, 
+with the caveat that the data would have to be manually provisioned into the sakai_user_property table.
 
-A user is only able to view these extra properties if their user role has the realm permission `certificate.extraprops.view` and
-the sakai.property below (enable) is set to true.
+A user is only able to view these extra properties if their user role has the realm permission 
+`certificate.extraprops.view` and the sakai.property below (enable) is set to true.
 
 It is possible to have administrator defined extra properties via the use of the following sakai properties:
 - certification.extraUserProperties.enable
@@ -54,7 +54,7 @@ This is a list of the titles for the keys which is displayed to the user in the 
 #### Individual
 ```
 certification.extraUserProperties.titles.count = 3
-certification.extraUserProperties.titles.1 = Emplmoyee Number
+certification.extraUserProperties.titles.1 = Employee Number
 certification.extraUserProperties.titles.2 = Student Number
 certification.extraUserProperties.titles.3 = Department
 ```
