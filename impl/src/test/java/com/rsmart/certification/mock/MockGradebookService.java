@@ -508,4 +508,22 @@ public class MockGradebookService implements GradebookService
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public String getAssignmentScoreStringByNameOrId(String gradebookUid, String assignmentName, String studentUid)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public boolean currentUserHasViewStudentNumbersPerm(String gradebookUid)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public Assignment getAssignmentByNameOrId(String gradebookUid, String assignmentName)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }
