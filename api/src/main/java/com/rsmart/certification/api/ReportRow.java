@@ -26,15 +26,14 @@ public class ReportRow
     private String role = "";
 
     /**
-     * Any extra properties to be displayed (coming from the user's properties, selected in sakai.properties -
-     * certification.extraUserProperties.keys, and enabled by certification.extraUserProperties.enable)
-     **/
-    private List<String> extraProps = new ArrayList<>();
-
-    /**
      * The date the user was issued the certificate
      */
     private String issueDate = "";
+
+    /**
+     * The user's student number
+     */
+    private String studentNumber = "";
 
     /**
      * Cells representing the user's progress toward the criteria
@@ -76,14 +75,14 @@ public class ReportRow
         return role;
     }
 
-    public void setExtraProps(List<String> extraProps)
+    public void setStudentNumber(String studentNumber)
     {
-        this.extraProps = extraProps;
+        this.studentNumber = studentNumber;
     }
 
-    public List<String> getExtraProps()
+    public String getStudentNumber()
     {
-        return extraProps;
+        return studentNumber;
     }
 
     public void setIssueDate(String issueDate)
