@@ -139,13 +139,13 @@
                         <spring:message code="report.table.header.role"/>
                     </a>
                 </th>
-                <c:forEach items="${userPropHeaders}" var="prop">
+                <c:if test="${canUserViewStudentNums != false}">
                     <th>
-                        <a href="reportViewSort.form?certId=${cert.id}&sort=prop&prop=${prop}" id="sortBy${prop}" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
-                            ${prop}
+                        <a href="reportViewSort.form?certId=${cert.id}&sort=studentNumber" id="sortByStudentNum" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
+                            <spring:message code="report.table.header.studentNum"/>
                         </a>
                     </th>
-                </c:forEach>
+                </c:if>
                 <th>
                     <a href="reportViewSort.form?certId=${cert.id}&sort=issueDate" id="sortByIssueDate" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.issuedate"/>
@@ -169,9 +169,9 @@
                     <td>${row.name}</td>
                     <td>${row.userId}</td>
                     <td>${row.role}</td>
-                    <c:forEach var="prop" items="${row.extraProps}">
-                        <td>${prop}</td>
-                    </c:forEach>
+                    <c:if test="${canUserViewStudentNums != false}">
+                        <td>${row.studentNumber}</td>
+                    </c:if>
                     <td>${row.issueDate}</td>
                     <c:forEach var="criterionCell" items="${row.criterionCells}">
                         <c:choose>
