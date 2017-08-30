@@ -6,7 +6,7 @@
     <parent>
         <artifactId>certification-base</artifactId>
         <groupId>com.rsmart</groupId>
-        <version>12-SNAPSHOT</version>
+        <version>13-SNAPSHOT</version>
     </parent>
 
     <artifactId>certification-model</artifactId>
