@@ -2,16 +2,13 @@ package com.rsmart.certification.tool;
 
 import com.rsmart.certification.api.CertificateDefinition;
 import com.rsmart.certification.api.CertificateDefinitionStatus;
-import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateException;
-import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.ReportRow;
 import com.rsmart.certification.api.TemplateReadException;
 import com.rsmart.certification.api.VariableResolutionException;
 import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionProgress;
-import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 
 import java.io.IOException;
@@ -115,7 +112,6 @@ public class CertificateListController extends BaseCertificateController
     private final String SESSION_LIST_ATTRIBUTE = "certList";
     private final String SESSION_REQUIREMENTS_ATTRIBUTE = "requirements";
     private final String SESSION_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
-    private final String SESSION_REPORT_PROP_HEADERS_ATTRIBUTE = "reportPropHeaders";
     private final String SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE = "reportCritHeaders";
     private final String SESSION_REPORT_LIST_ATTRIBUTE = "reportList";
     private final String SESSION_REQUIREMENT_LIST_ATTRIBUTE = "certRequirementList";
@@ -123,7 +119,7 @@ public class CertificateListController extends BaseCertificateController
     private final String SESSION_ORDERED_CRITERIA = "orderedCriteria";
     private final String SESSION_SORT_REPORT_ASC = "sortReportAsc";
     private final String SESSION_SORT_REPORT_KEY = "sortReportKey";
-    private final String SESSION_SORT_REPORT_EXTRA_PROPERTY = "sortReportExtraProperty";
+    private final String SESSION_CAN_USER_VIEW_STUDENT_NUMS = "canUserViewStudentNums";
 
     //Keys for mav models
     private final String MODEL_KEY_CERTIFICATE_LIST = "certList";
@@ -142,10 +138,10 @@ public class CertificateListController extends BaseCertificateController
     private final String MODEL_KEY_FILTER_END_DATE = "filterEndDate";
     private final String MODEL_KEY_REQUIREMENTS_ATTRIBUTE = "requirements";
     private final String MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE = "expiryOffset";
-    private final String MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE = "userPropHeaders";
     private final String MODEL_KEY_CRIT_HEADERS_ATTRIBUTE = "critHeaders";
     private final String MODEL_KEY_REPORT_LIST_ATTRIBUTE = "reportList";
     private final String MODEL_KEY_HIGH_MEMBERS = "highMembers";
+    private final String MODEL_KEY_CAN_USER_VIEW_STUDENT_NUMS = "canUserViewStudentNums";
 
     //UI Message keys
     private final String MESSAGE_ERROR_NOT_ADMIN = "error.not.admin";
@@ -158,6 +154,7 @@ public class CertificateListController extends BaseCertificateController
     private final String MESSAGE_REPORT_EXPORT_ERROR = "report.export.error";
     private final String MESSAGE_REPORT_TABLE_HEADER_NAME = "report.table.header.name";
     private final String MESSAGE_REPORT_TABLE_HEADER_USER_ID = "report.table.header.userid";
+    private final String MESSAGE_REPORT_TABLE_HEADER_STUDENT_NUM = "report.table.header.studentNum";
     private final String MESSAGE_REPORT_TABLE_HEADER_ROLE = "report.table.header.role";
     private final String MESSAGE_REPORT_TABLE_HEADER_ISSUEDATE = "report.table.header.issuedate";
     private final String MESSAGE_REPORT_TABLE_HEADER_AWARDED = "report.table.header.awarded";
@@ -211,7 +208,7 @@ public class CertificateListController extends BaseCertificateController
         if(page == null)
         {
             String siteId = siteId();
-            certDefList.addAll(getCertificateService().getCertificateDefinitionsForSite(siteId));
+            certDefList.addAll(certificateService.getCertificateDefinitionsForSite(siteId));
 
             certList = new PagedListHolder(certDefList);
             if(pageSize != null)
@@ -303,7 +300,6 @@ public class CertificateListController extends BaseCertificateController
 
     public ModelAndView certParticipantListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
     {
-        final CertificateService cs = getCertificateService();
         ModelAndView mav = new ModelAndView(PARTICIPANT_VIEW);
         Map<String, Object> model = new HashMap<>();
 
@@ -318,7 +314,7 @@ public class CertificateListController extends BaseCertificateController
         // If this is the first time we're going to the page, or changing the paging size
         if(page == null)
         {
-            certDefs = cs.getCertificateDefinitionsForSite(siteId(), new CertificateDefinitionStatus[]
+            certDefs = certificateService.getCertificateDefinitionsForSite(siteId(), new CertificateDefinitionStatus[]
             {
                CertificateDefinitionStatus.ACTIVE
             });
@@ -328,7 +324,7 @@ public class CertificateListController extends BaseCertificateController
                 List<Map.Entry<String, String>> requirementList = new ArrayList<>();
                 try
                 {
-                    requirementList = cs.getCertificateRequirementsForUser(cfl.getId(), userId(), siteId(), false);
+                    requirementList = certificateService.getCertificateRequirementsForUser(cfl.getId(), userId(), siteId(), false);
                 }
                 catch (IdUnusedException e)
                 {
@@ -447,7 +443,7 @@ public class CertificateListController extends BaseCertificateController
 
         try
         {
-            getCertificateService().deleteCertificateDefinition(certId);
+            certificateService.deleteCertificateDefinition(certId);
         }
         catch (IdUnusedException e)
         {
@@ -474,12 +470,11 @@ public class CertificateListController extends BaseCertificateController
 
         //true if there's trouble creating the certificate
         boolean creationError = false;
-        CertificateService certService = getCertificateService();
         CertificateDefinition definition;
 
         try
         {
-            definition = certService.getCertificateDefinition(certId);
+            definition = certificateService.getCertificateDefinition(certId);
         }
         catch (IdUnusedException iue)
         {
@@ -513,12 +508,11 @@ public class CertificateListController extends BaseCertificateController
         if (awarded && isAwardable())
         {
             DocumentTemplate template = definition.getDocumentTemplate();
-            DocumentTemplateService dts = getDocumentTemplateService();
 
             try
             {
                 //get an input stream for the PDF
-                InputStream in = dts.render(template, definition, userId());
+                InputStream in = documentTemplateService.render(template, definition, userId());
 
                 //Creating the pdf was a success
                 //proceed to create the http response
@@ -641,12 +635,11 @@ public class CertificateListController extends BaseCertificateController
         PagedListHolder reportList;
 
         //Pass the certificate definition to the UI (so it can print its name and use its id as necessary)
-        CertificateService certService = getCertificateService();
         CertificateDefinition definition;
 
         try
         {
-            definition = certService.getCertificateDefinition(certId);
+            definition = certificateService.getCertificateDefinition(certId);
             if (logIfNull(definition, "cannot retrieve certificate definition for certId = " + certId))
             {
                 return null;
@@ -683,13 +676,10 @@ public class CertificateListController extends BaseCertificateController
         String strFilterEndDate = sdf.format(filterEndDate.getTime());
         model.put(MODEL_KEY_FILTER_END_DATE, strFilterEndDate);
 
-        //we'll need this to get additional user properties
-        ExtraUserPropertyUtility extraPropsUtil = getExtraUserPropertyUtility();
-        boolean extraPropsEnabled = extraPropsUtil.isExtraUserPropertiesEnabled();
+        // Determine if the current user can view student numbers
+        boolean canShowStudentNums = certificateService.canUserViewStudentNumbers();
+        model.put(this.MODEL_KEY_CAN_USER_VIEW_STUDENT_NUMS, canShowStudentNums);
 
-        //determines if the current user has permission to view extra properties
-        boolean canShowUserProps = extraPropsEnabled && extraPropsUtil.isExtraPropertyViewingAllowedForCurrentUser();
-        List<String> propHeaders = new ArrayList<>();
         List<String> requirements = new ArrayList<>();
         Integer expiryOffset = null;
 
@@ -709,25 +699,6 @@ public class CertificateListController extends BaseCertificateController
                     //we only care about criteria that affect whether the certificate is awarded
                     //WillExpireCriteironHibernateImpl has no effect on whether it is awarded
                     requirements.add(crit.getExpression());
-                }
-            }
-
-            //Get the headers for the additional user properties
-            //keeps track of the order of the keys so that we know that the headers and the cells line up
-            List<String> propKeys;
-
-            //contains the headers that we'll push to jsp
-            if (canShowUserProps)
-            {
-                Map<String, String> propKeysTitles = extraPropsUtil.getExtraUserPropertiesKeyAndTitleMap();
-                propKeys = new ArrayList<>(propKeysTitles.keySet());
-
-                //perhaps valueSet() does the same thing, but I'm being cautious about the order
-                Iterator<String> itPropKeys = propKeys.iterator();
-                while (itPropKeys.hasNext())
-                {
-                    String key = itPropKeys.next();
-                    propHeaders.add(propKeysTitles.get(key));
                 }
             }
 
@@ -846,7 +817,6 @@ public class CertificateListController extends BaseCertificateController
             //pull the headers and the report list from the http session
             requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
             expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
-            propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
             criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
             reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
 
@@ -877,13 +847,12 @@ public class CertificateListController extends BaseCertificateController
             // they clicked Export as CSV
             //get the headers and the report list from the http session
             requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
-            propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
             criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
             reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
 
             try
             {
-                definition = certService.getCertificateDefinition(certId);
+                definition = certificateService.getCertificateDefinition(certId);
 
                 //prepare the file name for the http response header
                 DateFormat filenameDateFormat = new SimpleDateFormat(CSV_FILE_NAME_FORMAT);
@@ -893,7 +862,7 @@ public class CertificateListController extends BaseCertificateController
                 if (logIfNull(defName,"certificate name is null: "+ certId))
                 {
                     errors.add(getReportExportErrorMessage());
-                    return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+                    return reportViewError(model, errors, requirements, canShowStudentNums, criteriaHeaders, reportList);
                 }
 
                 defName = defName.replaceAll("[^a-zA-Z0-9]+","-");
@@ -902,22 +871,8 @@ public class CertificateListController extends BaseCertificateController
                 StringBuilder contents = new StringBuilder();
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_NAME), false);
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_USER_ID), false);
+                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_STUDENT_NUM), false);
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ROLE), false);
-                if (canShowUserProps)
-                {
-                    if (logIfNull(propHeaders, "propHeaders is null"))
-                    {
-                        errors.add(getReportExportErrorMessage());
-                        return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
-                    }
-
-                    Iterator<String> itPropHeaders = propHeaders.iterator();
-                    while (itPropHeaders.hasNext())
-                    {
-                        appendItem(contents, itPropHeaders.next(), false);
-                    }
-                }
-
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ISSUEDATE), false);
                 Iterator<Object> itHeaders = criteriaHeaders.iterator();
                 while (itHeaders.hasNext())
@@ -937,7 +892,7 @@ public class CertificateListController extends BaseCertificateController
                 {
                     logger.error( "Couldn't cast reportList for the reportView. certId: " + certId);
                     errors.add(getReportExportErrorMessage());
-                    return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+                    return reportViewError(model, errors, requirements, canShowStudentNums, criteriaHeaders, reportList);
                 }
 
                 //fill the rest of the csv
@@ -948,22 +903,12 @@ public class CertificateListController extends BaseCertificateController
                     ReportRow row = itTable.next();
                     appendItem(contents, row.getName(), false);
                     appendItem(contents, row.getUserId(), false);
-                    appendItem(contents, row.getRole(), false);
-                    if (canShowUserProps)
+                    if (canShowStudentNums)
                     {
-                        List<String> extraProps = row.getExtraProps();
-                        if (logIfNull(extraProps, "Extra props is null for certId: " + certId))
-                        {
-                            errors.add(getReportExportErrorMessage());
-                            return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
-                        }
-                        Iterator<String> itExtraProps = extraProps.iterator();
-                        while (itExtraProps.hasNext())
-                        {
-                            appendItem(contents, itExtraProps.next(), false);
-                        }
+                        appendItem(contents, row.getStudentNumber(), false);
                     }
 
+                    appendItem(contents, row.getRole(), false);
                     appendItem(contents, row.getIssueDate(), false);
                     Iterator<CriterionProgress> itCriterionCells = row.getCriterionCells().iterator();
                     while (itCriterionCells.hasNext())
@@ -1000,7 +945,7 @@ public class CertificateListController extends BaseCertificateController
                 We don't care*/
                 logger.error("unused certificate id passed to report's csv export: "+ certId);
                 errors.add(getReportExportErrorMessage());
-                return reportViewError(model, errors, requirements, propHeaders, criteriaHeaders, reportList);
+                return reportViewError(model, errors, requirements, canShowStudentNums, criteriaHeaders, reportList);
             }
         }
         else
@@ -1024,7 +969,7 @@ public class CertificateListController extends BaseCertificateController
         //push the navigator and the headers to the http session
         session.setAttribute(SESSION_REQUIREMENTS_ATTRIBUTE, requirements);
         session.setAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE, expiryOffset);
-        session.setAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        session.setAttribute(SESSION_CAN_USER_VIEW_STUDENT_NUMS, canShowStudentNums);
         session.setAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
         session.setAttribute(SESSION_REPORT_LIST_ATTRIBUTE, reportList);
 
@@ -1032,7 +977,7 @@ public class CertificateListController extends BaseCertificateController
         model.put(MODEL_KEY_ERRORS_ATTRIBUTE, errors);
         model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
         model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
-        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CAN_USER_VIEW_STUDENT_NUMS, canShowStudentNums);
         model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE,criteriaHeaders);
         model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
         model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
@@ -1058,12 +1003,12 @@ public class CertificateListController extends BaseCertificateController
      * @param model
      * @param errors
      * @param requirements
-     * @param propHeaders
+     * @param canUserViewStudentNums
      * @param criteriaHeaders
      * @param reportList
      * @return
      */
-    private ModelAndView reportViewError(Map<String, Object> model, List<String> errors, List<String> requirements, List<String> propHeaders, List<Object> criteriaHeaders, PagedListHolder reportList)
+    private ModelAndView reportViewError(Map<String, Object> model, List<String> errors, List<String> requirements, Boolean canUserViewStudentNums, List<Object> criteriaHeaders, PagedListHolder reportList)
     {
         //Include what we can, but ultimately ensure that we can display the errors to the user
         if (model.get(MODEL_KEY_ERRORS_ATTRIBUTE) == null)
@@ -1074,9 +1019,9 @@ public class CertificateListController extends BaseCertificateController
         {
             model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
         }
-        if (model.get(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE) == null)
+        if (model.get(MODEL_KEY_CAN_USER_VIEW_STUDENT_NUMS) == null)
         {
-            model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+            model.put(MODEL_KEY_CAN_USER_VIEW_STUDENT_NUMS, canUserViewStudentNums);
         }
         if (model.get(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE) == null)
         {
@@ -1134,12 +1079,11 @@ public class CertificateListController extends BaseCertificateController
             return null;
         }
 
-        CertificateService certServ = getCertificateService();
         CertificateDefinition definition;
 
         try
         {
-            definition = certServ.getCertificateDefinition(certId);
+            definition = certificateService.getCertificateDefinition(certId);
         }
         catch (IdUnusedException iue)
         {
@@ -1259,7 +1203,7 @@ public class CertificateListController extends BaseCertificateController
 
         List<String> requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
         Integer expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
-        List<String> propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+        Boolean canUserViewStudentNums = (Boolean) session.getAttribute(SESSION_CAN_USER_VIEW_STUDENT_NUMS);
         List<Object> criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
 
         //handle plurals when appropriate
@@ -1277,7 +1221,7 @@ public class CertificateListController extends BaseCertificateController
         model.put(MODEL_KEY_TOOL_URL, getToolUrl());
         model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
         model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
-        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CAN_USER_VIEW_STUDENT_NUMS, canUserViewStudentNums);
         model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
 
         model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);
@@ -1322,7 +1266,7 @@ public class CertificateListController extends BaseCertificateController
         }
 
         List<Criterion> orderedCriteria = (List<Criterion>) session.getAttribute(SESSION_ORDERED_CRITERIA);
-        List<ReportRow> reportRows = getCertificateService().getReportRows(userIds, definition, filterType, filterDateType, startDate, endDate, orderedCriteria);
+        List<ReportRow> reportRows = certificateService.getReportRows(userIds, definition, filterType, filterDateType, startDate, endDate, orderedCriteria);
         return reportRows;
     }
 
@@ -1330,16 +1274,13 @@ public class CertificateListController extends BaseCertificateController
      * Called when clicking the reportView's table's headers to sort the columns
      * @param certId the reported certificate definition's id
      * @param sortKey the key to be sorted on
-     * @param property if we're sorting an extra user property, this is its title
      * @param request
      * @param response
      * @return the model and view of the reportView page with the sorted table
      */
     @RequestMapping("/reportViewSort.form")
     public ModelAndView certAdminReportFilterHandler(@RequestParam(PARAM_CERT_ID) String certId, @RequestParam(PARAM_SORT) String sortKey,
-            @RequestParam(value=PARAM_PROP, required=false) String property,
-            HttpServletRequest request,
-            HttpServletResponse response)
+            HttpServletRequest request, HttpServletResponse response)
     {
         if (!isAdministrator())
         {
@@ -1352,11 +1293,10 @@ public class CertificateListController extends BaseCertificateController
             return null;
         }
 
-        CertificateService certServ = getCertificateService();
         CertificateDefinition definition;
         try
         {
-            definition = certServ.getCertificateDefinition(certId);
+            definition = certificateService.getCertificateDefinition(certId);
         }
         catch (IdUnusedException iue)
         {
@@ -1396,7 +1336,6 @@ public class CertificateListController extends BaseCertificateController
 
         session.setAttribute(SESSION_SORT_REPORT_KEY, sortKey);
         session.setAttribute(SESSION_SORT_REPORT_ASC, sortReportAsc);
-        session.setAttribute(SESSION_SORT_REPORT_EXTRA_PROPERTY, property);
 
         PagedListHolder reportList = (PagedListHolder) session.getAttribute(SESSION_REPORT_LIST_ATTRIBUTE);
         SortDefinition sortDefinition = new SortDefinition()
@@ -1404,16 +1343,7 @@ public class CertificateListController extends BaseCertificateController
             @Override
             public String getProperty()
             {
-                String key = (String) session.getAttribute(SESSION_SORT_REPORT_KEY);
-                if ("prop".equals(key))
-                {
-                    String property = (String) session.getAttribute(SESSION_SORT_REPORT_EXTRA_PROPERTY);
-                    List<String> propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
-                    int propIndex = propHeaders.indexOf(property);
-                    return "extraProps[" + propIndex + "]";
-                }
-
-                return key;
+                return (String) session.getAttribute(SESSION_SORT_REPORT_KEY);
             }
 
             public boolean isAscending()
@@ -1434,7 +1364,7 @@ public class CertificateListController extends BaseCertificateController
         model.put(MODEL_KEY_REPORT_LIST_ATTRIBUTE, reportList);
         List<String> requirements = (List<String>) session.getAttribute(SESSION_REQUIREMENTS_ATTRIBUTE);
         Integer expiryOffset = (Integer) session.getAttribute(SESSION_EXPIRY_OFFSET_ATTRIBUTE);
-        List<String> propHeaders = (List<String>) session.getAttribute(SESSION_REPORT_PROP_HEADERS_ATTRIBUTE);
+        Boolean canUserViewStudentNums = (Boolean) session.getAttribute(SESSION_CAN_USER_VIEW_STUDENT_NUMS);
         List<Object> criteriaHeaders = (List<Object>) session.getAttribute(SESSION_REPORT_CRIT_HEADERS_ATTRIBUTE);
 
         //handle plurals when appropriate
@@ -1452,7 +1382,7 @@ public class CertificateListController extends BaseCertificateController
         model.put(MODEL_KEY_TOOL_URL, getToolUrl());
         model.put(MODEL_KEY_REQUIREMENTS_ATTRIBUTE, requirements);
         model.put(MODEL_KEY_EXPIRY_OFFSET_ATTRIBUTE, strExpiryOffset);
-        model.put(MODEL_KEY_USER_PROP_HEADERS_ATTRIBUTE, propHeaders);
+        model.put(MODEL_KEY_CAN_USER_VIEW_STUDENT_NUMS, canUserViewStudentNums);
         model.put(MODEL_KEY_CRIT_HEADERS_ATTRIBUTE, criteriaHeaders);
 
         model.put(MODEL_KEY_PAGE_SIZE_LIST, PAGE_SIZE_LIST);

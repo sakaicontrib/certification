@@ -1,10 +1,8 @@
 package com.rsmart.certification.tool;
 
 import com.rsmart.certification.api.CertificateDefinition;
-import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplate;
 import com.rsmart.certification.api.DocumentTemplateException;
-import com.rsmart.certification.api.DocumentTemplateService;
 import com.rsmart.certification.api.IncompleteCertificateDefinitionException;
 import com.rsmart.certification.api.InvalidCertificateDefinitionException;
 import com.rsmart.certification.api.UnmodifiableCertificateDefinitionException;
@@ -131,7 +129,7 @@ public class CertificateEditController extends BaseCertificateController
 
                if (grabCertificate)
                {
-                   CertificateDefinition certificateDefinition = getCertificateService().getCertificateDefinition(certId);
+                   CertificateDefinition certificateDefinition = certificateService.getCertificateDefinition(certId);
                    certificateToolState.setCertificateDefinition(certificateDefinition);
                    certificateToolState.setNewDefinition(false);
                }
@@ -169,7 +167,7 @@ public class CertificateEditController extends BaseCertificateController
         {
             try
             {
-                certificateDefinitionValidator.validateFirst(certificateToolState, result, getCertificateService());
+                certificateDefinitionValidator.validateFirst(certificateToolState, result, certificateService);
                 if(!result.hasErrors())
                 {
                     certificateToolState = persistFirstFormData(certificateToolState);
@@ -228,7 +226,7 @@ public class CertificateEditController extends BaseCertificateController
                 {
                     try
                     {
-                      getCertificateService().deleteCertificateDefinition(certificateDefinition.getId());
+                      certificateService.deleteCertificateDefinition(certificateDefinition.getId());
                     }
                     catch(IdUnusedException | DocumentTemplateException e2)
                     {
@@ -266,8 +264,7 @@ public class CertificateEditController extends BaseCertificateController
                 certificateToolState.setTemplateMimeType(docTemp.getOutputMimeType());
 
                 //Get the document template's file's contents as a byte array
-                CertificateService certServ = getCertificateService();
-                InputStream resourceStream = certServ.getTemplateFileInputStream(docTemp.getResourceId());
+                InputStream resourceStream = certificateService.getTemplateFileInputStream(docTemp.getResourceId());
 
                 //credit to Triton Man (http://stackoverflow.com/questions/6790485/save-inputstream-to-bytearray)
                 ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
@@ -289,7 +286,7 @@ public class CertificateEditController extends BaseCertificateController
             String delim = "";
             StringBuilder mimeBuff = new StringBuilder();
 
-            for (String mimeType : getDocumentTemplateService().getRegisteredMimeTypes())
+            for (String mimeType : documentTemplateService.getRegisteredMimeTypes())
             {
                 mimeBuff.append(delim).append(mimeType);
                 delim = ", ";
@@ -357,7 +354,7 @@ public class CertificateEditController extends BaseCertificateController
                 certificateToolState.setTemplateMimeType(mimeType);
             }
 
-            Set<String> templateFields = getDocumentTemplateService().getTemplateFields(inputStream, mimeType);
+            Set<String> templateFields = documentTemplateService.getTemplateFields(inputStream, mimeType);
             ToolSession session = SessionManager.getCurrentToolSession();
             session.setAttribute(ATTR_TEMPLATE_FIELDS, templateFields);
             certificateToolState.setTemplateFields(templateFields);
@@ -382,7 +379,7 @@ public class CertificateEditController extends BaseCertificateController
                 String mimeType = certificateService.getMimeType(newTemplate.getBytes());
                 certificateToolState.setTemplateMimeType(mimeType);
 
-                Set<String> templateFields = getDocumentTemplateService().getTemplateFields(inputStream, mimeType);
+                Set<String> templateFields = documentTemplateService.getTemplateFields(inputStream, mimeType);
                 ToolSession session = SessionManager.getCurrentToolSession();
                 session.setAttribute(ATTR_TEMPLATE_FIELDS, templateFields);
                 certificateToolState.setTemplateFields(templateFields);
@@ -391,14 +388,13 @@ public class CertificateEditController extends BaseCertificateController
             }
             else
             {
-                DocumentTemplateService dts = getDocumentTemplateService();
                 DocumentTemplate dt = certDef.getDocumentTemplate();
 
                 /* dt will be null if a new template was uploaded earlier
                  * and we are coming back to this page*/
                 if (dt != null)
                 {
-                    Set<String> templateFields = dts.getTemplateFields(certDef.getDocumentTemplate());
+                    Set<String> templateFields = documentTemplateService.getTemplateFields(certDef.getDocumentTemplate());
                     ToolSession session = SessionManager.getCurrentToolSession();
                     session.setAttribute(ATTR_TEMPLATE_FIELDS, templateFields);
                     certificateToolState.setTemplateFields(templateFields);
@@ -418,7 +414,6 @@ public class CertificateEditController extends BaseCertificateController
     {
         final String subVal = certificateToolState.getSubmitValue();
         CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-        CertificateService certSvc = getCertificateService();
 
         Map<String, Object> model = new HashMap<>();
         model.put(MODEL_KEY_TOOL_URL, getToolUrl());
@@ -440,7 +435,7 @@ public class CertificateEditController extends BaseCertificateController
             String id = certDef.getId();
             if (id != null && !"".equals(id))
             {
-                certSvc.getCertificateDefinition(id);
+                certificateService.getCertificateDefinition(id);
             }
 
             CertificateToolState.clear();
@@ -511,7 +506,7 @@ public class CertificateEditController extends BaseCertificateController
                             else add a textbox to the form
                                 (eg. enter minimum score)
              */
-            Set<CriteriaTemplate> criteriaTemplates = certSvc.getCriteriaTemplates();
+            Set<CriteriaTemplate> criteriaTemplates = certificateService.getCriteriaTemplates();
             certificateToolState.setCriteriaTemplates(criteriaTemplates);
 
             viewName = VIEW_CREATE_CERTIFICATE_TWO;
@@ -720,7 +715,7 @@ public class CertificateEditController extends BaseCertificateController
             return;
         }
 
-        CriteriaFactory critFact = getCertificateService().getCriteriaFactory(templateId);
+        CriteriaFactory critFact = certificateService.getCriteriaFactory(templateId);
         if (critFact == null)
         {
             response.sendError(ERROR_BAD_REQUEST);
@@ -748,7 +743,6 @@ public class CertificateEditController extends BaseCertificateController
         }
 
         CertificateToolState state = CertificateToolState.getState();
-        CertificateService cs = getCertificateService();
 
         // place to store parameters from HTTP request
         Map <String, String[]> params = request.getParameterMap();
@@ -784,7 +778,7 @@ public class CertificateEditController extends BaseCertificateController
         CertificateDefinition cert = state.getCertificateDefinition();
 
         // get the CriteriaTemplate - first need to get the CriteriaFactory which holds the CriteraTemplate
-        CriteriaFactory critFact = cs.getCriteriaFactory(templateId[0]);
+        CriteriaFactory critFact = certificateService.getCriteriaFactory(templateId[0]);
         CriteriaTemplate template = critFact.getCriteriaTemplate(templateId[0]);
         Criterion newCriterion;
 

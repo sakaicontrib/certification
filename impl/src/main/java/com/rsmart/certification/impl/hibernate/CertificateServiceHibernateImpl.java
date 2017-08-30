@@ -18,7 +18,6 @@ import com.rsmart.certification.api.criteria.Criterion;
 import com.rsmart.certification.api.criteria.CriterionProgress;
 import com.rsmart.certification.api.criteria.UnknownCriterionTypeException;
 import com.rsmart.certification.api.criteria.UserProgress;
-import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl;
 import com.rsmart.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import com.rsmart.certification.impl.security.AllowMapSecurityAdvisor;
@@ -43,6 +42,7 @@ import net.sf.jmimemagic.MagicException;
 import net.sf.jmimemagic.MagicMatch;
 import net.sf.jmimemagic.MagicMatchNotFoundException;
 import net.sf.jmimemagic.MagicParseException;
+import org.apache.commons.lang3.StringUtils;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -75,6 +75,7 @@ import org.sakaiproject.site.api.Site;
 import org.sakaiproject.site.api.SiteService;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
+import org.sakaiproject.user.api.CandidateDetailProvider;
 import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
@@ -103,7 +104,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private SiteService siteService = null;
     private AuthzGroupService authzGroupService= null;
     private ContentHostingService contentHostingService = null;
-    private ExtraUserPropertyUtility extraUserPropertyUtility = null;
+    private CandidateDetailProvider candidateDetailProvider = null;
 
     private String templateDirectory = null;
     private final HashMap<String, CriteriaFactory> criteriaTemplateMap = new HashMap<>();
@@ -132,6 +133,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private static final String PARAM_STUDENT_ID = "studentId";
     private static final String PARAM_ID = "id";
     private static final String PARAM_NAME = "name";
+
+    private static final String PERMISSION_VIEW_STUDENT_NUMS = "certificate.extraprops.view";
 
     private final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
 
@@ -225,9 +228,9 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         this.securityService = securityService;
     }
 
-    public void setExtraUserPropertyUtility(ExtraUserPropertyUtility extraUserPropertyUtility)
+    public void setCandidateDetailProvider(CandidateDetailProvider candidateDetailProvider)
     {
-        this.extraUserPropertyUtility = extraUserPropertyUtility;
+        this.candidateDetailProvider = candidateDetailProvider;
     }
 
     public void init()
@@ -1279,15 +1282,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
         List<ReportRow> reportRows = new ArrayList<>();
 
-        //we'll need this to get additional user properties
-        //determines if the current user has permission to view extra properties
-        boolean canShowUserProps = extraUserPropertyUtility.isExtraUserPropertiesEnabled() && extraUserPropertyUtility.isExtraPropertyViewingAllowedForCurrentUser();
-
-        //Get the headers for the additional user properties
-        //keeps track of the order of the keys so that we know that the headers and the cells line up
-        Map<String, String> propKeysTitles = extraUserPropertyUtility.getExtraUserPropertiesKeyAndTitleMap();
-        List<String> propKeys = new ArrayList<>(propKeysTitles.keySet());
-
         //Get the criteria in the order of the displayed columns
         WillExpireCriterionHibernateImpl wechi = null;
         Iterator<Criterion> itOrderedCriteria = orderedCriteria.iterator();
@@ -1411,6 +1405,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
 
         // populate the report rows
+        boolean canShowStudentNums = canUserViewStudentNumbers();
+        Site currentSite = getCurrentSite();
         for (User user : users)
         {
             ReportRow row = new ReportRow();
@@ -1432,18 +1428,10 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             row.setRole(role);
 
             // populate the extra user properties
-            ArrayList<String> extraProps = new ArrayList<>();
-            if (canShowUserProps)
+            if (canShowStudentNums)
             {
-                Map<String, String> extraPropsMap = extraUserPropertyUtility.getExtraPropertiesMapForUser(user);
-                Iterator<String> itKeys = propKeys.iterator();
-                while (itKeys.hasNext())
-                {
-                    String key = itKeys.next();
-                    extraProps.add(extraPropsMap.get(key));
-                }
+                row.setStudentNumber(getStudentNumber(user, currentSite));
             }
-            row.setExtraProps(extraProps);
 
             // Determine the awarded status and the issue date using the UserProgress objects we previously retrieved
             Map<Criterion, UserProgress> critProgressMap = allUserProgress.get(userId);
@@ -1600,6 +1588,84 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
 
         return reportRows;
+    }
+
+    private String getStudentNumber(User user, Site site)
+    {
+        if (site == null || user == null)
+        {
+            return "";
+        }
+
+        return candidateDetailProvider.getInstitutionalNumericId(user, site).orElse("");
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public boolean canUserViewStudentNumbers()
+    {
+        User currentUser = getCurrentUser();
+        Site currentSite = getCurrentSite();
+
+        if (currentUser != null && currentSite != null)
+        {
+            String siteRef = siteService.siteReference(currentSite.getId());
+            boolean userHasSitePerm = securityService.unlock(currentUser.getId(), PERMISSION_VIEW_STUDENT_NUMS, siteRef);
+            return userHasSitePerm && candidateDetailProvider.isInstitutionalNumericIdEnabled(currentSite);
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    /**
+     * Utility method to get the current User
+     * @return the current user
+     */
+    private User getCurrentUser()
+    {
+        return userDirectoryService.getCurrentUser();
+    }
+
+    /**
+     * Utility method to get the current site ID
+     * @return the current site ID, or null
+     */
+    private String getCurrentSiteID()
+    {
+        try
+        {
+            return this.toolManager.getCurrentPlacement().getContext();
+        }
+        catch (Exception ex)
+        {
+            return null;
+        }
+    }
+
+    /**
+     * Utility method to get the current Site
+     * @return the current site, or null
+     */
+    private Site getCurrentSite()
+    {
+        String siteID = getCurrentSiteID();
+        Site site = null;
+        if (StringUtils.isNotBlank(siteID))
+        {
+            try
+            {
+                site = siteService.getSite(siteID);
+            }
+            catch (IdUnusedException ex)
+            {
+                LOG.debug("Can't find site with ID = " + siteID);
+            }
+        }
+
+        return site;
     }
 
     /**
