@@ -311,11 +311,4 @@ public interface CertificateService
         throws NumberFormatException;
 
    public String getTemplateDirectory();
-
-   /**
-    * Determine if the current user is able to view student numbers in the current site.
-    * Does not take into account suppression of student numbers for individual students due to account type.
-    * @return true if student numbers are visible to the current user; false otherwise
-    */
-   public boolean canUserViewStudentNumbers();
 }

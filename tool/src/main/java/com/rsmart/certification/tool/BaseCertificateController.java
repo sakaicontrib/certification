@@ -2,6 +2,7 @@ package com.rsmart.certification.tool;
 
 import com.rsmart.certification.api.CertificateService;
 import com.rsmart.certification.api.DocumentTemplateService;
+import com.rsmart.certification.api.util.ExtraUserPropertyUtility;
 import com.rsmart.certification.tool.validator.CertificateDefinitionValidator;
 
 import java.text.DateFormat;
@@ -71,6 +72,7 @@ public class BaseCertificateController
 
     protected CertificateService          certificateService;
     protected DocumentTemplateService     documentTemplateService;
+    protected ExtraUserPropertyUtility    extraUserPropertyUtility;
 
     @Resource(name="org.sakaiproject.tool.api.ToolManager")
     public void setToolManager(ToolManager toolManager)
@@ -113,6 +115,17 @@ public class BaseCertificateController
     {
         this.documentTemplateService = documentTemplateService;
     }
+
+    @Autowired
+    public void setExtraUserPropertyUtility(ExtraUserPropertyUtility extraUserPropertyUtility)
+    {
+        this.extraUserPropertyUtility = extraUserPropertyUtility;
+    }
+
+    public ToolManager              getToolManager()                { return toolManager; }
+    public CertificateService       getCertificateService()         { return this.certificateService; }
+    public DocumentTemplateService  getDocumentTemplateService()    { return this.documentTemplateService; }
+    public ExtraUserPropertyUtility getExtraUserPropertyUtility()   { return this.extraUserPropertyUtility; }
 
     protected String userId()
     {

@@ -82,7 +82,7 @@
 
         <!-- Certification services -->
         <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
-        <property name="candidateDetailProvider" ref="org.sakaiproject.user.api.CandidateDetailProvider"/>
+        <property name="extraUserPropertyUtility" ref="com.rsmart.certification.api.util.ExtraUserPropertyUtility"/>
 
         <!-- Member variables -->
         <property name="templateDirectory" value="${sakai.home}/templates"/>
@@ -132,6 +132,14 @@
     <bean id="certification.ResourceLoader"
           class="org.sakaiproject.util.ResourceLoader">
         <property name="baseName" value="com.rsmart.certification.Messages"/>
+    </bean>
+
+    <bean id="com.rsmart.certification.api.util.ExtraUserPropertyUtility"
+          class="com.rsmart.certification.impl.util.ExtraUserPropertyUtilityImpl">
+        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
     </bean>
 
     <bean id="com.rsmart.certification.api.util.PortalParamManager"
