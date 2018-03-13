@@ -29,11 +29,13 @@
                             <td>${tField.key}</td>
                             <td>
                                 <form:select path="templateFields['${tField.key}']">
-                                    <c:forEach items="${certificateToolState.templateFieldsToDescriptions}" var="predefDefault" varStatus="index">
-                                        <c:if test="${tField.key eq predefDefault.key}">
-                                            <form:option value="${tField.value}" label="${predefDefault.value}"/>
-                                        </c:if>
-                                    </c:forEach>
+                                    <c:if test="${not empty tField.value}">
+	                                    <c:forEach items="${certificateToolState.templateFieldsToDescriptions}" var="predefDefault" varStatus="index">
+	                                        <c:if test="${tField.key eq predefDefault.key}">
+	                                            <form:option value="${tField.value}" label="${predefDefault.value}"/>
+	                                        </c:if>
+	                                    </c:forEach>
+                                    </c:if>
                                     <c:forEach items="${certificateToolState.orderedEscapedPredifinedFields}" var="escapedPredefField" varStatus="index">
                                         <c:if test="${tField.value ne escapedPredefField[0]}">
                                             <form:option value="${escapedPredefField[0]}" label="${escapedPredefField[1]}"/>

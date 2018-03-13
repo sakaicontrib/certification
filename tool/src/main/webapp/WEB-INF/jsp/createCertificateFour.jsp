@@ -87,6 +87,7 @@
                     <tr>
                         <th><spring:message code="form.label.field"/></th>
                         <th><spring:message code="form.label.value"/></th>
+                        <th><spring:message code="form.label.overwrite"/></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,6 +95,9 @@
                         <tr>
                             <td>${tField.key}</td>
                             <td>${tField.value}</td>
+                            <c:if test = "${tField.value == '${unassigned}'}" >
+                                <td><form:input path="templateFields['${tField.key}']" autocomplete="off"/></td>
+                            </c:if>
                         </tr>
                     </c:forEach>
                 </tbody>
