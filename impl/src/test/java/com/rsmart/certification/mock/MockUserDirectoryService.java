@@ -291,6 +291,12 @@ public class MockUserDirectoryService implements UserDirectoryService
         return null;
     }
 
+    @Override
+    public boolean updateUserEid(String id, String newEid)
+    {
+        return false;
+    }
+
     public String userReference(String id)
     {
         return null;
