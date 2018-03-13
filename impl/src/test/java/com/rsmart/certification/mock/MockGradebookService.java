@@ -30,6 +30,13 @@ import org.sakaiproject.service.gradebook.shared.StaleObjectModificationExceptio
  */
 public class MockGradebookService implements GradebookService
 {
+
+    @Override
+    public Map<String, CourseGrade> getCourseGradeForStudents(String gradebookUid, List<String> userUuids, Map<String, Double> schema)
+    {
+        return null;
+    }
+
     public boolean isGradebookDefined(String gradebookUid)
     {
         return true;
@@ -138,6 +145,12 @@ public class MockGradebookService implements GradebookService
     public CommentDefinition getAssignmentScoreComment(String gradebookUid, Long gbItemId, String studentUid) throws GradebookNotFoundException, AssessmentNotFoundException
     {
         return null;
+    }
+
+    @Override
+    public boolean isValidNumericGrade(String grade)
+    {
+        return false;
     }
 
     public void setAssignmentScore(String gradebookUid, String assignmentName, String studentUid, Double score, String clientServiceDescription) throws GradebookNotFoundException, AssessmentNotFoundException {}
