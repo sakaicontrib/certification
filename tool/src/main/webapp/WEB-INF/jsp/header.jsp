@@ -9,11 +9,8 @@
       <meta http-equiv="Content-Style-Type" content="text/css" />
       <link href='<c:out value="${sakai_skin_base}" />' type="text/css" rel="stylesheet" media="all" />
       <link href='<c:out value="${sakai_skin}" />' type="text/css" rel="stylesheet" media="all" />
-      <link media="all" href="WEB-INF/css/jquery-ui.css" rel="stylesheet" type="text/css" />
       <link media="all" href="WEB-INF/css/certification.css" rel="stylesheet" type="text/css" />
       <script type="text/javascript" language="JavaScript" src="/library/js/headscripts.js"></script>
-      <script type="text/javascript" language="JavaScript" src="WEB-INF/js/jquery-1.8.3.js"></script>
-      <script type="text/javascript" language="JavaScript" src="WEB-INF/js/jquery-ui.js"></script>
       <script type="text/javascript" language="Javascript" src="/library/js/spinner.js"></script>
       <%
           String panelId = request.getParameter("panel");
@@ -23,7 +20,9 @@
       %>
 
       <script language="javascript">
-         function resetHeight()
+        includeLatestJQuery('sakai.certification');
+
+        function resetHeight()
          {
             resizeFrame("grow");
          }
