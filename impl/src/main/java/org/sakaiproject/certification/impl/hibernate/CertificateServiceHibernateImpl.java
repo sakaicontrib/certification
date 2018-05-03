@@ -40,7 +40,6 @@ import org.sakaiproject.certification.impl.security.AllowMapSecurityAdvisor;
 
 import java.io.File;
 import java.io.InputStream;
-import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -97,10 +96,10 @@ import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
 
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.hibernate3.HibernateCallback;
-import org.springframework.orm.hibernate3.HibernateObjectRetrievalFailureException;
-import org.springframework.orm.hibernate3.HibernateTemplate;
-import org.springframework.orm.hibernate3.support.HibernateDaoSupport;
+import org.springframework.orm.hibernate4.HibernateCallback;
+import org.springframework.orm.hibernate4.HibernateObjectRetrievalFailureException;
+import org.springframework.orm.hibernate4.HibernateTemplate;
+import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 
 /**
  * User: duffy
@@ -299,7 +298,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         CertificateDefinition cd = (CertificateDefinition) getHibernateTemplate().execute(new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl) session.load(CertificateDefinitionHibernateImpl.class, certificateDefinitionId);
                 cd.getFieldValues().clear();
@@ -391,7 +390,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         {
             cd = (CertificateDefinitionHibernateImpl) getHibernateTemplate().execute(new HibernateCallback()
             {
-                public Object doInHibernate(Session session) throws HibernateException, SQLException
+                public Object doInHibernate(Session session) throws HibernateException
                 {
                     CertificateDefinitionHibernateImpl certificateDefinition = new CertificateDefinitionHibernateImpl();
 
@@ -650,7 +649,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         {
             return (DocumentTemplate) getHibernateTemplate().execute(new HibernateCallback()
             {
-                public Object doInHibernate(Session session) throws HibernateException, SQLException
+                public Object doInHibernate(Session session) throws HibernateException
                 {
                     boolean updating;
                     CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl)session.load(CertificateDefinitionHibernateImpl.class,
@@ -832,7 +831,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
         result = (List<CertificateDefinition>) getHibernateTemplate().execute(new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 Query q = session.getNamedQuery(QUERY_CERTIFICATE_DEFINITIONS_BY_SITE).setString(PARAM_SITE_ID, siteId);
                 return q.list();
@@ -857,7 +856,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
         result = (List<CertificateDefinition>) getHibernateTemplate().execute(new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 Query q = session.getNamedQuery(QUERY_CERTIFICATE_DEFINITIONS_BY_SITE_AND_STATUS);
                 q.setString(PARAM_SITE_ID, siteId);
@@ -883,7 +882,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         {
             getHibernateTemplate().execute(new HibernateCallback()
             {
-                public Object doInHibernate(Session session) throws HibernateException, SQLException
+                public Object doInHibernate(Session session) throws HibernateException
                 {
                     CertificateDefinitionHibernateImpl cd = null;
 
@@ -934,7 +933,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         {
             return (Criterion) getHibernateTemplate().execute(new HibernateCallback()
             {
-                public Object doInHibernate(Session session) throws HibernateException, SQLException
+                public Object doInHibernate(Session session) throws HibernateException
                 {
                     CertificateDefinitionHibernateImpl cd = (CertificateDefinitionHibernateImpl)session.load(CertificateDefinitionHibernateImpl.class, certificateDefinitionId);
                     Set<Criterion> criteria = cd.getAwardCriteria();
@@ -1060,7 +1059,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         return (Integer) getHibernateTemplate().execute(new HibernateCallback()
         {
-            public Integer doInHibernate(Session session) throws HibernateException, SQLException
+            public Integer doInHibernate(Session session) throws HibernateException
             {
                 List<Integer> list = session.createQuery("select gb.category_type from CertGradebook as gb where gb.uid=:gbid")
                         .setParameter(PARAM_GBID, gradebookId).list();
@@ -1074,7 +1073,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         return (Map<Long, Double>) getHibernateTemplate().execute(new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 List<Object[]> results = session.createQuery("select assn.id, cat.weight from CertCategory as cat, CertAssignment as assn " +
                         "where cat.gradebook.uid=:gbid and cat.removed=false " +
@@ -1096,7 +1095,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 List<Object[]> results =  session.createQuery("select assn.id, assn.assignmentWeighting from CertAssignment as assn " +
                         "where assn.notCounted=false and assn.removed=false and " +
@@ -1121,7 +1120,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 List<Object[]> results = session.createQuery("select assn.id, assn.pointsPossible from CertCategory as cat, CertAssignment as assn " +
                         "where cat.gradebook.uid=:gradebookId and cat.removed=false " +
@@ -1147,7 +1146,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 List<Object[]> results = session.createQuery("select assn.id, assn.pointsPossible from CertAssignment as assn " +
                         "where assn.removed=false and assn.notCounted=false and " +
@@ -1171,7 +1170,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 Iterator results = session.createQuery("select agr.gradableObject.id, agr.pointsEarned from CertAssignmentScore as agr " +
                         "where agr.gradableObject.removed=false " +
@@ -1197,7 +1196,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     {
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 Iterator results = session.createQuery("select agr.gradableObject.id, agr.dateRecorded from CertAssignmentScore as agr " +
                          "where agr.gradableObject.removed=false " +
@@ -1262,7 +1261,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
         HibernateCallback callback = new HibernateCallback()
         {
-            public Object doInHibernate(Session session) throws HibernateException, SQLException
+            public Object doInHibernate(Session session) throws HibernateException
             {
                 //We need to get people from gb_grade_record_t, grading event only gives us people graded from the gradebook tool
                 String query = 	"select distinct gr.studentId from CertGradeRecordObject as gr " +
