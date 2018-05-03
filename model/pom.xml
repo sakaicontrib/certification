@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>certification-base</artifactId>
-        <groupId>com.rsmart</groupId>
+        <groupId>org.sakaiproject</groupId>
         <version>13-SNAPSHOT</version>
     </parent>
 
@@ -27,7 +27,7 @@
             <artifactId>sakai-kernel-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rsmart</groupId>
+            <groupId>org.sakaiproject</groupId>
             <artifactId>certification-api</artifactId>
             <version>${sakai.version}</version>
             <scope>provided</scope>

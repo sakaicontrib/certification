@@ -1,20 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright 2011 The rSmart Group
-  ~
-  ~ The contents of this file are subject to the Mozilla Public License
-  ~ Version 1.1 (the "License"); you may not use this file except in
-  ~ compliance with the License. You may obtain a copy of the License at
-  ~ http://www.mozilla.org/MPL/
-  ~
-  ~ Software distributed under the License is distributed on an "AS IS"
-  ~ basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
-  ~ License for the specific language governing rights and limitations
-  ~ under the License.
-  ~
-  ~ Contributor(s): duffy
--->
-
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:context="http://www.springframework.org/schema/context"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -29,22 +13,22 @@
           class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
         <property name="mappingResources">
             <list>
-                <value>com/rsmart/certification/impl/hibernate/CertificateDefinitionHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/DocumentTemplateHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/AbstractCriterionHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/GreaterThanScoreCriterionHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/DueDatePassedCriterionHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/FinalGradeScoreCriterionHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/WillExpireCriterionHibernateImpl.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertAssignment.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertCategory.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradebook.hbm.xml</value>
-                <value>com/rsmart/certification/impl/hibernate/criteria/gradebook/CertGradeRecord.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/CertificateDefinitionHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/DocumentTemplateHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/AbstractCriterionHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/GreaterThanScoreCriterionHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/DueDatePassedCriterionHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/FinalGradeScoreCriterionHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/WillExpireCriterionHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertAssignment.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertCategory.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertGradebook.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertGradeRecord.hbm.xml</value>
             </list>
         </property>
     </bean>
 
-    <bean id="com.rsmart.certification.api.CertificateService"
+    <bean id="org.sakaiproject.certification.api.CertificateService"
           class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
 
         <!-- Transaction manager -->
@@ -54,7 +38,7 @@
 
         <!-- Implementation target -->
         <property name="target">
-            <ref bean="com.rsmart.certification.api.CertificateService.wrapped"/>
+            <ref bean="org.sakaiproject.certification.api.CertificateService.wrapped"/>
         </property>
 
         <!-- Transaction settings for methods in the service -->
@@ -67,8 +51,8 @@
         </property>
     </bean>
 
-    <bean id="com.rsmart.certification.api.CertificateService.wrapped"
-          class="com.rsmart.certification.impl.hibernate.CertificateServiceHibernateImpl"
+    <bean id="org.sakaiproject.certification.api.CertificateService.wrapped"
+          class="org.sakaiproject.certification.impl.hibernate.CertificateServiceHibernateImpl"
           init-method="init">
 
          <!--S akai services -->
@@ -81,7 +65,7 @@
         <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
 
         <!-- Certification services -->
-        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="documentTemplateService" ref="org.sakaiproject.certification.api.DocumentTemplateService"/>
         <property name="candidateDetailProvider" ref="org.sakaiproject.user.api.CandidateDetailProvider"/>
 
         <!-- Member variables -->
@@ -91,15 +75,15 @@
         <property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"/>
     </bean>
 
-    <bean id="com.rsmart.certification.api.DocumentTemplateService"
-          class="com.rsmart.certification.impl.DocumentTemplateServiceImpl">
+    <bean id="org.sakaiproject.certification.api.DocumentTemplateService"
+          class="org.sakaiproject.certification.impl.DocumentTemplateServiceImpl">
         <property name="variableResolvers">
             <set>
-                <bean class="com.rsmart.certification.impl.AwardVariableResolver"/>
-                <bean class="com.rsmart.certification.impl.RecipientVariableResolver">
+                <bean class="org.sakaiproject.certification.impl.AwardVariableResolver"/>
+                <bean class="org.sakaiproject.certification.impl.RecipientVariableResolver">
                     <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
                 </bean>
-                <bean class="com.rsmart.certification.impl.GradebookVariableResolver">
+                <bean class="org.sakaiproject.certification.impl.GradebookVariableResolver">
                     <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
                     <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
                     <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
@@ -110,17 +94,17 @@
         </property>
     </bean>
 
-    <bean id="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
-          class="com.rsmart.certification.impl.ITextDocumentTemplateRenderEngine"
+    <bean id="org.sakaiproject.certification.impl.ITextDocumentTemplateRenderEngine"
+          class="org.sakaiproject.certification.impl.ITextDocumentTemplateRenderEngine"
           init-method="init">
-        <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
-        <property name="documentTemplateService" ref="com.rsmart.certification.api.DocumentTemplateService"/>
+        <property name="certificateService" ref="org.sakaiproject.certification.api.CertificateService"/>
+        <property name="documentTemplateService" ref="org.sakaiproject.certification.api.DocumentTemplateService"/>
     </bean>
 
-    <bean id="com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
-          class="com.rsmart.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
+    <bean id="org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
+          class="org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
           init-method="init">
-        <property name="certificateService" ref="com.rsmart.certification.api.CertificateService"/>
+        <property name="certificateService" ref="org.sakaiproject.certification.api.CertificateService"/>
         <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
         <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
         <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
@@ -131,11 +115,11 @@
 
     <bean id="certification.ResourceLoader"
           class="org.sakaiproject.util.ResourceLoader">
-        <property name="baseName" value="com.rsmart.certification.Messages"/>
+        <property name="baseName" value="org.sakaiproject.certification.Messages"/>
     </bean>
 
-    <bean id="com.rsmart.certification.api.util.PortalParamManager"
-          class="com.rsmart.certification.impl.util.PortalParamManagerImpl">
+    <bean id="org.sakaiproject.certification.api.util.PortalParamManager"
+          class="org.sakaiproject.certification.impl.util.PortalParamManagerImpl">
         <property name="parameters">
             <list>
                 <value>pid</value>

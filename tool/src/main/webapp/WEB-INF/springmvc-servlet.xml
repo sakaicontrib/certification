@@ -1,20 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!--
-  ~ Copyright 2011 The rSmart Group
-  ~
-  ~ The contents of this file are subject to the Mozilla Public License
-  ~ Version 1.1 (the "License"); you may not use this file except in
-  ~ compliance with the License. You may obtain a copy of the License at
-  ~ http://www.mozilla.org/MPL/
-  ~
-  ~ Software distributed under the License is distributed on an "AS IS"
-  ~ basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See the
-  ~ License for the specific language governing rights and limitations
-  ~ under the License.
-  ~
-  ~ Contributor(s): duffy
-  -->
-
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:mvc="http://www.springframework.org/schema/mvc"
@@ -27,14 +11,14 @@
                            http://www.springframework.org/schema/context/spring-context.xsd"
        default-lazy-init="true" >
 
-    <context:component-scan base-package="com.rsmart.certification.tool"/>
+    <context:component-scan base-package="org.sakaiproject.certification.tool"/>
 
     <bean id="messageSource"
           class="org.sakaiproject.util.ResourceLoaderMessageSource">
-        <property name="basename" value="com.rsmart.certification.tool.Messages" />
+        <property name="basename" value="org.sakaiproject.certification.tool.Messages" />
     </bean>
 
-    <bean id="localeResolver" class="com.rsmart.certification.impl.SakaiLocaleResolver"/>
+    <bean id="localeResolver" class="org.sakaiproject.certification.impl.SakaiLocaleResolver"/>
 
      <bean id="exceptionResolver" class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
          <property name="exceptionMappings">
@@ -55,13 +39,13 @@
         <property name="interceptors">
             <list>
                 <!-- puts 'sakai_skin' into request as an attribute -->
-                <bean class="com.rsmart.certification.impl.SakaiStyleSheetInterceptor">
+                <bean class="org.sakaiproject.certification.impl.SakaiStyleSheetInterceptor">
                     <property name="siteService"><ref bean="org.sakaiproject.site.api.SiteService"/></property>
                     <property name="toolManager"><ref bean="org.sakaiproject.tool.api.ToolManager"/></property>
                 </bean>
 
                 <!-- puts 'locale' into request as an attribute -->
-                <bean class="com.rsmart.certification.impl.LocaleHandlerInterceptor">
+                <bean class="org.sakaiproject.certification.impl.LocaleHandlerInterceptor">
                     <property name="messageSource" ref="messageSource"/>
                 </bean>
             </list>
@@ -69,7 +53,7 @@
     </bean>
 
     <bean id="viewResolver"
-          class="com.rsmart.certification.impl.SakaiInternalResourceViewResolver">
+          class="org.sakaiproject.certification.impl.SakaiInternalResourceViewResolver">
         <property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
         <property name="prefix" value="/WEB-INF/jsp/" />
         <property name="suffix" value=".jsp" />

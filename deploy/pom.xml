@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>certification-base</artifactId>
-        <groupId>com.rsmart</groupId>
+        <groupId>org.sakaiproject</groupId>
         <version>13-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>

@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-app_2_5.xsd"
          version="2.5">
 
-    <display-name>certification-tool</display-name>
+    <display-name>sakai-certification-tool</display-name>
 
     <filter>
         <filter-name>sakai.request</filter-name>
@@ -25,7 +25,7 @@
 
     <filter-mapping>
         <filter-name>sakai.request</filter-name>
-        <servlet-name>com.rsmart.certification</servlet-name>
+        <servlet-name>sakai.certification</servlet-name>
         <dispatcher>REQUEST</dispatcher>
         <dispatcher>FORWARD</dispatcher>
         <dispatcher>INCLUDE</dispatcher>
@@ -38,8 +38,8 @@
     </servlet>
 
     <servlet>
-        <servlet-name>com.rsmart.certification</servlet-name>
-        <servlet-class>com.rsmart.certification.impl.springframework.SpringTool</servlet-class>
+        <servlet-name>sakai.certification</servlet-name>
+        <servlet-class>org.sakaiproject.certification.impl.springframework.SpringTool</servlet-class>
 
         <!-- this specifies the initial page that will be returned when a user clicks on the tool from the left hand side of the page. -->
         <!-- since this app uses spring mvc and not jsf, we do not need to specify the path init-param value.  This is because in the  -->

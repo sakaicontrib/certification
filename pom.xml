@@ -12,7 +12,7 @@
     <packaging>pom</packaging>
     <artifactId>certification-base</artifactId>
     <name>Certification Base Project</name>
-    <groupId>com.rsmart</groupId>
+    <groupId>org.sakaiproject</groupId>
 
     <modules>
         <module>api</module>

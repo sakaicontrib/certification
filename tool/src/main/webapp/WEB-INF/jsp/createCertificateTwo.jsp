@@ -169,7 +169,7 @@
     {
         var selectedCreteriaItem=jQuery("#criteriaOptions > p > select :selected").val();
         var selectedCreteriaTemplate=jQuery("#criteriaTemplate").val();
-        if(selectedCreteriaTemplate === "com.rsmart.certification.criteria.impl.gradebook.FinalGradeScoreCriteriaTemplate") {
+        if(selectedCreteriaTemplate === "org.sakaiproject.certification.criteria.impl.gradebook.FinalGradeScoreCriteriaTemplate") {
             mergeCriteriaItemCriteriaTemplate=selectedCreteriaTemplate;
         } else {
             mergeCriteriaItemCriteriaTemplate=selectedCreteriaItem+""+selectedCreteriaTemplate;

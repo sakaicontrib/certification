@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD//EN"
+    "http://www.hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <subclass name="org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl"
+              extends="org.sakaiproject.certification.impl.hibernate.criteria.AbstractCriterionHibernateImpl"
+              discriminator-value="org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl"
+              lazy="false">
+    </subclass>
+
+</hibernate-mapping>

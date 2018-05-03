@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <artifactId>certification-base</artifactId>
-        <groupId>com.rsmart</groupId>
+        <groupId>org.sakaiproject</groupId>
         <version>13-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -16,13 +16,13 @@
 
         <!-- Certification -->
         <dependency>
-            <groupId>com.rsmart</groupId>
+            <groupId>org.sakaiproject</groupId>
             <artifactId>certification-api</artifactId>
             <version>${sakai.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.rsmart</groupId>
+            <groupId>org.sakaiproject</groupId>
             <artifactId>certification-model</artifactId>
             <version>${sakai.version}</version>
             <scope>provided</scope>
