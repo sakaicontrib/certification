@@ -14,7 +14,9 @@
             </div>
         </c:forEach>
     </div>
-    <p id="requirementsHead" style="background: url(WEB-INF/images/down_arrow.gif) no-repeat left; display:inline; padding-left:17px; cursor:pointer;">
+    <p id="requirementsHead">
+        <span id="requirementsHeadRightArrow" class="fa fa-arrow-right" aria-hidden="true"></span>
+        <span id="requirementsHeadDownArrow" style="display:none;" class="fa fa-arrow-down" aria-hidden="true"></span>
         <b><spring:message code="report.requirements"/></b>
     </p>
     <div id="requirementsPanel">
@@ -30,7 +32,9 @@
         </c:if>
         <spring:message code="report.disclaimer.2" />
     </p>
-    <p id="displayOptionsHead" style="background: url(WEB-INF/images/down_arrow.gif) no-repeat left; display:inline; padding-left:17px; cursor:hand; cursor:pointer">
+    <p id="displayOptionsHead">
+        <span id="displayOptionsHeadRightArrow" style="display:none;" class="fa fa-arrow-right" aria-hidden="true"></span>
+        <span id="displayOptionsHeadDownArrow" class="fa fa-arrow-down" aria-hidden="true"></span>
         <b><spring:message code="report.filter.head"/></b>
     </p>
     <div id="displayOptionsPanel">
@@ -199,7 +203,8 @@
         if ($.cookie("requirementsExpanded") === "false")
         {
             $("#requirementsPanel").hide();
-            $("#requirementsHead").css("background","url(WEB-INF/images/right_arrow.gif) no-repeat left");
+            $("#requirementsHeadRightArrow").css("display","inline-block");
+            $("#requirementsHeadDownArrow").css("display","none");
         }
 
         $("#requirementsHead").click(function()
@@ -207,12 +212,14 @@
             $("#requirementsPanel").slideToggle(200, function() { resetHeight(); } );
             if ($.cookie('requirementsExpanded') === "false")
             {
-                $("#requirementsHead").css("background","url(WEB-INF/images/down_arrow.gif) no-repeat left");
+                $("#requirementsHeadRightArrow").css("display","none");
+                $("#requirementsHeadDownArrow").css("display","inline-block");
                 $.cookie('requirementsExpanded', 'true');
             }
             else
             {
-                $("#requirementsHead").css("background","url(WEB-INF/images/right_arrow.gif) no-repeat left");
+                $("#requirementsHeadRightArrow").css("display","inline-block");
+                $("#requirementsHeadDownArrow").css("display","none");
                 $.cookie('requirementsExpanded', 'false');
             }
         });
@@ -224,7 +231,8 @@
 
         if ($.cookie('displayOptionsExpanded') === "false")
         {
-            $("#displayOptionsHead").css("background","url(WEB-INF/images/right_arrow.gif) no-repeat left");
+            $("#displayOptionsHeadRightArrow").css("display","inline-block");
+            $("#displayOptionsHeadDownArrow").css("display","none");
             $("#displayOptionsPanel").hide();
         }
 
@@ -233,12 +241,14 @@
             $("#displayOptionsPanel").slideToggle(200, function() { resetHeight(); } );
             if ($.cookie('displayOptionsExpanded') === "false")
             {
-                $("#displayOptionsHead").css("background","url(WEB-INF/images/down_arrow.gif) no-repeat left");
+                $("#displayOptionsHeadRightArrow").css("display","none");
+                $("#displayOptionsHeadDownArrow").css("display","inline-block");
                 $.cookie('displayOptionsExpanded', "true");
             }
             else
             {
-                $("#displayOptionsHead").css("background","url(WEB-INF/images/right_arrow.gif) no-repeat left");
+                $("#displayOptionsHeadRightArrow").css("display","inline-block");
+                $("#displayOptionsHeadDownArrow").css("display","none");
                 $.cookie('displayOptionsExpanded', "false");
             }
         });
