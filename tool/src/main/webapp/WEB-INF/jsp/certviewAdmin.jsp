@@ -91,7 +91,7 @@
                 </thead>
                 <tbody align="left">
                     <c:forEach var="cert" items="${certList.pageList}">
-                    <tr>
+                    <tr class="certificate">
                         <td>
                             <input type="radio" name="certDefRadioButtons" value="${cert.id}"/>
                         </td>
@@ -105,7 +105,9 @@
                             ${cert.status}
                         </td>
                         <td>
-                            ${cert.formattedCreateDate}
+                            <span class="createdDate">
+                            ${cert.createDate}
+                            </span>
                         </td>
                         <td>
                             <c:if test="${cert.status == 'ACTIVE'}" >
@@ -128,6 +130,12 @@
     $(document).ready(function() {
 
         loaded();
+
+        $("tr.certificate").each(function() {
+            var createdDate = $(this).find("span.createdDate");
+            var value = createdDate.html();
+            createdDate.html(moment(value).format('LLL'));
+        });
 
         $("#first").click( function() {
             SPNR.disableControlsAndSpin( this, null );

@@ -25,6 +25,7 @@ import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -86,6 +87,12 @@ public interface CertificateService
      * @return internationalized string for the given key and the substituted values
      */
     public String getFormattedMessage(String key, Object[] values);
+
+    /**
+     * For i18n
+     * @return Locale of the current User
+     */
+    public Locale getLocale();
 
     /**
      * Deletes the certificate definition as well as their associated document templates

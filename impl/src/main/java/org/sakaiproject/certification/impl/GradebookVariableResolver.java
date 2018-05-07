@@ -22,7 +22,6 @@ import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
@@ -34,6 +33,7 @@ import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
+import org.sakaiproject.util.ResourceLoader;
 
 public class GradebookVariableResolver extends AbstractVariableResolver
 {
@@ -59,6 +59,9 @@ public class GradebookVariableResolver extends AbstractVariableResolver
 
     public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException
     {
+        ResourceLoader resourceLoader = new ResourceLoader();
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, resourceLoader.getLocale());
+
         if (CERT_EXPIREDATE.equals(varLabel))
         {
             Date issueDate = certDef.getIssueDate(userId, useCaching);
@@ -86,8 +89,7 @@ public class GradebookVariableResolver extends AbstractVariableResolver
                     Date expiryDate = cal.getTime();
 
                     //return
-                    DateFormat sdf = SimpleDateFormat.getDateInstance();
-                    return sdf.format(expiryDate);
+                    return dateFormat.format(expiryDate);
                 }
             }
 
@@ -101,8 +103,7 @@ public class GradebookVariableResolver extends AbstractVariableResolver
                 return "";
             }
 
-            DateFormat sdf = SimpleDateFormat.getDateInstance();
-            return sdf.format(issueDate);
+            return dateFormat.format(issueDate);
         }
 
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");

@@ -5,7 +5,6 @@ import org.sakaiproject.certification.api.criteria.CriterionProgress;
 import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -14,7 +13,6 @@ import java.util.List;
 public class WillExpireCriterionHibernateImpl extends GradebookItemCriterionHibernateImpl
 {
     private final String MESSAGE_REPORT_TABLE_HEADER_EXPIRE = "report.table.header.expire";
-    private final DateFormat REPORT_DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy");
 
     public String getExpiryOffset()
     {
@@ -65,7 +63,8 @@ public class WillExpireCriterionHibernateImpl extends GradebookItemCriterionHibe
         Date expiryDate = getExpiryDate(issueDate);
         if (expiryDate != null)
         {
-            progress = REPORT_DATE_FORMAT.format(expiryDate);
+            DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, getCertificateService().getLocale());
+            progress = dateFormat.format(expiryDate);
         }
 
         CriterionProgress datum = new CriterionProgress(progress, met);

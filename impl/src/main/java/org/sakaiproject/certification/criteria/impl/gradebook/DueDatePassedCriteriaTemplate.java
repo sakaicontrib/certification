@@ -38,7 +38,6 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
     private static final String MESSAGE_NOITEMS_DUEDATE = "message.noitems.duedate";
 
     private final String EXPRESSION_KEY = "due.date.has.passed.criteria.expression";
-    private final DateFormat EXPRESSION_DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy");
 
     public DueDatePassedCriteriaTemplate(final GradebookCriteriaFactory factory)
     {
@@ -96,8 +95,9 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
         Object vars[] = new String[2];
         DueDatePassedCriterionHibernateImpl gischi = (DueDatePassedCriterionHibernateImpl)criterion;
 
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, getResourceLoader().getLocale());
         vars[0] = gischi.getItemName();
-        vars[1] = EXPRESSION_DATE_FORMAT.format(gischi.getDueDate());
+        vars[1] = dateFormat.format(gischi.getDueDate());
 
         return getResourceLoader().getFormattedMessage(DueDatePassedCriteriaTemplate.class.getName(), vars);
     }

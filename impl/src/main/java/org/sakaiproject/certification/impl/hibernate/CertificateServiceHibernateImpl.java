@@ -41,7 +41,6 @@ import org.sakaiproject.certification.impl.security.AllowMapSecurityAdvisor;
 import java.io.File;
 import java.io.InputStream;
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -49,6 +48,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -151,8 +151,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     private static final String PERMISSION_VIEW_STUDENT_NUMS = "certificate.extraprops.view";
 
-    private final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
-
     public void setAuthzGroupService(AuthzGroupService authzGroupService)
     {
         this.authzGroupService = authzGroupService;
@@ -191,6 +189,10 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     public String getFormattedMessage(String key, Object[] values)
     {
         return messages.getFormattedMessage(key, values);
+    }
+
+    public Locale getLocale(){
+        return messages.getLocale();
     }
 
     public void setDocumentTemplateService(DocumentTemplateService dts)
@@ -1284,6 +1286,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         {
             return null;
         }
+
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, this.getLocale());
 
         boolean showUnawarded = false;
         if ("all".equals(filterType))

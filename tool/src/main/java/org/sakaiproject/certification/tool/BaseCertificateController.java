@@ -20,8 +20,6 @@ import org.sakaiproject.certification.api.CertificateService;
 import org.sakaiproject.certification.api.DocumentTemplateService;
 import org.sakaiproject.certification.tool.validator.CertificateDefinitionValidator;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -77,7 +75,6 @@ public class BaseCertificateController
     protected ResourceLoader messages = new ResourceLoader("org.sakaiproject.certification.tool.Messages");
 
     protected static final String EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY = "form.expiry.onlyCriterionError";
-    final DateFormat dateFormat = new SimpleDateFormat("MMMM dd, yyyy");
 
     protected ToolManager                 toolManager;
     protected UserDirectoryService        userDirectoryService;

@@ -31,6 +31,7 @@ import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.FinalGra
 import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
 import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -1165,7 +1166,9 @@ public class GradebookCriteriaFactory implements CriteriaFactory
                 Map<Criterion, UserProgress> critProgress = getCritProgressMapForUser(userCritProgress, userId);
 
                 // Their progress is simply the due date.
-                String strProgress = DueDatePassedCriterionHibernateImpl.REPORT_DATE_FORMAT.format(dueDate);
+                ResourceLoader resourceLoader = new ResourceLoader();
+                DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, resourceLoader.getLocale());
+                String strProgress = dateFormat.format(dueDate);
                 UserProgress progress = new UserProgress(userId, criterion, strProgress, everybodyPasses, dateAwarded);
                 critProgress.put(criterion, progress);
             }

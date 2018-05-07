@@ -4,7 +4,6 @@ import org.sakaiproject.certification.api.criteria.CriterionProgress;
 import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -19,8 +18,6 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
     private final String MESSAGE_REPORT_TABLE_HEADER_DUEDATE = "report.table.header.duedate";
     private final String MESSAGE_CERT_AVAILABLE = "cert.available";
     private final String MESSAGE_CERT_UNAVAILABLE = "cert.unavailable";
-
-    public static final DateFormat REPORT_DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy");
 
     @Override
     public List<String> getReportHeaders()
@@ -49,7 +46,8 @@ public class DueDatePassedCriterionHibernateImpl extends GradebookItemCriterionH
             //impossible
         }
 
-        String progress = REPORT_DATE_FORMAT.format(getDueDate());
+        DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, getCertificateService().getLocale());
+        String progress = dateFormat.format(getDueDate());
         CriterionProgress datum = new CriterionProgress(progress, met);
         reportData.add(datum);
         return reportData;

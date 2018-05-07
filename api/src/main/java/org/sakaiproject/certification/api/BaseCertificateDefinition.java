@@ -21,7 +21,6 @@ import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
 
 import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,8 +50,6 @@ public class BaseCertificateDefinition implements CertificateDefinition
     protected Map<String, String> fieldValues = new HashMap<>(0);
     protected Set<Criterion> awardCriteria = new HashSet<>();
 
-    private final DateFormat DATE_FORMAT = new SimpleDateFormat("MMMM dd, yyyy hh:mm aa");
-
     public Date getCreateDate()
     {
         return createDate;
@@ -61,11 +58,6 @@ public class BaseCertificateDefinition implements CertificateDefinition
     public void setCreateDate(Date createDate)
     {
         this.createDate = createDate;
-    }
-
-    public String getFormattedCreateDate()
-    {
-        return DATE_FORMAT.format(getCreateDate());
     }
 
     public String getCreatorUserId()
