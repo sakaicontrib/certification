@@ -20,6 +20,12 @@
       %>
 
       <script language="javascript">
+        var sakai = sakai || {};
+        sakai.locale = sakai.locale || {};
+        sakai.locale.userCountry = '${localeRef.getCountry()}';
+        sakai.locale.userLanguage = '${localeRef.getLanguage()}';
+        sakai.locale.userLocale = '${locale}';
+
         includeLatestJQuery('sakai.certification');
 
         function resetHeight()

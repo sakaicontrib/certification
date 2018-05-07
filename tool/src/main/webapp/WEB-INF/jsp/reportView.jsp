@@ -1,6 +1,7 @@
 <%@ include file="/WEB-INF/jsp/include.jsp" %>
 <jsp:include page="/WEB-INF/jsp/header.jsp"/>
 <script type="text/javascript" src="/library/js/jquery/cookie/jquery.cookie.js"></script>
+<script type="text/javascript" src="/library/js/lang-datepicker/lang-datepicker.js"></script>
 <form:form id="reportView" method="POST">
     <ul class="navIntraTool actionToolBar">
         <li><span><a href="${toolUrl}/reportView.form?certId=${cert.id}&export=true" id="export"><spring:message code="export.csv"/></a></span></li>
@@ -59,9 +60,9 @@
                         </c:otherwise>
                     </c:choose>
                     <spring:message code="report.filter.awarded.2"/>
-                    <input id="startDate" type="text" style="background: url(WEB-INF/images/calendar.gif) #FFF no-repeat right; padding-right: 17px; width: 10em"/>
+                    <input id="startDate" type="text"/>
                     <spring:message code="report.filter.awarded.3"/>
-                    <input id="endDate" type="text" style="background: url(WEB-INF/images/calendar.gif) #FFF no-repeat right; padding-right: 17px; width: 10em"/>
+                    <input id="endDate" type="text"/>
                 </div>
             </div>
             <br/>
@@ -253,12 +254,23 @@
             }
         });
 
-        $("#startDate").datepicker();
-        $("#endDate").datepicker();
-        $("#startDate").datepicker( "option", "dateFormat", "mm-dd-yy" );
-        $("#endDate").datepicker( "option", "dateFormat", "mm-dd-yy" );
-        $("#startDate").val("${filterStartDate}");
-        $("#endDate").val("${filterEndDate}");
+        localDatePicker({
+              input: '#startDate',
+              useTime: 0,
+              parseFormat: 'YYYY-MM-DD',
+              allowEmptyDate: false,
+              val: '${filterStartDate}',
+              ashidden: { iso8601: 'startDateISO8601' }
+        });
+
+        localDatePicker({
+              input: '#endDate',
+              useTime: 0,
+              parseFormat: 'YYYY-MM-DD',
+              allowEmptyDate: false,
+              val: '${filterEndDate}',
+              ashidden: { iso8601: 'endDateISO8601' }
+        });
 
         /*Use cookies to keep track of the user's display options*/
         <c:choose>
@@ -276,19 +288,6 @@
                 var filterStartDate = $("#startDate").val();
                 var filterEndDate = $("#endDate").val();
 
-                if (!validateDate(filterStartDate))
-                {
-                    $("#errorDiv").replaceWith('<div class="alertMessage"><spring:message code="report.filter.date.invalid"/></div>');
-                    $("#filterReset").removeAttr('disabled');
-                    return false;
-                }
-                if (!validateDate(filterEndDate))
-                {
-                    $("#errorDiv").replaceWith('<div class="alertMessage"><spring:message code="report.filter.date.invalid"/></div>');
-                    $("#filterReset").removeAttr('disabled');
-                    return false;
-                }
-
                 var filterHistorical = $("#historical").prop('checked');
                 $.cookie("filterType", filterType);
                 $.cookie("filterDateType", filterDateType);
@@ -300,6 +299,7 @@
                 /*We're not using the defaults, so use cookies*/
                 var filterType = $.cookie("filterType");
                 var filterDateType = $.cookie("filterDateType");
+                var filterHistorical = $("#historical").prop('checked');
                 var filterStartDate = $.cookie("filterStartDate");
                 var filterEndDate = $.cookie("filterEndDate");
                 var filterHistorical = $.cookie("filterHistorical");
@@ -311,7 +311,7 @@
                 </c:if>
                 $("#startDate").val(filterStartDate);
                 $("#endDate").val(filterEndDate);
-                if (filterHistorical === "true")
+                if (filterHistorical == "true")
                 {
                     $("#historical").attr("checked", "checked");
                 }
@@ -386,31 +386,5 @@
             return false;
         });
     });
-
-    //From http://stackoverflow.com/questions/8098202/javascript-detecting-valid-dates
-    function validateDate(text)
-    {
-        var date = Date.parse(text);
-        var comp = text.split('-');
-
-        if (comp.length !== 3)
-        {
-            return false;
-        }
-
-        for (var i=0; i<3; i++)
-        {
-            if (isNaN(comp[i]))
-            {
-                return false;
-            }
-        }
-
-        var m = parseInt(comp[0], 10);
-        var d = parseInt(comp[1], 10);
-        var y = parseInt(comp[2], 10);
-        var date = new Date(y, m - 1, d);
-        return (date.getFullYear() === y && date.getMonth() + 1 === m && date.getDate() === d);
-    }
 </script>
 <%@ include file="/WEB-INF/jsp/footer.jsp" %>

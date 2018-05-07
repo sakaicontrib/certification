@@ -185,7 +185,7 @@ public class CertificateListController extends BaseCertificateController
     //Date Formats
     private final String PDF_FILE_NAME_DATE_FORMAT = "yyyy_MM_dd";
     private final String CSV_FILE_NAME_FORMAT = "yyyy-MM-dd";
-    private final String FILTER_DATE_FORMAT = "MM-dd-yyyy";
+    private final String FILTER_DATE_FORMAT = "yyyy-MM-dd";
 
     //Mime types
     private static final String PDF_MIME_TYPE = "application/pdf";
