@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -52,6 +53,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
+import org.sakaiproject.util.api.FormattedText;
 
 import org.springframework.beans.support.PagedListHolder;
 import org.springframework.beans.support.SortDefinition;
@@ -97,6 +99,10 @@ public class CertificateListController extends BaseCertificateController
     //sakai.properties
     private final String MAIL_SUPPORT_SAKAI_PROPERTY =  "mail.support";
     private final String MAIL_SUPPORT = ServerConfigurationService.getString(MAIL_SUPPORT_SAKAI_PROPERTY);
+
+    private FormattedText formattedText;
+    private String csvSeparator = ",";
+    private String decimalSeparator = ".";
 
     private static final int DEFAULT_FILTER_DAYS;
     static
@@ -885,6 +891,8 @@ public class CertificateListController extends BaseCertificateController
 
                 //fill in the csv's header
                 StringBuilder contents = new StringBuilder();
+                decimalSeparator = formattedText.getDecimalSeparator();
+                csvSeparator = ",".equals(decimalSeparator) ? ";" : ",";
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_NAME), false);
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_USER_ID), false);
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_STUDENT_NUM), false);
@@ -929,8 +937,16 @@ public class CertificateListController extends BaseCertificateController
                     Iterator<CriterionProgress> itCriterionCells = row.getCriterionCells().iterator();
                     while (itCriterionCells.hasNext())
                     {
-                        //TODO: null check?
-                        appendItem(contents, itCriterionCells.next().getProgress(), false);
+                        String progressItem = itCriterionCells.next().getProgress();
+                        try{
+                            Double.parseDouble(progressItem);
+                            //It's a double, if it uses a different decimal separator replace it.
+                            if(",".equals(decimalSeparator)){
+                                progressItem = progressItem.replace(".",",");
+                            }
+                        //Swallow exception
+                        } catch(Exception ex){}
+                        appendItem(contents, progressItem, false);
                     }
 
                     appendItem(contents, row.getAwarded(), true);
@@ -1462,11 +1478,17 @@ public class CertificateListController extends BaseCertificateController
         stringBuilder.append('\"');
         if (!eol)
         {
-            stringBuilder.append(',');
+            stringBuilder.append(csvSeparator);
         }
         else
         {
             stringBuilder.append('\n');
         }
+    }
+
+    @Resource(name="org.sakaiproject.util.api.FormattedText")
+    public void setFormattedText(FormattedText formattedText)
+    {
+        this.formattedText = formattedText;
     }
 }
