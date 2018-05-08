@@ -895,7 +895,9 @@ public class CertificateListController extends BaseCertificateController
                 csvSeparator = ",".equals(decimalSeparator) ? ";" : ",";
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_NAME), false);
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_USER_ID), false);
-                appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_STUDENT_NUM), false);
+                if (canShowStudentNums){
+                    appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_STUDENT_NUM), false);
+                }
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ROLE), false);
                 appendItem(contents, messages.getString(MESSAGE_REPORT_TABLE_HEADER_ISSUEDATE), false);
                 Iterator<Object> itHeaders = criteriaHeaders.iterator();
