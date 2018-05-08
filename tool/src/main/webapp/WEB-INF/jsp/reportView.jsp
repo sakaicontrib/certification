@@ -375,6 +375,8 @@
             $.cookie("filterStartDate", filterStartDate);
             $.cookie("filterEndDate", filterEndDate);
             $.cookie("filterHistorical", filterHistorical);
+            filterStartDate = $("#startDateISO8601").val();
+            filterEndDate = $("#endDateISO8601").val();
             location.href="reportViewFilter.form?certId=" + id + "&filterType=" + filterType + "&filterDateType=" + filterDateType + "&filterStartDate=" + filterStartDate + "&filterEndDate=" + filterEndDate + "&filterHistorical=" + filterHistorical;
             return false;
         });
