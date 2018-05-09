@@ -328,7 +328,7 @@
                 /*We're not using the defaults, so use cookies*/
                 var filterType = $.cookie("filterType");
                 var filterDateType = $.cookie("filterDateType");
-                var filterHistorical = $("#historical").prop('checked');
+                var filterHistorical = $.cookie("filterHistorical");
                 var filterStartDate = $.cookie("filterStartDate");
                 var filterEndDate = $.cookie("filterEndDate");
                 var filterHistorical = $.cookie("filterHistorical");
