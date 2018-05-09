@@ -81,9 +81,9 @@
             <version>1.1.2</version>
         </dependency>
         <dependency>
-            <groupId>jmimemagic</groupId>
+            <groupId>net.sf.jmimemagic</groupId>
             <artifactId>jmimemagic</artifactId>
-            <version>0.1.2</version>
+            <version>0.1.5</version>
         </dependency>
         <dependency>
             <groupId>com.itextpdf</groupId>
