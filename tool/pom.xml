@@ -82,9 +82,9 @@
                 <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-jaxrs</artifactId>
-            <version>1.8.3</version>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${sakai.jackson.version}.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
