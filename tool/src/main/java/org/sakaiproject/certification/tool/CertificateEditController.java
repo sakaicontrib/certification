@@ -159,6 +159,7 @@ public class CertificateEditController extends BaseCertificateController
                                                     BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
     {
         Map<String, Object> model = new HashMap<>();
+        model.put("view", "add");
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
         if (!isAdministrator())
@@ -432,6 +433,7 @@ public class CertificateEditController extends BaseCertificateController
         CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
 
         Map<String, Object> model = new HashMap<>();
+        model.put("view", "add");
         model.put(MODEL_KEY_TOOL_URL, getToolUrl());
 
         String viewName;
@@ -538,6 +540,7 @@ public class CertificateEditController extends BaseCertificateController
                                                     BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
     {
         Map<String, Object> model = new HashMap<>();
+        model.put("view", "add");
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
         if (!isAdministrator())
@@ -628,6 +631,7 @@ public class CertificateEditController extends BaseCertificateController
                 BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
     {
         Map<String, Object> model = new HashMap<>();
+        model.put("view", "add");
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
         if (!isAdministrator())

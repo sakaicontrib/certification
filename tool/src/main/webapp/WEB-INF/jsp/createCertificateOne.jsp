@@ -1,10 +1,21 @@
 <%@ include file="/WEB-INF/jsp/include.jsp" %>
 <jsp:include page="/WEB-INF/jsp/header.jsp"/>
 <form:form id="createCertFormOne" modelAttribute="certificateToolState" action="first.form" enctype="multipart/form-data">
-    <div>
-        <h3><spring:message code="form.text.instruction"/></h3>
-        <p><spring:message code="form.text.create.description"/></p>
+    <%@ include file="/WEB-INF/jsp/adminActionToolBar.jsp" %>
+
+    <div class="page-header">
+        <c:choose>
+            <c:when test="${certificateToolState.certificateDefinition.id == null}">
+                <h1><spring:message code="form.add.title"/></h1>
+            </c:when>
+            <c:otherwise>
+                <h1><spring:message code="form.modify.title"/></h1>
+            </c:otherwise>
+        </c:choose>
     </div>
+    <p class="instruction">
+        <spring:message code="form.text.create.description"/>
+    </p>
     <div id="submitError" class="alertMessage" style="display:none"></div>
     <c:if test="${statusMessageKey != null}" >
         <div id="statusMessageKey" class="alertMessage" >
@@ -16,19 +27,31 @@
             <spring:message code="${errorMessage}" arguments="${errorArguments}"/>
         </div>
     </c:if>
-    <div style="position:relative; margin-left:20px">
+
+    <div class="form-group row form-required">
+        <form:label path="certificateDefinition.name" class="col-sm-12 form-control-label block">
+            <b>
+                <spring:message code="form.label.name" />
+            </b>
+        </form:label>
+        <div class="col-sm-6">
+            <form:input path="certificateDefinition.name" id="name" type="text" class="form-control" />
+        </div>
+    </div>
+    <div class="form-group row" class="col-sm-12 form-control-label block">
+        <form:label path="certificateDefinition.description" class="col-sm-12 form-control-label block">
+            <b>
+                <spring:message code="form.label.description" />
+            </b>
+        </form:label>
+        <div class="col-sm-6">
+            <form:textarea id="description" path="certificateDefinition.description" type="text" rows="7" class="form-control" />
+        </div>
+    </div>
+
     <table>
         <tbody>
             <tr>
-                <td><form:label path="certificateDefinition.name"><B><spring:message code="form.label.name" /></B><span class="reqStarInline">*</span></form:label></td>
-                <td><form:input id="name" path="certificateDefinition.name"/></td>
-            </tr>
-            <tr>
-                <td><form:label path="certificateDefinition.description"><B><spring:message code="form.label.description" /></B></form:label></td>
-                <td><form:textarea cssStyle="resize:none; width:350px; height:100px" path="certificateDefinition.description"/></td>
-            </tr>
-            <tr>
-                <td><form:label path="certificateDefinition.documentTemplate"><B><spring:message code="form.label.templatefile" /><B><span class="reqStarInline">*</span></form:label></td>
                 <td>
                     <c:if test="${certificateToolState.templateFilename != null}">
                             <spring:message code="form.label.currentFile"/>
@@ -42,8 +65,7 @@
         </tbody>
 
     </table>
-    </div>
-    <div style="margin:5px">
+    <div>
         <input id="next" type="button" value="<spring:message code='form.submit.next' />" />
         <input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
         <form:hidden path="submitValue" />
@@ -52,6 +74,8 @@
 <script type="text/javascript">
 
     $(document).ready(function() {
+        $("#name").attr("placeholder", "<spring:message code='form.label.name'/>");
+        $("#description").attr("placeholder", "<spring:message code='form.label.description'/>");
 
         loaded();
 

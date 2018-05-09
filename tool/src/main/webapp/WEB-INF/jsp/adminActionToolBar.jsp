@@ -1,7 +1,7 @@
 <ul class="navIntraTool actionToolBar">
     <li>
         <c:choose>
-            <c:when test="${view == 'add'}">
+            <c:when test="${view == 'add' or view == null}">
                 <span class="current">
                     <spring:message code="form.menu.add" />
                 </span>
@@ -17,7 +17,7 @@
     </li>
     <li>
         <c:choose>
-            <c:when test="${view == 'add'}">
+            <c:when test="${view == 'list'}">
                 <span class="current">
                     <spring:message code="form.menu.list" />
                 </span>
@@ -25,7 +25,7 @@
             <c:otherwise>
                 <span>
                     <a href="#" id="certificationList">
-                        <spring:message code="form.menu.add" />
+                        <spring:message code="form.menu.list" />
                     </a>
                 </span>
             </c:otherwise>
@@ -36,6 +36,6 @@
     $("#certificationList").click(function() {
         SPNR.disableControlsAndSpin( this, null );
         $("#submitValue").val("cancel");
-        $("#createCertFormOne").submit();
+        $("[id^=createCertForm]").submit();
     });
 </script>

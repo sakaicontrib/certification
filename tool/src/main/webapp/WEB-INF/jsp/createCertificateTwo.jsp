@@ -1,9 +1,20 @@
 <%@ include file="/WEB-INF/jsp/include.jsp" %>
 <jsp:include page="/WEB-INF/jsp/header.jsp"/>
-<div>
-    <h3><spring:message code="form.text.instruction"/></h3>
-    <p><spring:message code="form.text.criteria.description"/></p>
+<%@ include file="/WEB-INF/jsp/adminActionToolBar.jsp" %>
+
+<div class="page-header">
+    <c:choose>
+        <c:when test="${certificateToolState.certificateDefinition.id == null}">
+            <h1><spring:message code="form.add.title"/></h1>
+        </c:when>
+        <c:otherwise>
+            <h1><spring:message code="form.modify.title"/></h1>
+        </c:otherwise>
+    </c:choose>
 </div>
+<p class="instruction">
+    <spring:message code="form.text.criteria.description"/>
+</p>
 <div id="submitError" class="alertMessage" style="display:none"></div>
 <c:if test="${statusMessageKey != null}" >
     <div id="statusMessageKey" class="alertMessage" >
@@ -16,11 +27,11 @@
     </div>
     </c:if>
 <form:form id="createCertFormTwo" modelAttribute="certificateToolState" method="POST" action="second.form">
-    <div id="criteria" style="position:relative; margin-left:20px;  max-width:50%; display:inline-block;">
+    <div id="criteria">
         <form:hidden id="certId" path="certificateDefinition.id"/>
         <div id="currentCriteria" style="margin-bottom:30px;">
-            <h3><spring:message code="form.text.criteria.awardCriteria"/></h3>
-            <div id="currentCriteriaBox" style="border: 1px solid #000000; margin-top: 10px; padding: 0 10px;">
+            <h4><spring:message code="form.text.criteria.awardCriteria"/></h4>
+            <div id="currentCriteriaBox">
                 <c:choose>
                     <c:when test="${empty certificateToolState.certificateDefinition.awardCriteria}">
                         <p id="removeInstructions" style="display:none"><spring:message code="form.text.criteria.awardCriteria.instructions"/></p>
@@ -34,35 +45,41 @@
                 <ul id="criteriaList" style="margin-left:20px;">
                 <c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criterion">
                     <li id="crit_${criterion.id}" mergeItemCriteriaTemplate="${criterion.itemId}${criterion.currentCriteriaTemplate}">
-                        ${criterion.expression}&nbsp;&nbsp;&nbsp;&nbsp;
-                        <a href="#" onclick="removeCriterion('${criterion.id}');">
-                            <spring:message code="form.text.criteria.remove"/>
+                        ${criterion.expression}
+                        <a href="#" onclick="removeCriterion('${criterion.id}');" title="<spring:message code='form.text.criteria.remove'/>">
+                            <span class="sr-only">
+                                <spring:message code="form.text.criteria.remove"/>
+                            </span>
+                            <span class="fa fa-lg fa-fw fa-trash" aria-hidden="true"></span>
                         </a>
                     </li>
                 </c:forEach>
                 </ul>
             </div>
         </div>
-        <div id="newCriteriaForm" style="display:inline-block; background-color:#ddd; padding:10px">
-            <h3><spring:message code="form.text.criteria.selectTemplate"/></h3>
+        <div id="newCriteriaForm" style="display:inline-block; padding:10px">
+            <h4><spring:message code="form.text.criteria.selectTemplate"/></h4>
             <select id="criteriaTemplate" onchange="completeCriterionForm(this.options[selectedIndex].value);">
             <c:forEach items="${certificateToolState.criteriaTemplates}" var="template">
                 <option value="${template['class'].name}">${template.expression}</option>
             </c:forEach>
             </select>
-            <h3><spring:message code="form.text.criteria.selectParameters"/></h3>
-            <div id="criteriaOptions" style="margin-left:10%;"></div>
-            <div id="createDiv" style="float:right">
+            <h4><spring:message code="form.text.criteria.selectParameters"/></h4>
+            <div id="criteriaOptions"></div>
+            <div id="createDiv">
                 <input id="create" type="button" value='<spring:message code="form.submit.add"/>' onclick="addCriterion()"/>
             </div>
         </div>
         <br/>
         <br/>
-        <form:checkbox path="certificateDefinition.progressShown"/><spring:message code="form.label.showRequirements"/>
+        <label>
+            <form:checkbox path="certificateDefinition.progressShown"/>
+            <spring:message code="form.label.showRequirements"/>
+        </label>
         <br/>
         <br/>
     </div>
-    <div style="margin:5px">
+    <div>
         <input id="back" type="button" value="<spring:message code='form.submit.back' />" />
         <input id="next" type="button" value="<spring:message code='form.submit.next' />" />
         <input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
@@ -155,9 +172,9 @@
     function appendCriterionToDiv (criterion)
     {
         mergeCriteriaItemCriteriaTemplate=checkCriterion();
-        var liContent = "<li id='crit_" + criterion.id + "' mergeItemCriteriaTemplate='" + mergeCriteriaItemCriteriaTemplate + "'>" + criterion.expression + "&nbsp;&nbsp;&nbsp;&nbsp;" +
+        var liContent = "<li id='crit_" + criterion.id + "' mergeItemCriteriaTemplate='" + mergeCriteriaItemCriteriaTemplate + "'>" + criterion.expression +
                         "<a href='#' onclick=\"removeCriterion('" + criterion.id +
-                        "')\"><spring:message code="form.text.criteria.remove"/></a></li>\n";
+                        "')\" title='<spring:message code="form.text.criteria.remove"/>'><span class='sr-only'><spring:message code="form.text.criteria.remove"/></span><span class='fa fa-lg fa-fw fa-trash' aria-hidden='true'></span></a></li>\n";
 
         $("#criteriaList").append(liContent);
         $("#removeInstructions").attr('style', '');

@@ -7,7 +7,9 @@
         <li><span><a href="${toolUrl}/reportView.form?certId=${cert.id}&export=true" id="export"><spring:message code="export.csv"/></a></span></li>
         <li><span><a href="" id="return"><spring:message code="return.cert.list"/></a></span></li>
     </ul>
-    <h2><spring:message code="report.header" arguments="${cert.name}" htmlEscape="true"/></h2>
+    <div class="page-header">
+        <h1><spring:message code="report.header" arguments="${cert.name}" htmlEscape="true"/></h1>
+    </div>
     <div id="errorDiv">
         <c:forEach items="${errors}" var="error">
             <div class="alertMessage">
@@ -15,71 +17,98 @@
             </div>
         </c:forEach>
     </div>
-    <p id="requirementsHead">
-        <span id="requirementsHeadRightArrow" class="fa fa-arrow-right" aria-hidden="true"></span>
-        <span id="requirementsHeadDownArrow" style="display:none;" class="fa fa-arrow-down" aria-hidden="true"></span>
-        <b><spring:message code="report.requirements"/></b>
-    </p>
-    <div id="requirementsPanel">
-        <ul style="margin-bottom:0px;">
-            <c:forEach items="${requirements}" var="requirement">
-                <li>${requirement}</li>
-            </c:forEach>
-        </ul>
-    </div>
-    <p>
-        <c:if test="${expiryOffset != null}">
-            <spring:message code="report.disclaimer.1" arguments="${expiryOffset}" />
-        </c:if>
-        <spring:message code="report.disclaimer.2" />
-    </p>
-    <p id="displayOptionsHead">
-        <span id="displayOptionsHeadRightArrow" style="display:none;" class="fa fa-arrow-right" aria-hidden="true"></span>
-        <span id="displayOptionsHeadDownArrow" class="fa fa-arrow-down" aria-hidden="true"></span>
-        <b><spring:message code="report.filter.head"/></b>
-    </p>
-    <div id="displayOptionsPanel">
-        <div style="display:inline-block; background-color:#ddd; padding:10px">
-            <span style="float:left;"> <spring:message code="report.filter.show"/>  </span>
-            <div style="display:inline-block; margin-left: 1em;">
-                <input id="rdAll" type="radio" name="show" value="all" onclick="$('#dateRange').css('display','none');" checked><spring:message code="report.filter.all"/></input><br/>
-                <input id="idUnawarded" type="radio" name="show" value="unawarded" onclick="$('#dateRange').css('display','none');"><spring:message code="report.filter.unawarded"/></input><br/>
-                <input id="idAwarded" type="radio" name="show" value="awarded" onclick="$('#dateRange').css('display','inline');"><spring:message code="report.filter.awarded"/></input><br/>
-                <div id="dateRange" style="display:none;">
-                    <br/>
-                    <spring:message code="report.filter.awarded.1"/>
-                    <c:choose>
-                        <c:when test="${expiryOffset != null}">
-                            <select id="filterDateType">
-                                <option value="issueDate"><spring:message code="report.filter.issuedate"/></option>
-                                <option value="expiryDate"><spring:message code="report.filter.expirydate"/></option>
-                            </select>
-                        </c:when>
-                        <c:otherwise>
-                            <spring:message code="report.filter.issuedate.lower"/>
-                        </c:otherwise>
-                    </c:choose>
-                    <spring:message code="report.filter.awarded.2"/>
-                    <input id="startDate" type="text"/>
-                    <spring:message code="report.filter.awarded.3"/>
-                    <input id="endDate" type="text"/>
+
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#panel-requeriments">
+                        <spring:message code="report.requirements"/>
+                    </a>
+                </h4>
+            </div>
+            <div id="panel-requeriments" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <ul>
+                        <c:forEach items="${requirements}" var="requirement">
+                            <li>${requirement}</li>
+                        </c:forEach>
+                    </ul>
+                    <p>
+                        <c:if test="${expiryOffset != null}">
+                            <spring:message code="report.disclaimer.1" arguments="${expiryOffset}" />
+                        </c:if>
+                        <spring:message code="report.disclaimer.2" />
+                    </p>
                 </div>
             </div>
-            <br/>
-            <input id="historical" type="checkbox" value="historical"><spring:message code="report.filter.historical"/></input>
-            <br/>
-            <br/>
-            <div style="float:right;">
-                <input id="filterApply" type="submit" value="Apply"/>
-                <input id="filterReset" type="submit" value="Reset"/>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#panel-display-options">
+                        <spring:message code="report.filter.head"/>
+                    </a>
+                </h4>
+            </div>
+            <div id="panel-display-options" class="panel-collapse collapse in">
+              <div class="panel-body">
+                <p>
+                    <b><spring:message code="report.filter.show"/></b>
+                </p>
+                <p>
+                    <label>
+                        <input id="rdAll" type="radio" name="show" value="all" onclick="$('#dateRange').css('display','none');" checked>
+                            <spring:message code="report.filter.all"/>
+                        </input>
+                    </label><br/>
+                    <label>
+                        <input id="idUnawarded" type="radio" name="show" value="unawarded" onclick="$('#dateRange').css('display','none');">
+                            <spring:message code="report.filter.unawarded"/>
+                        </input>
+                    </label><br/>
+                    <label>
+                        <input id="idAwarded" type="radio" name="show" value="awarded" onclick="$('#dateRange').css('display','inline');">
+                            <spring:message code="report.filter.awarded"/>
+                        </input>
+                    </label><br/>
+                    <div id="dateRange" style="display:none;">
+                        <spring:message code="report.filter.awarded.1"/>
+                        <c:choose>
+                            <c:when test="${expiryOffset != null}">
+                                <select id="filterDateType">
+                                    <option value="issueDate"><spring:message code="report.filter.issuedate"/></option>
+                                    <option value="expiryDate"><spring:message code="report.filter.expirydate"/></option>
+                                </select>
+                            </c:when>
+                            <c:otherwise>
+                                <spring:message code="report.filter.issuedate.lower"/>
+                            </c:otherwise>
+                        </c:choose>
+                        <spring:message code="report.filter.awarded.2"/>
+                        <input id="startDate" type="text"/>
+                        <spring:message code="report.filter.awarded.3"/>
+                        <input id="endDate" type="text"/>
+                    </div>
+                </p>
+                <p>
+                    <label>
+                        <input id="historical" type="checkbox" value="historical">
+                            <spring:message code="report.filter.historical"/>
+                        </input>
+                    </label>
+                </p>
+                <div>
+                    <input id="filterApply" type="submit" value="Apply"/>
+                    <input id="filterReset" type="submit" value="Reset"/>
+                </div>
+              </div>
             </div>
         </div>
-        <br/>
     </div>
-    <br/>
     <p class="viewNav"><spring:message code="report.blurb"/></p>
     <div class="navPanel row">
-        <div class="col-md-4">
+        <div class="col-sm-7 col-xs-12">
             <nav class="certPager panel panel-default">
                 <div class="panel-heading">
                     <spring:message code="form.pager.showing"/> <c:out value="${firstElement}" /> - <c:out value="${lastElement}" /> of ${reportList.nrOfElements}
@@ -124,7 +153,7 @@
         </div>
     </div>
     <input id="certificateId" type="button" style="display:none" value="${cert.id}"></input>
-    <table id="reporttable" class="listHier" width="500px" cellspacing="2px" summary="Report">
+    <table id="reporttable" class="table table-hover table-striped table-bordered" summary="Report">
         <thead align="center">
             <tr>
                 <!-- the columns need to be in a c:for -->
@@ -139,25 +168,25 @@
                         <spring:message code="report.table.header.userid"/>
                     </a>
                 </th>
-                <th>
+                <th class="hidden-xs">
                     <a href="reportViewSort.form?certId=${cert.id}&sort=role" id="sortByRole" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.role"/>
                     </a>
                 </th>
                 <c:if test="${canUserViewStudentNums != false}">
-                    <th>
+                    <th class="hidden-xs">
                         <a href="reportViewSort.form?certId=${cert.id}&sort=studentNumber" id="sortByStudentNum" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                             <spring:message code="report.table.header.studentNum"/>
                         </a>
                     </th>
                 </c:if>
-                <th>
+                <th class="hidden-xs">
                     <a href="reportViewSort.form?certId=${cert.id}&sort=issueDate" id="sortByIssueDate" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
                         <spring:message code="report.table.header.issuedate"/>
                     </a>
                 </th>
                 <c:forEach items="${critHeaders}" var="crit">
-                    <th>
+                    <th class="hidden-xs">
                         ${crit}
                     </th>
                 </c:forEach>
@@ -173,19 +202,19 @@
                 <tr>
                     <td>${row.name}</td>
                     <td>${row.userId}</td>
-                    <td>${row.role}</td>
+                    <td class="hidden-xs">${row.role}</td>
                     <c:if test="${canUserViewStudentNums != false}">
-                        <td>${row.studentNumber}</td>
+                        <td class="hidden-xs">${row.studentNumber}</td>
                     </c:if>
-                    <td>${row.issueDate}</td>
+                    <td class="hidden-xs">${row.issueDate}</td>
                     <c:forEach var="criterionCell" items="${row.criterionCells}">
                         <c:choose>
                             <c:when test="${criterionCell.met}">
-                                <td>${criterionCell.progress}</td>
+                                <td class="hidden-xs">${criterionCell.progress}</td>
                             </c:when>
                             <c:otherwise>
                                 <%--TODO - use a css class--%>
-                                <td style="color:red;">${criterionCell.progress}</td>
+                                <td  class="hidden-xs" style="color:red;">${criterionCell.progress}</td>
                             </c:otherwise>
                         </c:choose>
                     </c:forEach>

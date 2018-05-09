@@ -1,7 +1,9 @@
 <%@ include file="/WEB-INF/jsp/include.jsp" %>
 <jsp:include page="/WEB-INF/jsp/header.jsp"/>
 <form:form id="certList" method="POST">
-    <h3 style="text-align:center"><spring:message code="list.view.unauthorized"/></h3>
+	<p class="instruction">
+		<spring:message code="list.view.unauthorized"/>
+	</p>
 </form:form>
 <script type="text/javascript">
     $(document).ready(function() {

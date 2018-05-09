@@ -316,6 +316,7 @@ public class CertificateListController extends BaseCertificateController
         model.put(MODEL_KEY_PAGE_SIZE, pageSize);
         model.put(MODEL_KEY_FIRST_ELEMENT, (certList.getFirstElementOnPage() + 1));
         model.put(MODEL_KEY_LAST_ELEMENT, (certList.getLastElementOnPage() + 1));
+        model.put("view", "list");
         mav.addAllObjects(model);
         return mav;
     }
@@ -324,6 +325,7 @@ public class CertificateListController extends BaseCertificateController
     {
         ModelAndView mav = new ModelAndView(PARTICIPANT_VIEW);
         Map<String, Object> model = new HashMap<>();
+        model.put("view", "list");
 
         Set<CertificateDefinition> certDefs;
 
@@ -446,6 +448,9 @@ public class CertificateListController extends BaseCertificateController
     public ModelAndView certUnauthorizedListHandler(String page, Integer pageSize, Integer pageNo, HttpServletRequest request) throws Exception
     {
         ModelAndView mav = new ModelAndView(UNAUTHORIZED_VIEW);
+        Map<String, Object> model = new HashMap<>();
+        model.put("view", "list");
+        mav.addAllObjects(model);
         return mav;
     }
 
