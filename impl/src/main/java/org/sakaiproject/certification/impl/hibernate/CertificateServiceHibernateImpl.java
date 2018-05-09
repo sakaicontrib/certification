@@ -1616,7 +1616,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             return "";
         }
 
-        return candidateDetailProvider.getInstitutionalNumericId(user, site).orElse("");
+        return candidateDetailProvider != null ? candidateDetailProvider.getInstitutionalNumericId(user, site).orElse("") : "";
     }
 
     /**
@@ -1631,7 +1631,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         {
             String siteRef = siteService.siteReference(currentSite.getId());
             boolean userHasSitePerm = securityService.unlock(currentUser.getId(), PERMISSION_VIEW_STUDENT_NUMS, siteRef);
-            return userHasSitePerm && candidateDetailProvider.isInstitutionalNumericIdEnabled(currentSite);
+            return userHasSitePerm && (candidateDetailProvider != null ? candidateDetailProvider.isInstitutionalNumericIdEnabled(currentSite) : false);
         }
         else
         {
