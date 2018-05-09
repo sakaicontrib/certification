@@ -118,6 +118,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
+            <version>${sakai.commons.lang3.version}</version>
             <type>jar</type>
         </dependency>
     </dependencies>
