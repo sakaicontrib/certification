@@ -1,16 +1,15 @@
 <?xml version="1.0"?>
-<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-         xmlns="http://maven.apache.org/POM/4.0.0"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
+        <groupId>org.sakaiproject.certification</groupId>
         <artifactId>certification-base</artifactId>
-        <groupId>org.sakaiproject</groupId>
         <version>13-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <name>Certification Pack</name>
+    <groupId>org.sakaiproject.certification</groupId>
     <artifactId>certification-pack</artifactId>
     <packaging>sakai-component</packaging>
     <properties>
@@ -19,21 +18,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.sakaiproject</groupId>
+            <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-impl</artifactId>
-            <version>${sakai.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.sakaiproject</groupId>
+            <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-model</artifactId>
-            <version>${sakai.version}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.sakaiproject</groupId>
-            <artifactId>certification-tool</artifactId>
-            <type>war</type>
-            <version>${sakai.version}</version>
         </dependency>
     </dependencies>
 </project>

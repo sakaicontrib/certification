@@ -2,13 +2,14 @@
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
+        <groupId>org.sakaiproject.certification</groupId>
         <artifactId>certification-base</artifactId>
-        <groupId>org.sakaiproject</groupId>
         <version>13-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <name>Certification Tool</name>
+    <groupId>org.sakaiproject.certification</groupId>
     <artifactId>certification-tool</artifactId>
     <packaging>war</packaging>
 
@@ -16,20 +17,20 @@
 
         <!-- Certification -->
         <dependency>
-            <groupId>org.sakaiproject</groupId>
+            <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-api</artifactId>
-            <version>${sakai.version}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.sakaiproject</groupId>
+            <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-impl</artifactId>
-            <version>${sakai.version}</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
-            <groupId>org.sakaiproject</groupId>
+            <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-model</artifactId>
-            <version>${sakai.version}</version>
+            <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -51,9 +52,8 @@
 
         <!-- Spring -->
         <dependency>
-            <groupId>${sakai.spring.groupId}</groupId>
+            <groupId>org.springframework</groupId>
             <artifactId>spring-web</artifactId>
-            <version>${sakai.spring.version}</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
