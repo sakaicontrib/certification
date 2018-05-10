@@ -24,11 +24,6 @@
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.certification</groupId>
-            <artifactId>certification-impl</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-model</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
@@ -67,6 +62,11 @@
 
         <!-- Others -->
         <dependency>
+            <groupId>taglibs</groupId>
+            <artifactId>standard</artifactId>
+            <version>1.1.2</version>
+        </dependency>
+        <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
@@ -95,10 +95,10 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <sourceDirectory>${basedir}/src/java</sourceDirectory>
         <resources>
             <resource>
-                <directory>${basedir}/src/main/bundle</directory>
+                <directory>${basedir}/src/bundle</directory>
                 <includes>
                     <include>**/*.properties</include>
                 </includes>
@@ -111,15 +111,15 @@
                 <configuration>
                 <webResources>
                     <resource>
-                        <directory>src/main/webapp/WEB-INF</directory>
+                        <directory>src/webapp/WEB-INF</directory>
                         <targetPath>WEB-INF</targetPath>
                     </resource>
                     <resource>
-                        <directory>src/main/webapp/tools</directory>
+                        <directory>src/webapp/tools</directory>
                         <targetPath>tools</targetPath>
                     </resource>
                 </webResources>
-                <webXml>src/main/webapp/WEB-INF/web.xml</webXml>
+                <webXml>src/webapp/WEB-INF/web.xml</webXml>
                 </configuration>
             </plugin>
             <plugin>
@@ -127,7 +127,7 @@
                 <configuration>
                     <filesets>
                         <fileset>
-                            <directory>src/main/webapp/WEB-INF/lib</directory>
+                            <directory>src/webapp/WEB-INF/lib</directory>
                         </fileset>
                     </filesets>
                 </configuration>

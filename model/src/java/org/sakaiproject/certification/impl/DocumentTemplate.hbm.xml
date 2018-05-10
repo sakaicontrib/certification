@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="org.sakaiproject.certification.api.DocumentTemplate"
+           table="certificate_document_template" lazy="false">
+
+        <id name="id" column="certificate_definition_id">
+            <generator class="foreign">
+                <param name="property">certificateDefinition</param>
+            </generator>
+        </id>
+
+        <property name="name" type="java.lang.String" column="name" length="255"/>
+        <one-to-one name="certificateDefinition"
+            class="org.sakaiproject.certification.api.CertificateDefinition" constrained="true"/>
+        <property name="outputMimeType" type="java.lang.String" column="mimeType" length="255"/>
+        <property name="resourceId" type="text" column="resourceId" length="4096"/>
+
+    </class>
+
+</hibernate-mapping>

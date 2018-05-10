@@ -1,4 +1,4 @@
-DELETE FROM cert_field_mapping;
+DELETE FROM certificate_field_mapping;
 DELETE FROM certificate_criterion_binding;
 DELETE FROM certificate_criterion;
 DELETE FROM certificate_award;
@@ -58,29 +58,29 @@ INSERT INTO certificate_document_template (certificate_definition_id, mimeType, 
 
 INSERT INTO certificate_criterion (id, type, award_criteria_id)
 	VALUES
-		('001', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '001'),
-		('002', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '002'),
-		('003', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '003'),
-		('004', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '004'),
-		('005-1', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '005'),
-		('005-2', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '005'),
-		('006', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '006'),
-		('007', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '007'),
-		('008', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '008'),
-		('009', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '009'),
-		('010', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '010'),
-		('011', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '011'),
-		('012', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '012'),
-		('013', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '013'),
-		('014', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '014'),
-		('015', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '015'),
-		('016', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '016'),
-		('017', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '017'),
-		('018', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '018'),
-		('019', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '019'),
-		('020', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '020'),
-		('022', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '022'),
-		('023', 'org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl', '023');
+		('001', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '001'),
+		('002', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '002'),
+		('003', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '003'),
+		('004', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '004'),
+		('005-1', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '005'),
+		('005-2', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '005'),
+		('006', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '006'),
+		('007', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '007'),
+		('008', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '008'),
+		('009', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '009'),
+		('010', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '010'),
+		('011', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '011'),
+		('012', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '012'),
+		('013', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '013'),
+		('014', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '014'),
+		('015', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '015'),
+		('016', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '016'),
+		('017', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '017'),
+		('018', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '018'),
+		('019', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '019'),
+		('020', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '020'),
+		('022', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '022'),
+		('023', 'org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion', '023');
 
 INSERT INTO certificate_criterion_binding (criterion_id, variable_key, variable_value)
 	VALUES
@@ -136,7 +136,7 @@ INSERT INTO certificate_award (id, userId, certificate_definition_id, award_time
 		('001', 'student', '001', '2011-07-08'),
 		('002', 'student', '011', '2011-07-08');
 
-INSERT INTO cert_field_mapping (defn_id, variable, value)
+INSERT INTO certificate_field_mapping (defn_id, variable, value)
 	VALUES
 		('001', 'CertRank', 'Lieutenant'),
 		('001', 'CertUser', '${recipient.fullname}'),

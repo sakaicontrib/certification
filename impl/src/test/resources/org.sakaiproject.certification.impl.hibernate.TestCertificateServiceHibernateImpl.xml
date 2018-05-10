@@ -18,10 +18,10 @@
     <bean id="certification.hbmMappingList" class="java.util.ArrayList">
         <constructor-arg>
             <list>
-                <value>org/sakaiproject/certification/impl/hibernate/CertificateAwardHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/CertificateDefinitionHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/DocumentTemplateHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/AbstractCriterionHibernateImpl.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/CertificateAward.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/CertificateDefinition.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/DocumentTemplate.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/hibernate/criteria/Criterion.hbm.xml</value>
             </list>
         </constructor-arg>
     </bean>

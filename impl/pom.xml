@@ -77,11 +77,6 @@
 
         <!-- Others -->
         <dependency>
-            <groupId>taglibs</groupId>
-            <artifactId>standard</artifactId>
-            <version>1.1.2</version>
-        </dependency>
-        <dependency>
             <groupId>net.sf.jmimemagic</groupId>
             <artifactId>jmimemagic</artifactId>
             <version>0.1.5</version>
@@ -101,11 +96,6 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>mysql</groupId>
-            <artifactId>mysql-connector-java</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
           <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <scope>provided</scope>
@@ -119,10 +109,10 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>src/main/java</sourceDirectory>
+        <sourceDirectory>src/java</sourceDirectory>
         <resources>
             <resource>
-                <directory>src/main/bundle</directory>
+                <directory>src/bundle</directory>
                 <includes>
                     <include>**/*.properties</include>
                     <include>**/*.metaprops</include>

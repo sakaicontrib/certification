@@ -13,17 +13,17 @@
           class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
         <property name="mappingResources">
             <list>
-                <value>org/sakaiproject/certification/impl/hibernate/CertificateDefinitionHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/DocumentTemplateHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/AbstractCriterionHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/GreaterThanScoreCriterionHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/DueDatePassedCriterionHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/FinalGradeScoreCriterionHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/WillExpireCriterionHibernateImpl.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertAssignment.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertCategory.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertGradebook.hbm.xml</value>
-                <value>org/sakaiproject/certification/impl/hibernate/criteria/gradebook/CertGradeRecord.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/CertificateDefinition.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/DocumentTemplate.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/AbstractCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/GreaterThanScoreCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/DueDatePassedCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/FinalGradeScoreCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/WillExpireCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertAssignment.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertCategory.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertGradebook.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertGradeRecord.hbm.xml</value>
             </list>
         </property>
     </bean>

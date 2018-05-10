@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping default-cascade="none" package="org.sakaiproject.certification.api.criteria.gradebook"
+	default-lazy="false">
+	<class name="org.sakaiproject.certification.api.criteria.gradebook.CertGradeRecordObject" table="GB_GRADE_RECORD_T" discriminator-value="0">
+
+		<id name="id" column="ID" type="long">
+			<generator class="native">
+				<param name="sequence">GB_GRADE_RECORD_S</param>
+			</generator>
+		</id>
+
+		<discriminator type="integer" column="OBJECT_TYPE_ID" />
+
+		<many-to-one name="gradableObject">
+			<column name="GRADABLE_OBJECT_ID" not-null="true"
+				unique-key="gradeRecordKey" />
+		</many-to-one>
+
+		<property name="studentId" type="string">
+			<column name="STUDENT_ID" not-null="true" />
+		</property>
+
+		<subclass name="org.sakaiproject.certification.api.criteria.gradebook.CertAssignmentScore"  discriminator-value="1">
+			<property name="pointsEarned" column="POINTS_EARNED" type="double" not-null="false" />
+			<property name="dateRecorded" column="DATE_RECORDED" type="date" not-null="false" />
+			<property name="excludedFromGrade" column="IS_EXCLUDED_FROM_GRADE" type="boolean" not-null="false"/>
+			<property name="excluded" column="EXCLUDED" type="boolean" not-null="false" />
+		</subclass>
+	</class>
+</hibernate-mapping>
