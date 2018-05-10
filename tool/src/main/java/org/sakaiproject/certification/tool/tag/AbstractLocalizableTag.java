@@ -23,8 +23,8 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.web.servlet.tags.RequestContextAwareTag;
 
-abstract public class AbstractLocalizableTag extends RequestContextAwareTag
-{
+abstract public class AbstractLocalizableTag extends RequestContextAwareTag {
+
     /**
      * Resolve the specified message into a concrete message String.
      * The returned message String should be unescaped.
@@ -32,11 +32,9 @@ abstract public class AbstractLocalizableTag extends RequestContextAwareTag
      * @return
      * @throws javax.servlet.jsp.JspException
      */
-    protected String resolveMessage(String message) throws JspException, NoSuchMessageException
-    {
+    protected String resolveMessage(String message) throws JspException, NoSuchMessageException {
         MessageSource messageSource = getMessageSource();
-        if (messageSource == null)
-        {
+        if (messageSource == null) {
             throw new JspTagException("No corresponding MessageSource found");
         }
 
@@ -51,24 +49,20 @@ abstract public class AbstractLocalizableTag extends RequestContextAwareTag
      * @return
      * @throws javax.servlet.jsp.JspException
      */
-    protected String resolveMessage(String message, Object[] args) throws JspException, NoSuchMessageException
-    {
+    protected String resolveMessage(String message, Object[] args) throws JspException, NoSuchMessageException {
         MessageSource messageSource = getMessageSource();
-        if (messageSource == null)
-        {
+        if (messageSource == null) {
             throw new JspTagException("No corresponding MessageSource found");
         }
 
         return messageSource.getMessage(message, args, "??" + message + "??", getRequestContext().getLocale());
     }
 
-
     /**
      * Use the application context itself for default message resolution.
      * @return
      */
-    protected MessageSource getMessageSource()
-    {
+    protected MessageSource getMessageSource() {
         return getRequestContext().getWebApplicationContext();
     }
 }

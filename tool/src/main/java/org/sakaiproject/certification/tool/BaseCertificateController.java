@@ -16,10 +16,6 @@
 
 package org.sakaiproject.certification.tool;
 
-import org.sakaiproject.certification.api.CertificateService;
-import org.sakaiproject.certification.api.DocumentTemplateService;
-import org.sakaiproject.certification.tool.validator.CertificateDefinitionValidator;
-
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -27,9 +23,11 @@ import java.util.Set;
 
 import javax.annotation.Resource;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
+import org.sakaiproject.certification.api.CertificateService;
+import org.sakaiproject.certification.api.DocumentTemplateService;
+import org.sakaiproject.certification.tool.validator.CertificateDefinitionValidator;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.component.api.ServerConfigurationService;
@@ -41,16 +39,13 @@ import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
 
-import org.springframework.beans.factory.annotation.Autowired;
-
 /**
  * User: duffy
  * Date: Jul 7, 2011
  * Time: 3:15:05 PM
  */
-public class BaseCertificateController
-{
-    protected final Log logger = LogFactory.getLog(getClass());
+public class BaseCertificateController {
+
     protected static final String REQUEST_PARAMATER_SUBVAL = "submitValue";
     protected static final String MOD_ATTR = "certificateToolState";
     protected static final String ADMIN_FN = "certificate.admin";
@@ -86,117 +81,95 @@ public class BaseCertificateController
     protected DocumentTemplateService     documentTemplateService;
 
     @Resource(name="org.sakaiproject.tool.api.ToolManager")
-    public void setToolManager(ToolManager toolManager)
-    {
+    public void setToolManager(ToolManager toolManager) {
         this.toolManager = toolManager;
     }
 
     @Resource(name="org.sakaiproject.user.api.UserDirectoryService")
-    public void setUserDirectoryService(UserDirectoryService userDirectoryService)
-    {
+    public void setUserDirectoryService(UserDirectoryService userDirectoryService) {
         this.userDirectoryService = userDirectoryService;
     }
 
     @Resource(name="org.sakaiproject.authz.api.SecurityService")
-    public void setSecurityService(SecurityService securityService)
-    {
+    public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
     @Resource(name="org.sakaiproject.site.api.SiteService")
-    public void setSiteService(SiteService siteService)
-    {
+    public void setSiteService(SiteService siteService) {
         this.siteService = siteService;
     }
 
     @Resource(name="org.sakaiproject.component.api.ServerConfigurationService")
-    public void setServerConfigurationService(ServerConfigurationService serverConfigurationService)
-    {
+    public void setServerConfigurationService(ServerConfigurationService serverConfigurationService) {
         this.serverConfigurationService = serverConfigurationService;
     }
 
     @Resource(name="org.sakaiproject.certification.api.CertificateService")
-    public void setCertificateService(CertificateService certificateService)
-    {
+    public void setCertificateService(CertificateService certificateService) {
         this.certificateService = certificateService;
     }
 
     @Autowired
-    public void setDocumentTemplateService(DocumentTemplateService documentTemplateService)
-    {
+    public void setDocumentTemplateService(DocumentTemplateService documentTemplateService) {
         this.documentTemplateService = documentTemplateService;
     }
 
-    protected String userId()
-    {
+    protected String userId() {
         User user = userDirectoryService.getCurrentUser();
-        if (user == null)
-        {
+        if (user == null) {
             return null;
         }
 
         return user.getId();
     }
 
-    protected String siteId()
-    {
+    protected String siteId() {
         return toolManager.getCurrentPlacement().getContext();
     }
 
-    protected boolean isAdministrator(String userId)
-    {
+    protected boolean isAdministrator(String userId) {
         String siteId = siteId();
         String fullId = siteId;
 
-        if(securityService.isSuperUser(userId))
-        {
+        if(securityService.isSuperUser(userId)) {
             //stand aside, it's admin
             return true;
         }
-        if(siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT))
-        {
+        if(siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT)) {
             fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
         }
 
         return securityService.unlock(userId, ADMIN_FN, fullId);
     }
 
-    protected boolean isAdministrator()
-    {
+    protected boolean isAdministrator() {
         return isAdministrator(userId());
     }
 
-    protected boolean isAwardable(String userId)
-    {
+    protected boolean isAwardable(String userId) {
         String siteId = siteId();
         String fullId = siteId;
 
-        if (securityService.isSuperUser(userId))
-        {
+        if (securityService.isSuperUser(userId)) {
             //stand aside, it's admin
             return false;
         }
-        if (siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT))
-        {
+        if (siteId != null && !siteId.startsWith(SiteService.REFERENCE_ROOT)) {
             fullId = SiteService.REFERENCE_ROOT + Entity.SEPARATOR + siteId;
         }
 
         return securityService.unlock(userId, AWARDABLE_FN, fullId);
     }
 
-    protected boolean isAwardable()
-    {
+    protected boolean isAwardable() {
         return isAwardable(userId());
     }
 
-    protected Site getCurrentSite()
-    {
-        try
-        {
+    protected Site getCurrentSite() {
+        try {
             return siteService.getSite(siteId());
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             //Should never happen
             throw new RuntimeException( "BaseCertificateController can't get the current Site", e );
         }
@@ -206,14 +179,12 @@ public class BaseCertificateController
      *
      * @return a list of userIds for members of the current site who can be awarded a certificate
      */
-    public List<String> getAwardableUserIds()
-    {
+    public List<String> getAwardableUserIds() {
         //return value
         List<String> userIds = new ArrayList<>();
 
         Site currentSite = getCurrentSite();
-        if (currentSite == null)
-        {
+        if (currentSite == null) {
             return null;
         }
 
@@ -225,20 +196,15 @@ public class BaseCertificateController
      * Returns all users who have ever had a grade in the site
      * @return
      */
-    public Set<String> getHistoricalGradedUserIds()
-    {
+    public Set<String> getHistoricalGradedUserIds() {
         return new HashSet<> (certificateService.getGradedUserIds(siteId()));
     }
 
-    public String getRole(String userId)
-    {
+    public String getRole(String userId) {
         Role role = getCurrentSite().getUserRole(userId);
-        if (role != null)
-        {
+        if (role != null) {
             return role.getId();
-        }
-        else
-        {
+        } else {
             return messages.getString(REPORT_TABLE_NOT_A_MEMBER);
         }
     }
@@ -247,8 +213,7 @@ public class BaseCertificateController
      * Gets the tool instance's url. Helps resolve issues in the PDA view
      * @return
      */
-    public String getToolUrl()
-    {
+    public String getToolUrl() {
         /**
          * Fixes an issue with the PDA view.
          * For example, simply linking to print.form?certId=${cert.id} caused a download of the tool's markup
@@ -263,8 +228,7 @@ public class BaseCertificateController
         return urlPrefix.toString();
     }
 
-    public ResourceLoader getMessages()
-    {
+    public ResourceLoader getMessages() {
         return messages;
     }
 }

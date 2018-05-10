@@ -21,7 +21,6 @@ package org.sakaiproject.certification.impl;
  * I assume there's a security reason for this, so I decided to create the exact same thing in this package
  *
  */
-interface SecureGradebookActionCallback
-{
+interface SecureGradebookActionCallback {
     public Object doSecureAction();
 }

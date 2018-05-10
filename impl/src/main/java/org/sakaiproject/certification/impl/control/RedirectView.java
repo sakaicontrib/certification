@@ -16,48 +16,45 @@
 
 package org.sakaiproject.certification.impl.control;
 
-import org.sakaiproject.certification.api.util.PortalParamManager;
-
 import java.util.HashMap;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.sakaiproject.certification.api.util.PortalParamManager;
 import org.sakaiproject.component.cover.ComponentManager;
 
-public class RedirectView extends org.springframework.web.servlet.view.RedirectView
-{
+public class RedirectView extends org.springframework.web.servlet.view.RedirectView {
+
     /**
-     ** Determine whether the given model element should be exposed as a
-     ** query property. The default implementation considers Strings and
-     ** primitives as eligible, and also arrays and Collections/Iterables
-     ** with corresponding elements..
-     **
-     ** This is changed behavior from Spring 2.0, so we always return true
-     ** for backward compatibility.
+     * Determine whether the given model element should be exposed as a
+     * query property. The default implementation considers Strings and
+     * primitives as eligible, and also arrays and Collections/Iterables
+     * with corresponding elements..
+     *
+     * This is changed behavior from Spring 2.0, so we always return true
+     * for backward compatibility.
      * @param key
      * @param value
      * @return
-     **/
-    protected boolean isEligibleProperty( String key, Object value )
-    {
+     */
+    protected boolean isEligibleProperty(String key, Object value) {
         return true;
     }
 
     /**
-     ** Determine whether the given model element should be exposed as a
-     ** query property. The default implementation considers Strings and
-     ** primitives as eligible, and also arrays and Collections/Iterables
-     ** with corresponding elements..
-     **
-     ** This is changed behavior from Spring 2.0, so we always return true
-     ** for backward compatibility.
+     * Determine whether the given model element should be exposed as a
+     * query property. The default implementation considers Strings and
+     * primitives as eligible, and also arrays and Collections/Iterables
+     * with corresponding elements..
+     *
+     * This is changed behavior from Spring 2.0, so we always return true
+     * for backward compatibility.
      * @param value
      * @return
-     **/
-    protected boolean isEligibleValue( Object value )
-    {
+     */
+    protected boolean isEligibleValue(Object value) {
         return true;
     }
 
@@ -72,18 +69,15 @@ public class RedirectView extends org.springframework.web.servlet.view.RedirectV
      * @throws java.lang.Exception
      * @see #renderMergedOutputModel
      */
-    public void render(Map model, HttpServletRequest request, HttpServletResponse response) throws Exception
-    {
-        if (model == null)
-        {
+    public void render(Map model, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        if (model == null) {
             model = new HashMap();
         }
         model.putAll(getPortalParamManager().getParams(request));
         super.render(model, request, response);
     }
 
-    protected PortalParamManager getPortalParamManager()
-    {
+    protected PortalParamManager getPortalParamManager() {
         return (PortalParamManager) ComponentManager.getInstance().get(PortalParamManager.class.getName());
     }
 }

@@ -19,6 +19,7 @@ package org.sakaiproject.certification.api;
 import java.io.InputStream;
 import java.util.Map;
 import java.util.Set;
+
 /**
  * This represents a service capable of rendering templates of a specific set of MIME types.
  *
@@ -26,8 +27,8 @@ import java.util.Set;
  * Date: Jun 7, 2011
  * Time: 5:06:44 PM
  */
-public interface DocumentTemplateRenderEngine
-{
+public interface DocumentTemplateRenderEngine {
+
     /**
      * @param template
      * @return the array of MIME types this service can handle
@@ -58,11 +59,11 @@ public interface DocumentTemplateRenderEngine
      * @return
      * @throws org.sakaiproject.certification.api.TemplateReadException
      */
-    public InputStream render (DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException;
+    public InputStream render(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException;
 
     public boolean supportsPreview(DocumentTemplate template) throws TemplateReadException;
 
     public String getPreviewMimeType(DocumentTemplate template) throws TemplateReadException;
 
-    public InputStream renderPreview (DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException;
+    public InputStream renderPreview(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException;
 }

@@ -23,8 +23,8 @@ import java.util.Set;
  * Date: Jul 5, 2011
  * Time: 8:59:48 AM
  */
-public interface VariableResolver
-{
+public interface VariableResolver {
+
     public static final String CERT_NAME = "cert.name";
     public static final String UNASSIGNED = "unassigned";
     public static final String FULL_NAME = "recipient.fullname";

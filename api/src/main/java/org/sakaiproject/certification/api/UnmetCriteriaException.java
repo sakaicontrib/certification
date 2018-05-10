@@ -16,46 +16,40 @@
 
 package org.sakaiproject.certification.api;
 
-import org.sakaiproject.certification.api.criteria.Criterion;
-
 import java.util.Set;
+
+import org.sakaiproject.certification.api.criteria.Criterion;
 
 /**
  * User: duffy
  * Date: Jun 9, 2011
  * Time: 11:18:07 AM
  */
-public class UnmetCriteriaException extends CertificationException
-{
+public class UnmetCriteriaException extends CertificationException {
+
     private Set<Criterion> unmetCriteria = null;
 
-    public UnmetCriteriaException ()
-    {
+    public UnmetCriteriaException () {
         super ();
     }
 
-    public UnmetCriteriaException(String message)
-    {
+    public UnmetCriteriaException(String message) {
         super(message);
     }
 
-    public UnmetCriteriaException(String message, Throwable t)
-    {
+    public UnmetCriteriaException(String message, Throwable t) {
         super(message, t);
     }
 
-    public UnmetCriteriaException(Throwable t)
-    {
+    public UnmetCriteriaException(Throwable t) {
         super(t);
     }
 
-    public void setUnmetCriteria (Set<Criterion> criteria)
-    {
+    public void setUnmetCriteria (Set<Criterion> criteria) {
         unmetCriteria = criteria;
     }
 
-    public Set<Criterion> getUnmetConditions ()
-    {
+    public Set<Criterion> getUnmetConditions () {
         return unmetCriteria;
     }
 }

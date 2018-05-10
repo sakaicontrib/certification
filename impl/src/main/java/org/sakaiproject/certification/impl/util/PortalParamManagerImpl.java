@@ -16,35 +16,27 @@
 
 package org.sakaiproject.certification.impl.util;
 
-import org.sakaiproject.certification.api.util.PortalParamManager;
 import java.util.HashMap;
-
 import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletRequest;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.sakaiproject.certification.api.util.PortalParamManager;
 
-public class PortalParamManagerImpl implements PortalParamManager
-{
-    protected final transient Log logger = LogFactory.getLog(getClass());
+public class PortalParamManagerImpl implements PortalParamManager {
+
     private List<String> parameters = null;
 
-    public Map<String, String> getParams(ServletRequest request)
-    {
+    public Map<String, String> getParams(ServletRequest request) {
         Map<String, String> map = new HashMap<>();
-        for( String key : parameters )
-        {
+        for(String key : parameters) {
             String value = request.getParameter(key);
-            if (value == null)
-            {
+            if (value == null) {
                 value = (String) request.getAttribute(key);
             }
 
-            if (value != null)
-            {
+            if (value != null) {
                 map.put(key, value);
             }
         }
@@ -52,13 +44,11 @@ public class PortalParamManagerImpl implements PortalParamManager
         return map;
     }
 
-    public List<String> getParameters()
-    {
+    public List<String> getParameters() {
         return parameters;
     }
 
-    public void setParameters(List<String> parameters)
-    {
+    public void setParameters(List<String> parameters) {
         this.parameters = parameters;
     }
 }

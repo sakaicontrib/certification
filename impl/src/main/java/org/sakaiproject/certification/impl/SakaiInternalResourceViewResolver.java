@@ -16,34 +16,29 @@
 
 package org.sakaiproject.certification.impl;
 
-import org.sakaiproject.certification.impl.control.RedirectView;
-
 import java.util.Locale;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
 import org.springframework.web.servlet.View;
 import org.springframework.web.servlet.view.AbstractUrlBasedView;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 
-public class SakaiInternalResourceViewResolver extends InternalResourceViewResolver
-{
-    private static final Log LOG = LogFactory.getLog(SakaiInternalResourceViewResolver.class);
+import org.sakaiproject.certification.impl.control.RedirectView;
 
-    protected AbstractUrlBasedView buildView(String viewName) throws Exception
-    {
-        LOG.info("inside buildView");
+@Slf4j
+public class SakaiInternalResourceViewResolver extends InternalResourceViewResolver {
+
+    protected AbstractUrlBasedView buildView(String viewName) throws Exception {
+        log.info("inside buildView");
         return super.buildView(viewName);
     }
 
-    protected View createView(String viewName, Locale locale) throws Exception
-    {
-        LOG.info("inside createView");
+    protected View createView(String viewName, Locale locale) throws Exception {
+        log.info("inside createView");
 
         // Check for special "redirect:" prefix.
-        if (viewName.startsWith(REDIRECT_URL_PREFIX))
-        {
+        if (viewName.startsWith(REDIRECT_URL_PREFIX)) {
             String redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length());
             RedirectView redirectView = new RedirectView();
             redirectView.setUrl(redirectUrl);

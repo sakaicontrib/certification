@@ -16,99 +16,94 @@
 
 package org.sakaiproject.certification.impl.tag;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 public class ListScroll {
-   protected final transient Log logger = LogFactory.getLog(getClass());
 
-   public static final String STARTING_INDEX_TAG = "listScroll_startingIndex";
-   public static final String ENSURE_VISIBLE_TAG = "listScroll_ensureVisibleIndex";
+    public static final String STARTING_INDEX_TAG = "listScroll_startingIndex";
+    public static final String ENSURE_VISIBLE_TAG = "listScroll_ensureVisibleIndex";
 
-   private int total;
-   private int perPage;
-   private int startingIndex;
-   private boolean hideOnePageScroll = false;
+    private int total;
+    private int perPage;
+    private int startingIndex;
+    private boolean hideOnePageScroll = false;
 
-   public ListScroll(int perPage, int total, int startingIndex) {
-      this.perPage = perPage;
-      this.total = total;
-      this.startingIndex = startingIndex;
-   }
+    public ListScroll(int perPage, int total, int startingIndex) {
+        this.perPage = perPage;
+        this.total = total;
+        this.startingIndex = startingIndex;
+    }
 
-   public ListScroll(int perPage, int total, int startingIndex, boolean hideOnePageScroll) {
-      this.perPage = perPage;
-      this.total = total;
-      this.startingIndex = startingIndex;
-      this.hideOnePageScroll = hideOnePageScroll;
-   }
+    public ListScroll(int perPage, int total, int startingIndex, boolean hideOnePageScroll) {
+        this.perPage = perPage;
+        this.total = total;
+        this.startingIndex = startingIndex;
+        this.hideOnePageScroll = hideOnePageScroll;
+    }
 
-   public int getNextIndex() {
-      int nextIndex = startingIndex + perPage;
+    public int getNextIndex() {
+        int nextIndex = startingIndex + perPage;
 
-      if (nextIndex >= total) {
-         return -1;
-      }
+        if (nextIndex >= total) {
+            return -1;
+        }
 
-      return nextIndex;
-   }
+        return nextIndex;
+    }
 
-   public int getPerPage() {
-      return perPage;
-   }
+    public int getPerPage() {
+        return perPage;
+    }
 
-   public void setPerPage(int perPage) {
-      this.perPage = perPage;
-   }
+    public void setPerPage(int perPage) {
+        this.perPage = perPage;
+    }
 
-   public int getPrevIndex() {
-      int prevIndex = startingIndex - perPage;
+    public int getPrevIndex() {
+        int prevIndex = startingIndex - perPage;
 
-      if (prevIndex < 0) {
-         return -1;
-      }
+        if (prevIndex < 0) {
+            return -1;
+        }
 
-      return prevIndex;
-   }
+        return prevIndex;
+    }
 
-   public int getStartingIndex() {
-      return startingIndex;
-   }
+    public int getStartingIndex() {
+        return startingIndex;
+    }
 
-   public void setStartingIndex(int startingIndex) {
-      this.startingIndex = startingIndex;
-   }
+    public void setStartingIndex(int startingIndex) {
+        this.startingIndex = startingIndex;
+    }
 
-   public int getTotal() {
-      return total;
-   }
+    public int getTotal() {
+        return total;
+    }
 
-   public void setTotal(int total) {
-      this.total = total;
-   }
+    public void setTotal(int total) {
+        this.total = total;
+    }
 
-   public int getFirstItem() {
-      if (total == 0) {
-         return 0;
-      }
-      return startingIndex + 1;
-   }
+    public int getFirstItem() {
+        if (total == 0) {
+            return 0;
+        }
+        return startingIndex + 1;
+    }
 
-   public int getLastItem() {
-      int lastItem = startingIndex + perPage;
+    public int getLastItem() {
+        int lastItem = startingIndex + perPage;
 
-      if (lastItem > total) {
-         return total;
-      }
-      return lastItem;
-   }
+        if (lastItem > total) {
+            return total;
+        }
+        return lastItem;
+    }
 
-   public boolean getHideOnePageScroll() {
-      return hideOnePageScroll;
-   }
+    public boolean getHideOnePageScroll() {
+        return hideOnePageScroll;
+    }
 
-   public void setHideOnePageScroll(boolean hideOnePageScroll) {
-      this.hideOnePageScroll = hideOnePageScroll;
-   }
-
+    public void setHideOnePageScroll(boolean hideOnePageScroll) {
+        this.hideOnePageScroll = hideOnePageScroll;
+    }
 }

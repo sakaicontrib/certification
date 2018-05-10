@@ -27,8 +27,7 @@ package org.sakaiproject.certification.api;
  * Date: Jun 9, 2011
  * Time: 10:43:15 AM
  */
-public enum CertificateDefinitionStatus
-{
+public enum CertificateDefinitionStatus {
     UNPUBLISHED,
     ACTIVE,
     INACTIVE,

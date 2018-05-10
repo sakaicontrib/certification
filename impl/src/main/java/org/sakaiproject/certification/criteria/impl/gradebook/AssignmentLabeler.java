@@ -23,7 +23,6 @@ import org.sakaiproject.service.gradebook.shared.Assignment;
  * Date: Jul 18, 2011
  * Time: 11:15:05 PM
  */
-public interface AssignmentLabeler
-{
+public interface AssignmentLabeler {
     public String getLabel(Assignment assignment);
 }

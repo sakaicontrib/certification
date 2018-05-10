@@ -27,36 +27,30 @@ import org.sakaiproject.authz.api.SecurityAdvisor;
  * Date: Nov 4, 2005
  * Time: 5:02:36 PM
  */
-public class AllowMapSecurityAdvisor implements SecurityAdvisor
-{
+public class AllowMapSecurityAdvisor implements SecurityAdvisor {
+
     private final Map<String, List<String>> allowedReferences;
 
-    public AllowMapSecurityAdvisor(Map<String, List<String>> allowedReferences)
-    {
+    public AllowMapSecurityAdvisor(Map<String, List<String>> allowedReferences) {
         this.allowedReferences = allowedReferences;
     }
 
-    public AllowMapSecurityAdvisor(String function, List<String> references)
-    {
+    public AllowMapSecurityAdvisor(String function, List<String> references) {
         this.allowedReferences = new HashMap<>();
         allowedReferences.put(function, references);
     }
 
-    public AllowMapSecurityAdvisor(String function, String reference)
-    {
+    public AllowMapSecurityAdvisor(String function, String reference) {
         this.allowedReferences = new HashMap();
         List<String> references = new ArrayList<>();
         references.add(reference);
         allowedReferences.put(function, references);
     }
 
-    public SecurityAdvice isAllowed(String userId, String function, String reference)
-    {
+    public SecurityAdvice isAllowed(String userId, String function, String reference) {
         List<String> refs = (List<String>) allowedReferences.get(function);
-        if (refs != null)
-        {
-            if (refs.contains(reference))
-            {
+        if (refs != null) {
+            if (refs.contains(reference)) {
                 return SecurityAdvice.ALLOWED;
             }
         }
@@ -64,8 +58,7 @@ public class AllowMapSecurityAdvisor implements SecurityAdvisor
         return SecurityAdvice.PASS;
     }
 
-    public Map<String, List<String>> getAllowedReferences()
-    {
+    public Map<String, List<String>> getAllowedReferences() {
         return allowedReferences;
     }
 }

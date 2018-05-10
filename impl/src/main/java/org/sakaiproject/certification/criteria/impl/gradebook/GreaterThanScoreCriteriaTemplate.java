@@ -19,7 +19,6 @@ package org.sakaiproject.certification.criteria.impl.gradebook;
 import org.sakaiproject.certification.api.criteria.CriteriaFactory;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.GreaterThanScoreCriterionHibernateImpl;
-
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -28,58 +27,46 @@ import org.sakaiproject.util.ResourceLoader;
  * Date: Jul 5, 2011
  * Time: 9:26:50 AM
  */
-public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTemplate
-{
+public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTemplate {
+
     ScoreTemplateVariable scoreVariable = null;
     private final String EXPRESSION_KEY = "greater.than.score.criteria.expression";
     private static final String MESSAGE_POINT = "point";
     private static final String MESSAGE_POINTS = "points";
     private static final String MESSAGE_NOITEMS = "message.noitems.greaterthanscore";
 
-    public GreaterThanScoreCriteriaTemplate(final GradebookCriteriaFactory factory)
-    {
-        super(factory,
-                null,
-                new AssignmentLabeler()
-                {
-                    public String getLabel(Assignment assignment)
-                    {
-                        StringBuilder assnLabel = new StringBuilder();
-                        assnLabel.append(assignment.getName()).append(" (").append(assignment.getPoints().toString()).append(" ");
-                        ResourceLoader rl = factory.getResourceLoader();
+    public GreaterThanScoreCriteriaTemplate(final GradebookCriteriaFactory factory) {
+        super(factory, null, new AssignmentLabeler() {
+            public String getLabel(Assignment assignment) {
+                StringBuilder assnLabel = new StringBuilder();
+                assnLabel.append(assignment.getName()).append(" (").append(assignment.getPoints().toString()).append(" ");
+                ResourceLoader rl = factory.getResourceLoader();
 
-                        if (assignment.getPoints() == 1)
-                        {
-                            assnLabel.append(rl.getString(MESSAGE_POINT));
-                        }
-                        else
-                        {
-                            assnLabel.append(rl.getString(MESSAGE_POINTS));
-                        }
+                if (assignment.getPoints() == 1) {
+                    assnLabel.append(rl.getString(MESSAGE_POINT));
+                } else {
+                    assnLabel.append(rl.getString(MESSAGE_POINTS));
+                }
 
-                        assnLabel.append(')');
-                        return assnLabel.toString();
-                    }
-                });
+                assnLabel.append(')');
+                return assnLabel.toString();
+            }
+        });
 
         scoreVariable =  new ScoreTemplateVariable(CriteriaFactory.KEY_SCORE, factory);
         addVariable(scoreVariable);
     }
 
-    public String getId()
-    {
+    public String getId() {
         return GreaterThanScoreCriteriaTemplate.class.getName();
     }
 
-    public String getExpression()
-    {
+    public String getExpression() {
         return getExpression(null);
     }
 
-    public String getExpression (Criterion criterion)
-    {
-        if (criterion == null)
-        {
+    public String getExpression (Criterion criterion) {
+        if (criterion == null) {
             return rl.getFormattedMessage(EXPRESSION_KEY, new Object[]{});
         }
 
@@ -88,16 +75,12 @@ public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTempl
         GreaterThanScoreCriterionHibernateImpl gischi = (GreaterThanScoreCriterionHibernateImpl)criterion;
 
         String score = gischi.getScore();
-        if (score != null)
-        {
+        if (score != null) {
             Double dblScore = new Double (score);
             StringBuilder sbScore = new StringBuilder(score);
-            if (dblScore == 1)
-            {
+            if (dblScore == 1) {
                 sbScore.append(" ").append(rl.getString(MESSAGE_POINT));
-            }
-            else
-            {
+            } else {
                 sbScore.append(" ").append(rl.getString(MESSAGE_POINTS));
             }
             score = sbScore.toString();
@@ -110,8 +93,7 @@ public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTempl
     }
 
     @Override
-    public String getMessage()
-    {
+    public String getMessage() {
         return getResourceLoader().getString(MESSAGE_NOITEMS);
     }
 }

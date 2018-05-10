@@ -21,7 +21,6 @@ package org.sakaiproject.certification.criteria.impl.gradebook;
 * Date: Aug 2, 2011
 * Time: 9:56:50 AM
 */
-interface SecureGradebookActionCallback
-{
+interface SecureGradebookActionCallback {
     public Object doSecureAction();
 }

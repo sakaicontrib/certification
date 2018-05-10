@@ -16,21 +16,20 @@
 
 package org.sakaiproject.certification.criteria.impl.gradebook;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
 import org.sakaiproject.certification.api.CertificateService;
 import org.sakaiproject.certification.api.criteria.CriteriaFactory;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplate;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.impl.ExpiryOffsetTemplateVariable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.sakaiproject.util.ResourceLoader;
 
-public class WillExpireCriteriaTemplate implements CriteriaTemplate
-{
+public class WillExpireCriteriaTemplate implements CriteriaTemplate {
+
     ExpiryOffsetTemplateVariable expiryOffsetVariable = null;
     ArrayList<CriteriaTemplateVariable> variables = new ArrayList<>(1);
     GradebookCriteriaFactory factory = null;
@@ -43,79 +42,62 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
     private final String MESSAGE_MONTHS = "months";
     private final String MESSAGE_NOITEMS = "message.noitems.willexpire";
 
-    public WillExpireCriteriaTemplate(final GradebookCriteriaFactory factory)
-    {
+    public WillExpireCriteriaTemplate(final GradebookCriteriaFactory factory) {
         this.factory = factory;
         certificateService = factory.getCertificateService();
-        expiryOffsetVariable =  new ExpiryOffsetTemplateVariable(CriteriaFactory.KEY_EXPIRY_OFFSET, factory);
+        expiryOffsetVariable = new ExpiryOffsetTemplateVariable(CriteriaFactory.KEY_EXPIRY_OFFSET, factory);
         addVariable(expiryOffsetVariable);
     }
 
-    public String getId()
-    {
+    public String getId() {
         return WillExpireCriteriaTemplate.class.getName();
     }
 
-    protected void addVariable(CriteriaTemplateVariable variable)
-    {
+    protected void addVariable(CriteriaTemplateVariable variable) {
         variables.add(variable);
     }
 
-    public void setResourceLoader(ResourceLoader rl)
-    {
+    public void setResourceLoader(ResourceLoader rl) {
         this.rl = rl;
     }
 
-    public ResourceLoader getResourceLoader()
-    {
+    public ResourceLoader getResourceLoader() {
         return rl;
     }
 
-    public CriteriaFactory getCriteriaFactory()
-    {
+    public CriteriaFactory getCriteriaFactory() {
         return factory;
     }
 
-    public int getTemplateVariableCount()
-    {
+    public int getTemplateVariableCount() {
         return variables.size();
     }
 
-    public List<CriteriaTemplateVariable> getTemplateVariables()
-    {
+    public List<CriteriaTemplateVariable> getTemplateVariables() {
         return variables;
     }
 
-    public CriteriaTemplateVariable getTemplateVariable(int i)
-    {
+    public CriteriaTemplateVariable getTemplateVariable(int i) {
         return variables.get(i);
     }
 
-    public String getExpression()
-    {
+    public String getExpression() {
         return getExpression(null);
     }
 
-    public String getExpression(Criterion criterion)
-    {
-        if (criterion == null)
-        {
+    public String getExpression(Criterion criterion) {
+        if (criterion == null) {
             return getResourceLoader().getFormattedMessage(EXPRESSION_KEY, new Object[]{});
-        }
-        else
-        {
+
+        } else {
             Map<String, String> bindings = criterion.getVariableBindings();
             String expiryOffset = bindings.get(CriteriaFactory.KEY_EXPIRY_OFFSET);
-            if (expiryOffset != null)
-            {
+            if (expiryOffset != null) {
                 Integer intExpiryOffset = new Integer(expiryOffset);
                 StringBuilder sbExpiryOffset = new StringBuilder(expiryOffset);
-                if (intExpiryOffset == 1)
-                {
+                if (intExpiryOffset == 1) {
                     sbExpiryOffset.append(" ").append(rl.get(MESSAGE_MONTH));
-                }
-                else
-                {
+                } else {
                     sbExpiryOffset.append(" ").append(rl.get(MESSAGE_MONTHS));
                 }
                 expiryOffset = sbExpiryOffset.toString();
@@ -126,8 +108,7 @@ public class WillExpireCriteriaTemplate implements CriteriaTemplate
     }
 
     @Override
-    public String getMessage()
-    {
+    public String getMessage() {
         return getResourceLoader().getString(MESSAGE_NOITEMS);
     }
 }

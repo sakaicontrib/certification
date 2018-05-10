@@ -24,27 +24,22 @@ import org.sakaiproject.certification.api.VariableResolutionException;
  * Date: Jul 7, 2011
  * Time: 8:28:13 AM
  */
-public class AwardVariableResolver extends AbstractVariableResolver
-{
+public class AwardVariableResolver extends AbstractVariableResolver {
+
     private static final String MESSAGE_NAMEOFCERT = "variable.nameOfCert";
     private static final String MESSAGE_UNASSIGNED = "variable.unassigned";
 
-    public AwardVariableResolver()
-    {
+    public AwardVariableResolver() {
         String name = getMessages().getString(MESSAGE_NAMEOFCERT);
         String unassigned = getMessages().getString(MESSAGE_UNASSIGNED);
         addVariable(CERT_NAME, name);
         addVariable (UNASSIGNED, unassigned);
     }
 
-    public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException
-    {
-        if (CERT_NAME.equals(varLabel))
-        {
+    public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException {
+        if (CERT_NAME.equals(varLabel)) {
             return certDef.getName();
-        }
-        else if (UNASSIGNED.equals(varLabel))
-        {
+        } else if (UNASSIGNED.equals(varLabel)) {
             return "";
         }
 

@@ -16,16 +16,16 @@
 
 package org.sakaiproject.certification.api;
 
-import org.sakaiproject.certification.api.criteria.CriterionProgress;
-
 import java.util.ArrayList;
 import java.util.List;
+
+import org.sakaiproject.certification.api.criteria.CriterionProgress;
 
 /**
  * Represents information pertaining to one user in the reporting interface
  */
-public class ReportRow
-{
+public class ReportRow {
+
     /**
      * The user's name (formatted as "lastname, firstname")
      */
@@ -53,81 +53,67 @@ public class ReportRow
 
     /**
      * Cells representing the user's progress toward the criteria
-     **/
+     */
     private List<CriterionProgress> criterionCells = new ArrayList<>();
 
     /**
      * Whether the user was awarded or not (ie. yes/no)
-     **/
+     */
     private String awarded = "";
 
-    public void setName(String name)
-    {
+    public void setName(String name) {
         this.name = name;
     }
 
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
 
-    public void setUserId(String userId)
-    {
+    public void setUserId(String userId) {
         this.userId = userId;
     }
 
-    public String getUserId()
-    {
+    public String getUserId() {
         return userId;
     }
 
-    public void setRole(String role)
-    {
+    public void setRole(String role) {
         this.role = role;
     }
 
-    public String getRole()
-    {
+    public String getRole() {
         return role;
     }
 
-    public void setStudentNumber(String studentNumber)
-    {
+    public void setStudentNumber(String studentNumber) {
         this.studentNumber = studentNumber;
     }
 
-    public String getStudentNumber()
-    {
+    public String getStudentNumber() {
         return studentNumber;
     }
 
-    public void setIssueDate(String issueDate)
-    {
+    public void setIssueDate(String issueDate) {
         this.issueDate = issueDate;
     }
 
-    public String getIssueDate()
-    {
+    public String getIssueDate() {
         return issueDate;
     }
 
-    public void setCriterionCells(List<CriterionProgress> criterionCells)
-    {
+    public void setCriterionCells(List<CriterionProgress> criterionCells) {
         this.criterionCells = criterionCells;
     }
 
-    public List<CriterionProgress> getCriterionCells()
-    {
+    public List<CriterionProgress> getCriterionCells() {
         return criterionCells;
     }
 
-    public void setAwarded(String awarded)
-    {
+    public void setAwarded(String awarded) {
         this.awarded = awarded;
     }
 
-    public String getAwarded()
-    {
+    public String getAwarded() {
         return awarded;
     }
 }

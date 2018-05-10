@@ -21,12 +21,6 @@ import com.itextpdf.text.pdf.AcroFields;
 import com.itextpdf.text.pdf.PdfReader;
 import com.itextpdf.text.pdf.PdfStamper;
 
-import org.sakaiproject.certification.api.CertificateService;
-import org.sakaiproject.certification.api.DocumentTemplate;
-import org.sakaiproject.certification.api.DocumentTemplateRenderEngine;
-import org.sakaiproject.certification.api.DocumentTemplateService;
-import org.sakaiproject.certification.api.TemplateReadException;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -35,67 +29,62 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import org.sakaiproject.certification.api.CertificateService;
+import org.sakaiproject.certification.api.DocumentTemplate;
+import org.sakaiproject.certification.api.DocumentTemplateRenderEngine;
+import org.sakaiproject.certification.api.DocumentTemplateService;
+import org.sakaiproject.certification.api.TemplateReadException;
+
 /**
  * User: duffy
  * Date: Jul 6, 2011
  * Time: 12:14:52 PM
  */
-public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRenderEngine
-{
+public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRenderEngine {
+
     private static final String MIME_TYPE = "application/pdf";
     private DocumentTemplateService documentTemplateService = null;
     private CertificateService certificateService = null;
 
-    public void setDocumentTemplateService(DocumentTemplateService dts)
-    {
+    public void setDocumentTemplateService(DocumentTemplateService dts) {
         this.documentTemplateService = (DocumentTemplateService)dts;
     }
 
-    public DocumentTemplateService getDocumentTemplateService()
-    {
+    public DocumentTemplateService getDocumentTemplateService() {
         return documentTemplateService;
     }
 
-    public CertificateService getCertificateService()
-    {
+    public CertificateService getCertificateService() {
         return certificateService;
     }
 
-    public void setCertificateService(CertificateService certificateService)
-    {
+    public void setCertificateService(CertificateService certificateService) {
         this.certificateService = certificateService;
     }
 
-    public void init()
-    {
+    public void init() {
         getDocumentTemplateService().register(MIME_TYPE, this);
     }
 
-    public String getOutputMimeType(DocumentTemplate template)
-    {
+    public String getOutputMimeType(DocumentTemplate template) {
         return MIME_TYPE;
     }
 
-    private void assertCorrectType(final DocumentTemplate template) throws TemplateReadException
-    {
+    private void assertCorrectType(final DocumentTemplate template) throws TemplateReadException {
         final String mimeType = template.getOutputMimeType();
 
-        if (!MIME_TYPE.equalsIgnoreCase(mimeType))
-        {
+        if (!MIME_TYPE.equalsIgnoreCase(mimeType)) {
             throw new TemplateReadException("incorrect mime type: " + mimeType);
         }
     }
 
-    public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException
-    {
+    public Set<String> getTemplateFields(DocumentTemplate template) throws TemplateReadException {
         assertCorrectType(template);
         return getTemplateFields(certificateService.getTemplateFileInputStream(template.getResourceId()));
     }
 
-    public Set<String> getTemplateFields(InputStream inputStream) throws TemplateReadException
-    {
-        try
-        {
+    public Set<String> getTemplateFields(InputStream inputStream) throws TemplateReadException {
+        try {
             PdfReader reader = new PdfReader(inputStream);
             AcroFields acroFields = reader.getAcroFields();
             Map<String, AcroFields.Item> fields = acroFields.getFields();
@@ -103,28 +92,23 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
             Set<String> fieldKeys = fields.keySet();
             Set<String> textFieldKeys = new HashSet<>();
 
-            for (String key : fieldKeys)
-            {
-                if (acroFields.getFieldType(key) == (AcroFields.FIELD_TYPE_TEXT))
-                {
+            for (String key : fieldKeys) {
+                if (acroFields.getFieldType(key) == (AcroFields.FIELD_TYPE_TEXT)) {
                     textFieldKeys.add(key);
                 }
             }
 
             return textFieldKeys;
-        }
-        catch (IOException e)
-        {
+
+        } catch (IOException e) {
             throw new TemplateReadException (e);
         }
     }
 
-    public InputStream render(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException
-    {
+    public InputStream render(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException {
         assertCorrectType(template);
 
-        try
-        {
+        try {
             PdfReader reader = new PdfReader (certificateService.getTemplateFileInputStream(template.getResourceId()));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PdfStamper stamper = new PdfStamper (reader, baos);
@@ -134,38 +118,32 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
 
             AcroFields form = stamper.getAcroFields();
 
-            for (String key : form.getFields().keySet())
-            {
+            for (String key : form.getFields().keySet()) {
                 String binding = bindings.get(key);
                 form.setField(key, binding);
             }
 
             stamper.close();
             return new ByteArrayInputStream(baos.toByteArray());
-        }
-        catch (IOException | DocumentException e)
-        {
+
+        } catch (IOException | DocumentException e) {
             throw new TemplateReadException(e);
         }
     }
 
-    public boolean supportsPreview(DocumentTemplate template) throws TemplateReadException
-    {
+    public boolean supportsPreview(DocumentTemplate template) throws TemplateReadException {
         assertCorrectType(template);
         return true;
     }
 
-    public String getPreviewMimeType(DocumentTemplate template) throws TemplateReadException
-    {
+    public String getPreviewMimeType(DocumentTemplate template) throws TemplateReadException {
         assertCorrectType(template);
         return MIME_TYPE;
     }
 
-    public InputStream renderPreview(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException
-    {
+    public InputStream renderPreview(DocumentTemplate template, Map<String, String> bindings) throws TemplateReadException {
         assertCorrectType(template);
-        try
-        {
+        try {
             PdfReader reader = new PdfReader (certificateService.getTemplateFileInputStream(template.getResourceId()));
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             PdfStamper stamper = new PdfStamper (reader, baos);
@@ -175,9 +153,8 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
             stamper.close();
 
             return new ByteArrayInputStream(baos.toByteArray());
-        }
-        catch (IOException | DocumentException e)
-        {
+
+        } catch (IOException | DocumentException e) {
             throw new TemplateReadException(e);
         }
     }

@@ -16,11 +16,10 @@
 
 package org.sakaiproject.certification.impl;
 
-import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
-import org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory;
-
 import java.util.Map;
 
+import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
+import org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory;
 import org.sakaiproject.util.ResourceLoader;
 
 /**
@@ -33,50 +32,39 @@ public class ExpiryOffsetTemplateVariable implements CriteriaTemplateVariable {
     criteriaFactory = null;
     private String key = null;
 
-    public ExpiryOffsetTemplateVariable(String key, GradebookCriteriaFactory cFact)
-    {
+    public ExpiryOffsetTemplateVariable(String key, GradebookCriteriaFactory cFact) {
         criteriaFactory = cFact;
         setVariableKey(key);
     }
 
-    public void setVariableKey(String key)
-    {
+    public void setVariableKey(String key) {
         this.key = key;
     }
 
-    public String getVariableKey()
-    {
+    public String getVariableKey() {
         return key;
     }
 
-    public String getVariableLabel()
-    {
+    public String getVariableLabel() {
         return getResourceLoader().getString(key);
     }
 
-    public ResourceLoader getResourceLoader()
-    {
+    public ResourceLoader getResourceLoader() {
         return criteriaFactory.getResourceLoader();
     }
 
-    public boolean isMultipleChoice()
-    {
+    public boolean isMultipleChoice() {
         return false;
     }
 
-    public Map<String, String> getValues()
-    {
+    public Map<String, String> getValues() {
         return null;
     }
 
-    public boolean isValid(String value)
-    {
-        try
-        {
+    public boolean isValid(String value) {
+        try {
             Integer.parseInt(value);
-        }
-        catch (NumberFormatException nfe)
-        {
+        } catch (NumberFormatException nfe) {
             return false;
         }
 

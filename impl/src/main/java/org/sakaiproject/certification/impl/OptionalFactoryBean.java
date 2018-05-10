@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.sakaiproject.certification.impl;
 
 import org.springframework.beans.factory.BeanFactoryUtils;
@@ -34,7 +34,6 @@ public class OptionalFactoryBean extends AbstractFactoryBean<Object> implements 
     @Override
     public void setBeanName(String beanName) {
         this.beanName = BeanFactoryUtils.originalBeanName(beanName);
-
     }
 
     @Override

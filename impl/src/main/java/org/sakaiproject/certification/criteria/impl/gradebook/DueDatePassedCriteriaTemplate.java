@@ -16,13 +16,12 @@
 
 package org.sakaiproject.certification.criteria.impl.gradebook;
 
-import org.sakaiproject.certification.api.criteria.Criterion;
-import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import org.sakaiproject.certification.api.criteria.Criterion;
+import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -31,64 +30,55 @@ import org.sakaiproject.util.ResourceLoader;
  * Date: Jul 18, 2011
  * Time: 9:47:57 PM
  */
-public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
-{
+public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate {
+
     private static final String MESSAGE_DUEDATE = "duedate";
     private static final String MESSAGE_DUEDATE_NONE = "duedate.none";
     private static final String MESSAGE_NOITEMS_DUEDATE = "message.noitems.duedate";
 
     private final String EXPRESSION_KEY = "due.date.has.passed.criteria.expression";
 
-    public DueDatePassedCriteriaTemplate(final GradebookCriteriaFactory factory)
-    {
+    public DueDatePassedCriteriaTemplate(final GradebookCriteriaFactory factory) {
         super(factory,
-                new AssignmentFilter()
-                {
-                    public boolean include(Assignment assignment)
-                    {
-                        return assignment.getDueDate() != null;
-                    }
-                },
-                new AssignmentLabeler()
-                {
-                    public String getLabel(Assignment assignment)
-                    {
-                        StringBuilder assnLabel = new StringBuilder();
-                        ResourceLoader rl = factory.getResourceLoader();
-                        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-                        Date due = assignment.getDueDate();
-                        String dateStr;
-
-                        if (due != null)
-                        {
-                            dateStr = rl.getFormattedMessage(MESSAGE_DUEDATE, new Object[] { sdf.format(due) });
-                        }
-                        else
-                        {
-                            dateStr = rl.getString(MESSAGE_DUEDATE_NONE);
-                        }
-
-                        assnLabel.append(assignment.getName()).append(" (").append(dateStr).append(')');
-                        return assnLabel.toString();
-                    }
+            new AssignmentFilter() {
+                public boolean include(Assignment assignment) {
+                    return assignment.getDueDate() != null;
                 }
+            },
+            new AssignmentLabeler() {
+                public String getLabel(Assignment assignment) {
+                    StringBuilder assnLabel = new StringBuilder();
+                    ResourceLoader rl = factory.getResourceLoader();
+                    SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+                    Date due = assignment.getDueDate();
+                    String dateStr;
+
+                    if (due != null)
+                    {
+                        dateStr = rl.getFormattedMessage(MESSAGE_DUEDATE, new Object[] { sdf.format(due) });
+                    }
+                    else
+                    {
+                        dateStr = rl.getString(MESSAGE_DUEDATE_NONE);
+                    }
+
+                    assnLabel.append(assignment.getName()).append(" (").append(dateStr).append(')');
+                    return assnLabel.toString();
+                }
+            }
         );
     }
 
-    public String getId()
-    {
+    public String getId() {
         return DueDatePassedCriteriaTemplate.class.getName();
     }
 
-    public String getExpression()
-    {
+    public String getExpression() {
         return getExpression(null);
     }
 
-    public String getExpression (Criterion criterion)
-    {
-        if (criterion == null)
-        {
+    public String getExpression (Criterion criterion) {
+        if (criterion == null) {
             return getResourceLoader().getFormattedMessage(EXPRESSION_KEY, new Object[]{});
         }
 
@@ -103,8 +93,7 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
     }
 
     @Override
-    public String getMessage()
-    {
+    public String getMessage() {
         return getResourceLoader().getString(MESSAGE_NOITEMS_DUEDATE);
     }
 }

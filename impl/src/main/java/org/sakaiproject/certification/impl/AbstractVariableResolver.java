@@ -16,11 +16,10 @@
 
 package org.sakaiproject.certification.impl;
 
-import org.sakaiproject.certification.api.VariableResolver;
-
 import java.util.HashMap;
 import java.util.Set;
 
+import org.sakaiproject.certification.api.VariableResolver;
 import org.sakaiproject.util.ResourceLoader;
 
 /**
@@ -28,28 +27,24 @@ import org.sakaiproject.util.ResourceLoader;
  * Date: Jul 7, 2011
  * Time: 8:29:29 AM
  */
-public abstract class AbstractVariableResolver implements VariableResolver
-{
+public abstract class AbstractVariableResolver implements VariableResolver {
+
     private final ResourceLoader messages = new ResourceLoader("org.sakaiproject.certification.Messages");
     private final HashMap<String, String> descriptions = new HashMap<>();
 
-    public void addVariable (String variable, String description)
-    {
+    public void addVariable (String variable, String description) {
         descriptions.put(variable, description);
     }
 
-    public Set<String> getVariableLabels()
-    {
+    public Set<String> getVariableLabels() {
         return descriptions.keySet();
     }
 
-    public String getVariableDescription(String key)
-    {
+    public String getVariableDescription(String key) {
         return descriptions.get(key);
     }
 
-    public ResourceLoader getMessages()
-    {
+    public ResourceLoader getMessages() {
         return messages;
     }
 }

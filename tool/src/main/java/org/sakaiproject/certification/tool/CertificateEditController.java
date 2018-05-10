@@ -16,6 +16,34 @@
 
 package org.sakaiproject.certification.tool;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.SessionAttributes;
+import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+import org.springframework.web.servlet.ModelAndView;
+
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.DocumentTemplate;
 import org.sakaiproject.certification.api.DocumentTemplateException;
@@ -31,39 +59,10 @@ import org.sakaiproject.certification.api.criteria.InvalidBindingException;
 import org.sakaiproject.certification.impl.hibernate.CertificateDefinitionHibernateImpl;
 import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import org.sakaiproject.certification.tool.utils.CertificateToolState;
-
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.IdUsedException;
 import org.sakaiproject.tool.api.ToolSession;
 import org.sakaiproject.tool.cover.SessionManager;
-
-import org.springframework.stereotype.Controller;
-import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.SessionAttributes;
-import org.springframework.web.bind.support.SessionStatus;
-import org.springframework.web.multipart.commons.CommonsMultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 
 /**
  * Understanding this class:
@@ -75,10 +74,11 @@ import org.springframework.web.servlet.ModelAndView;
  * Date: Jun 7, 2011
  * Time: 4:15:32 PM
  */
+@Slf4j
 @Controller
 @SessionAttributes(types = CertificateToolState.class)
-public class CertificateEditController extends BaseCertificateController
-{
+public class CertificateEditController extends BaseCertificateController {
+
     public static final String MIME_TYPES = "mimeTypes";
 
     //jsp views
@@ -125,26 +125,20 @@ public class CertificateEditController extends BaseCertificateController
      * @throws Exception
      */
     @ModelAttribute(MOD_ATTR)
-    public CertificateToolState initializeModel(@RequestParam(value=REQUEST_PARAM_CERT_ID, required=false) String certId) throws Exception
-    {
+    public CertificateToolState initializeModel(@RequestParam(value=REQUEST_PARAM_CERT_ID, required=false) String certId) throws Exception {
         CertificateToolState certificateToolState = CertificateToolState.getState();
-        if(certId != null && !"".equals(certId))
-        {
+        if(certId != null && !"".equals(certId)) {
                 /* We are editing an existing certificate definition.
                  * It may already be stored in the tool state.
                  * If not, we'll need to grab it */
                boolean grabCertificate = false;
-               if (certificateToolState.getCertificateDefinition() == null)
-               {
+               if (certificateToolState.getCertificateDefinition() == null) {
                    grabCertificate = true;
-               }
-               else if (!certId.equals(certificateToolState.getCertificateDefinition().getId()))
-               {
+               } else if (!certId.equals(certificateToolState.getCertificateDefinition().getId())) {
                    grabCertificate = true;
                }
 
-               if (grabCertificate)
-               {
+               if (grabCertificate) {
                    CertificateDefinition certificateDefinition = certificateService.getCertificateDefinition(certId);
                    certificateToolState.setCertificateDefinition(certificateDefinition);
                    certificateToolState.setNewDefinition(false);
@@ -155,99 +149,75 @@ public class CertificateEditController extends BaseCertificateController
 
 
     @RequestMapping(value="/first.form")
-    protected ModelAndView createCertHandlerFirst(	@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
-                                                    BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
-    {
+    protected ModelAndView createCertHandlerFirst(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
+                                                  BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception {
         Map<String, Object> model = new HashMap<>();
         model.put("view", "add");
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
-        if (!isAdministrator())
-        {
+        if (!isAdministrator()) {
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect, ERROR_MESSAGE, ERROR_NOT_ADMIN);
         }
 
-        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue()))
-        {
+        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue())) {
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect);
         }
 
-        if(result.hasErrors())
-        {
+        if(result.hasErrors()) {
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, STATUS_MESSAGE_KEY, FORM_ERR);
-        }
-        else if(ACTION_NEXT.equals(certificateToolState.getSubmitValue()) && !result.hasErrors())
-        {
-            try
-            {
+
+        } else if(ACTION_NEXT.equals(certificateToolState.getSubmitValue()) && !result.hasErrors()) {
+            try {
                 certificateDefinitionValidator.validateFirst(certificateToolState, result, certificateService);
-                if(!result.hasErrors())
-                {
+                if(!result.hasErrors()) {
                     certificateToolState = persistFirstFormData(certificateToolState);
                     certificateToolState.setNewDefinition(false);
-                }
-                else
-                {
+                } else {
                     //just says "There was an error with your submission"
                     model.put(ERROR_MESSAGE, TEMPLATE_FIELD_ERR);
                     model.put(MOD_ATTR, certificateToolState);
                     return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, model);
                 }
-            }
-            catch (InvalidCertificateDefinitionException icde)
-            {
+
+            } catch (InvalidCertificateDefinitionException icde) {
                 int field = icde.getInvalidField();
-                if (icde.getReason() == InvalidCertificateDefinitionException.REASON_TOO_LONG)
-                {
-                    if (field == CertificateDefinition.FIELD_NAME)
-                    {
+                if (icde.getReason() == InvalidCertificateDefinitionException.REASON_TOO_LONG) {
+                    if (field == CertificateDefinition.FIELD_NAME) {
                         model.put(ERROR_MESSAGE, INVALID_NAME_LENGTH);
                         model.put(ERROR_ARGUMENTS, CONSTRAINT_NAME_LENGTH);
-                    }
-                    else if (field == CertificateDefinition.FIELD_DESCRIPTION)
-                    {
+                    } else if (field == CertificateDefinition.FIELD_DESCRIPTION) {
                         model.put(ERROR_MESSAGE, INVALID_DESCRIPTION_LENGTH);
                         model.put(ERROR_ARGUMENTS, CONSTRAINT_DESCRIPTION_LENGTH);
-                    }
-                    else
-                    {
+                    } else {
                         model.put(STATUS_MESSAGE_KEY, TEMPLATE_FIELD_ERR);
                     }
-                }
-                else
-                {
+                } else {
                     model.put(STATUS_MESSAGE_KEY, TEMPLATE_FIELD_ERR);
                 }
 
                 model.put(MOD_ATTR, certificateToolState);
                 return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, model);
-            }
-            catch (IdUsedException iue)
-            {
-                logger.warn("CertificateEditController.createCertHandlerFirst.save", iue);
+
+            } catch (IdUsedException iue) {
+                log.warn("CertificateEditController.createCertHandlerFirst.save: {}", iue);
 
                 model.put(ERROR_MESSAGE, DUPLICATE_NAME_ERR);
                 model.put(MOD_ATTR, certificateToolState);
 
                 return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, model);
-            }
-            catch (Exception e)
-            {
-                logger.warn("CertificateEditController.createCertHandlerFirst.next", e);
+
+            } catch (Exception e) {
+                log.warn("CertificateEditController.createCertHandlerFirst.next: {}", e);
                 CertificateDefinition certificateDefinition = certificateToolState.getCertificateDefinition();
-                if(certificateToolState.isNewDefinition() && certificateDefinition.getId() != null)
-                {
-                    try
-                    {
+                if(certificateToolState.isNewDefinition() && certificateDefinition.getId() != null) {
+                    try {
                       certificateService.deleteCertificateDefinition(certificateDefinition.getId());
-                    }
-                    catch(IdUnusedException | DocumentTemplateException e2)
-                    {
-                        logger.warn("", e);
+                    } catch(IdUnusedException | DocumentTemplateException e2) {
+                        log.warn("{}", e);
                     }
                 }
 
@@ -258,9 +228,8 @@ public class CertificateEditController extends BaseCertificateController
 
             certificateToolState.setSubmitValue(null);
             return createCertHandlerSecond(certificateToolState, result, request, status);
-        }
-        else
-        {
+
+        } else {
             /*
                 Rendering the first page. It requires all registered mime types. If we are editing an existing certificate,
                 it will already be in the certificateToolState because of MOD_ATTR
@@ -270,8 +239,7 @@ public class CertificateEditController extends BaseCertificateController
             if (certDef != null
                     && certDef.getId() != null
                     && !"".equals(certDef.getId())
-                    && certificateToolState.getNewTemplate() == null)
-            {
+                    && certificateToolState.getNewTemplate() == null) {
                 /*It's an existing certificate and a new template was not provided,
                  * so we need to load the existing template from resources*/
 
@@ -287,8 +255,7 @@ public class CertificateEditController extends BaseCertificateController
                 ByteArrayOutputStream byteStream = new ByteArrayOutputStream();
                 byte [] tmp = new byte[4096];
                 int ret;
-                while ((ret = resourceStream.read(tmp)) > 0)
-                {
+                while ((ret = resourceStream.read(tmp)) > 0) {
                     byteStream.write(tmp, 0, ret);
                 }
 
@@ -303,8 +270,7 @@ public class CertificateEditController extends BaseCertificateController
             String delim = "";
             StringBuilder mimeBuff = new StringBuilder();
 
-            for (String mimeType : documentTemplateService.getRegisteredMimeTypes())
-            {
+            for (String mimeType : documentTemplateService.getRegisteredMimeTypes()) {
                 mimeBuff.append(delim).append(mimeType);
                 delim = ", ";
             }
@@ -314,53 +280,43 @@ public class CertificateEditController extends BaseCertificateController
         }
     }
 
-    private CertificateToolState persistFirstFormData(CertificateToolState certificateToolState) throws Exception
-    {
+    private CertificateToolState persistFirstFormData(CertificateToolState certificateToolState) throws Exception {
         CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
         CommonsMultipartFile newTemplate = certificateToolState.getNewTemplate();
 
-        if (certDef.getName().length() > CONSTRAINT_NAME_LENGTH)
-        {
+        if (certDef.getName().length() > CONSTRAINT_NAME_LENGTH) {
             InvalidCertificateDefinitionException icde = new InvalidCertificateDefinitionException();
             icde.setInvalidField(CertificateDefinition.FIELD_NAME);
             icde.setReason(InvalidCertificateDefinitionException.REASON_TOO_LONG);
             throw icde;
-        }
-        else if (certDef.getDescription().length() > CONSTRAINT_DESCRIPTION_LENGTH)
-        {
+
+        } else if (certDef.getDescription().length() > CONSTRAINT_DESCRIPTION_LENGTH) {
             InvalidCertificateDefinitionException icde = new InvalidCertificateDefinitionException();
             icde.setInvalidField(CertificateDefinition.FIELD_DESCRIPTION);
             icde.setReason(InvalidCertificateDefinitionException.REASON_TOO_LONG);
             throw icde;
         }
 
-        if(certDef.getId() == null || "".equals(certDef.getId()))
-        {
+        if(certDef.getId() == null || "".equals(certDef.getId())) {
             CertificateDefinition existing = null;
 
-            try
-            {
+            try {
                 existing = certificateService.getCertificateDefinitionByName(siteId(), certDef.getName());
-            }
-            catch (IdUnusedException iue)
-            {
+            } catch (IdUnusedException iue) {
                 // this is good! not a duplicate
             }
 
-            if (existing != null)
-            {
+            if (existing != null) {
                 throw new IdUsedException (certDef.getName());
             }
 
             InputStream inputStream = certificateToolState.getTemplateInputStream();
             String mimeType = certificateToolState.getTemplateMimeType();
 
-            if (newTemplate != null && newTemplate.getSize() > 0)
-            {
+            if (newTemplate != null && newTemplate.getSize() > 0) {
                 //clear the field values
                 certDef.getFieldValues().clear();
-                if (certificateToolState.getTemplateFields() != null)
-                {
+                if (certificateToolState.getTemplateFields() != null) {
                     certificateToolState.getTemplateFields().clear();
                 }
 
@@ -375,13 +331,10 @@ public class CertificateEditController extends BaseCertificateController
             ToolSession session = SessionManager.getCurrentToolSession();
             session.setAttribute(ATTR_TEMPLATE_FIELDS, templateFields);
             certificateToolState.setTemplateFields(templateFields);
-        }
-        else
-        {
-            if (newTemplate != null && newTemplate.getSize() > 0)
-            {
-                if (certDef instanceof CertificateDefinitionHibernateImpl)
-                {
+
+        } else {
+            if (newTemplate != null && newTemplate.getSize() > 0) {
+                if (certDef instanceof CertificateDefinitionHibernateImpl) {
                     CertificateDefinitionHibernateImpl cdhi = (CertificateDefinitionHibernateImpl) certDef;
 
                     //document template will get created upon activation
@@ -402,15 +355,13 @@ public class CertificateEditController extends BaseCertificateController
                 certificateToolState.setTemplateFields(templateFields);
                 Map<String, String> fieldValues = new HashMap<>();
                 certDef.setFieldValues(fieldValues);
-            }
-            else
-            {
+
+            } else {
                 DocumentTemplate dt = certDef.getDocumentTemplate();
 
                 /* dt will be null if a new template was uploaded earlier
                  * and we are coming back to this page*/
-                if (dt != null)
-                {
+                if (dt != null) {
                     Set<String> templateFields = documentTemplateService.getTemplateFields(certDef.getDocumentTemplate());
                     ToolSession session = SessionManager.getCurrentToolSession();
                     session.setAttribute(ATTR_TEMPLATE_FIELDS, templateFields);
@@ -427,8 +378,7 @@ public class CertificateEditController extends BaseCertificateController
 
     @RequestMapping(value="/second.form")
     protected ModelAndView createCertHandlerSecond(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
-                                                  BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
-    {
+                                                  BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception {
         final String subVal = certificateToolState.getSubmitValue();
         CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
 
@@ -439,45 +389,37 @@ public class CertificateEditController extends BaseCertificateController
         String viewName;
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
-        if (!isAdministrator())
-        {
+        if (!isAdministrator()) {
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect, ERROR_MESSAGE, "error.not.admin");
         }
 
-        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue()))
-        {
+        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue())) {
             //The certificate definition's award criteria will be changed in memory.
             //Reloading will overwrite the changes
             String id = certDef.getId();
-            if (id != null && !"".equals(id))
-            {
+            if (id != null && !"".equals(id)) {
                 certificateService.getCertificateDefinition(id);
             }
 
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect);
-        }
-        else if(ACTION_BACK.equals(subVal))
-        {
+
+        } else if(ACTION_BACK.equals(subVal)) {
             certificateToolState.setSubmitValue(null);
             return createCertHandlerFirst(certificateToolState, result, request, status);
         }
 
-        if(result.hasErrors())
-        {
+        if(result.hasErrors()) {
             viewName = VIEW_CREATE_CERTIFICATE_TWO;
-        }
-        else if(ACTION_NEXT.equals(subVal))
-        {
+
+        } else if(ACTION_NEXT.equals(subVal)) {
             // Can't have expiry date as the only criterion
-            if( certDef.getAwardCriteria().size() == 1 )
-            {
+            if( certDef.getAwardCriteria().size() == 1 ) {
                 Criterion criterion = (Criterion) certDef.getAwardCriteria().iterator().next();
-                if( criterion != null && criterion instanceof WillExpireCriterionHibernateImpl )
-                {
+                if( criterion != null && criterion instanceof WillExpireCriterionHibernateImpl ) {
                     viewName = VIEW_CREATE_CERTIFICATE_TWO;
                     model.put( ERROR_MESSAGE, EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY );
                     model.put( MOD_ATTR, certificateToolState );
@@ -486,12 +428,10 @@ public class CertificateEditController extends BaseCertificateController
             }
 
             certificateDefinitionValidator.validateSecond(certificateToolState, result);
-            if(!result.hasErrors())
-            {
+            if(!result.hasErrors()) {
                 //TODO: could be the value set we're looking for, but I think this is right
                 Set<String> templateFields = certificateToolState.getTemplateFields().keySet();
-                if (templateFields == null || templateFields.isEmpty())
-                {
+                if (templateFields == null || templateFields.isEmpty()) {
                     ToolSession session = SessionManager.getCurrentToolSession();
                     templateFields = (Set<String>) session.getAttribute(ATTR_TEMPLATE_FIELDS);
                 }
@@ -501,17 +441,14 @@ public class CertificateEditController extends BaseCertificateController
 
                 certificateToolState.setSubmitValue(null);
                 return createCertHandlerThird(certificateToolState, result, request, status);
-            }
-            else
-            {
+            } else {
                 /*This shouldn't happen (this page is always valid
                  * except in the cases that are already handled above)*/
                 viewName = VIEW_CREATE_CERTIFICATE_THREE;
                 model.put(STATUS_MESSAGE_KEY, FORM_ERR);
             }
-        }
-        else
-        {
+
+        } else {
             /*
                add criteria templates to model
                in JSP loop through templates
@@ -537,43 +474,35 @@ public class CertificateEditController extends BaseCertificateController
 
     @RequestMapping(value="/third.form")
     protected ModelAndView createCertHandlerThird(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
-                                                    BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
-    {
+                                                  BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception {
         Map<String, Object> model = new HashMap<>();
         model.put("view", "add");
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
-        if (!isAdministrator())
-        {
+        if (!isAdministrator()) {
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect, ERROR_MESSAGE, ERROR_NOT_ADMIN);
         }
 
-        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue()))
-        {
+        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue())) {
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect);
-        }
-        else if(ACTION_BACK.equals(certificateToolState.getSubmitValue()))
-        {
+
+        } else if(ACTION_BACK.equals(certificateToolState.getSubmitValue())) {
             //jsp strips the $'s out
             CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
             Map<String, String> templateFields = certDef.getFieldValues();
             Map<String, String> newTemplateFields = new HashMap<>();
             Set<String> keys = templateFields.keySet();
-            for (String key : keys)
-            {
+            for (String key : keys) {
                 String originalValue = templateFields.get(key);
-                if (originalValue.charAt(0) == '{' && originalValue.endsWith("}"))
-                {
+                if (originalValue.charAt(0) == '{' && originalValue.endsWith("}")) {
                     StringBuilder value = new StringBuilder("$");
                     value.append(templateFields.get(key));
                     newTemplateFields.put(key, value.toString());
-                }
-                else
-                {
+                } else {
                     newTemplateFields.put(key, originalValue);
                 }
             }
@@ -585,32 +514,25 @@ public class CertificateEditController extends BaseCertificateController
             return createCertHandlerSecond(certificateToolState, result, request, status);
         }
 
-        if(result.hasErrors())
-        {
+        if(result.hasErrors()) {
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, STATUS_MESSAGE_KEY, FORM_ERR);
-        }
-        else if(ACTION_NEXT.equals(certificateToolState.getSubmitValue()))
-        {
-            try
-            {
+
+        } else if(ACTION_NEXT.equals(certificateToolState.getSubmitValue())) {
+            try {
                 certificateDefinitionValidator.validateThird(certificateToolState, result);
-                if(!result.hasErrors())
-                {
+                if(!result.hasErrors()) {
                     CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
                     certDef.setFieldValues(certificateToolState.getTemplateFields());
                     model.put(STATUS_MESSAGE_KEY, SUCCESS);
-                }
-                else
-                {
+                } else {
                     model.put(STATUS_MESSAGE_KEY, FORM_ERR);
                     model.put(MOD_ATTR, certificateToolState);
                     model.put(ERROR_MESSAGE, PREDEFINED_VAR_EXCEPTION);
                     return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, model);
                 }
-            }
-            catch(Exception e)
-            {
-                logger.warn("CertificateEditController.createCertHandlerThird.next", e);
+
+            } catch(Exception e) {
+                log.warn("CertificateEditController.createCertHandlerThird.next: {}", e);
                 model.put(STATUS_MESSAGE_KEY, FORM_ERR);
                 model.put(MOD_ATTR, certificateToolState);
                 return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, model);
@@ -618,9 +540,8 @@ public class CertificateEditController extends BaseCertificateController
 
             certificateToolState.setSubmitValue(null);
             return createCertHandlerFourth(certificateToolState, result, request, status);
-        }
-        else
-        {
+
+        } else {
             certificateToolState.setPredifinedFields(certificateService.getPredefinedTemplateVariables());
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, MOD_ATTR, certificateToolState);
         }
@@ -628,42 +549,35 @@ public class CertificateEditController extends BaseCertificateController
 
     @RequestMapping(value="/fourth.form", method=RequestMethod.POST)
     protected ModelAndView createCertHandlerFourth(@ModelAttribute(MOD_ATTR) CertificateToolState certificateToolState,
-                BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception
-    {
+                                                   BindingResult result, HttpServletRequest request, SessionStatus status) throws Exception {
         Map<String, Object> model = new HashMap<>();
         model.put("view", "add");
         String strRedirect = REDIRECT + CertificateListController.THIS_PAGE;
 
-        if (!isAdministrator())
-        {
+        if (!isAdministrator()) {
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect, ERROR_MESSAGE, ERROR_NOT_ADMIN);
         }
 
-        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue()))
-        {
+        if(ACTION_CANCEL.equals(certificateToolState.getSubmitValue())) {
             CertificateToolState.clear();
             status.setComplete();
             return new ModelAndView(strRedirect);
         }
-        if(ACTION_BACK.equals(certificateToolState.getSubmitValue()))
-        {
+        if(ACTION_BACK.equals(certificateToolState.getSubmitValue())) {
             certificateToolState.setSubmitValue(null);
             return createCertHandlerThird(certificateToolState, result, request, status);
-        }
-        else if(ACTION_SAVE.equals(certificateToolState.getSubmitValue()))
-        {
-            try
-            {
+
+        } else if(ACTION_SAVE.equals(certificateToolState.getSubmitValue())) {
+            try {
                 CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
 
                 /* Every time the certificate definition is updated, we need to refresh it from the certificate service.
                  * However, once we refresh the certificate definition, our new awardCriteria will disappear.
                  * So, let's grab it now*/
                 Set<Criterion> newAwardCriteria = certDef.getAwardCriteria();
-                if (certDef.getId() == null || "".equals(certDef.getId()))
-                {
+                if (certDef.getId() == null || "".equals(certDef.getId())) {
                     //create a hibernate impl
                     certificateService.createCertificateDefinition(certDef.getName(), certDef.getDescription(),
                             siteId(), certDef.getProgressHidden(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(),
@@ -683,15 +597,12 @@ public class CertificateEditController extends BaseCertificateController
 
                     //activate the certificate
                     certificateService.activateCertificateDefinition(certDef.getId(), true);
-                }
-                else
-                {
+                } else {
                     //this will get replaced if we don't grab it now
                     Set<Criterion> awardCriteria = certDef.getAwardCriteria();
                     certDef = certificateService.updateCertificateDefinition(certDef);
 
-                    if (certificateToolState.getNewTemplate() != null)
-                    {
+                    if (certificateToolState.getNewTemplate() != null) {
                         //update the document template
                         certificateService.setDocumentTemplate(certDef.getId(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(), certificateToolState.getTemplateInputStream());
                     }
@@ -708,16 +619,14 @@ public class CertificateEditController extends BaseCertificateController
                 CertificateToolState.clear();
                 status.setComplete();
                 return new ModelAndView(strRedirect);
-            }
-            catch (IdUsedException | DocumentTemplateException | IdUnusedException | UnmodifiableCertificateDefinitionException | IncompleteCertificateDefinitionException e)
-            {
+
+            } catch (IdUsedException | DocumentTemplateException | IdUnusedException | UnmodifiableCertificateDefinitionException | IncompleteCertificateDefinitionException e) {
                 model.put(STATUS_MESSAGE_KEY, FORM_ERR);
                 model.put(MOD_ATTR, certificateToolState);
                 return new ModelAndView(VIEW_CREATE_CERTIFICATE_FOUR, model);
             }
-        }
-        else
-        {
+
+        } else {
             /*
              send the entire CertDefinition to the JSP page through the certificateToolState
              */
@@ -726,25 +635,21 @@ public class CertificateEditController extends BaseCertificateController
     }
 
     @RequestMapping(value="/getTemplate.form")
-    protected void getCriteriaTemplate(HttpServletRequest request, HttpServletResponse response) throws Exception
-    {
+    protected void getCriteriaTemplate(HttpServletRequest request, HttpServletResponse response) throws Exception {
         String templateId = request.getParameter("templateId");
-        if (templateId == null)
-        {
+        if (templateId == null) {
             response.sendError(ERROR_BAD_REQUEST);
             return;
         }
 
         CriteriaFactory critFact = certificateService.getCriteriaFactory(templateId);
-        if (critFact == null)
-        {
+        if (critFact == null) {
             response.sendError(ERROR_BAD_REQUEST);
             return;
         }
 
         CriteriaTemplate template = critFact.getCriteriaTemplate(templateId);
-        if (template == null)
-        {
+        if (template == null) {
             response.sendError(ERROR_BAD_REQUEST);
             return;
         }
@@ -754,10 +659,8 @@ public class CertificateEditController extends BaseCertificateController
     }
 
     @RequestMapping(value="/addCriterion.form")
-    protected void addCertCriteria(HttpServletRequest request, HttpServletResponse response) throws Exception
-    {
-        if (!isAdministrator())
-        {
+    protected void addCertCriteria(HttpServletRequest request, HttpServletResponse response) throws Exception {
+        if (!isAdministrator()) {
             response.sendError(ERROR_BAD_REQUEST);
             return;
         }
@@ -774,20 +677,17 @@ public class CertificateEditController extends BaseCertificateController
         String templateId[] = params.get(ATTR_TEMPLATE_ID);
 
         // loop through to find request parameters for setting variable values (from dynamic Criterion creation form)
-        for (String key : params.keySet())
-        {
+        for (String key : params.keySet()) {
             // should look like ${variable}
             Matcher matcher = varValuePattern.matcher(key);
-            if (matcher.matches())
-            {
+            if (matcher.matches()) {
                 String mapKey = matcher.group(1);
                 String value[] = params.get(key);
                 varMap.put(mapKey, value[0]);
             }
         }
 
-        if (templateId == null || templateId.length == 0)
-        {
+        if (templateId == null || templateId.length == 0) {
             //error
             response.sendError(ERROR_BAD_REQUEST, messages.getString(ERROR_BAD_TEMPLATE_ID));
             return;
@@ -803,28 +703,21 @@ public class CertificateEditController extends BaseCertificateController
         Criterion newCriterion;
 
         // create the criterion based on the form contents
-        try
-        {
+        try {
             newCriterion = critFact.createCriterion(template, varMap);
-        }
-        catch (InvalidBindingException ibe)
-        {
+        } catch (InvalidBindingException ibe) {
             response.sendError( ERROR_BAD_REQUEST, ibe.getLocalizedMessage() );
             return;
         }
 
         // Multiple expiry date criterion check
-        if( newCriterion != null && newCriterion instanceof WillExpireCriterionHibernateImpl )
-        {
+        if( newCriterion != null && newCriterion instanceof WillExpireCriterionHibernateImpl ) {
             boolean alreadyHasExpiry = false;
-            if( cert.getAwardCriteria().size() > 0 )
-            {
+            if( cert.getAwardCriteria().size() > 0 ) {
                 Iterator<Criterion> itr = cert.getAwardCriteria().iterator();
-                while( itr.hasNext() )
-                {
+                while( itr.hasNext() ) {
                     Criterion criterion = (Criterion) itr.next();
-                    if( criterion != null && criterion instanceof WillExpireCriterionHibernateImpl )
-                    {
+                    if( criterion != null && criterion instanceof WillExpireCriterionHibernateImpl ) {
                         alreadyHasExpiry = true;
                         break;
                     }
@@ -832,8 +725,7 @@ public class CertificateEditController extends BaseCertificateController
             }
 
             // If more than one expiry was found, return the flag to produce the proper UI error message
-            if( alreadyHasExpiry )
-            {
+            if( alreadyHasExpiry ) {
                 response.sendError( ERROR_BAD_REQUEST, TOO_MANY_EXPIRATION_CRITERIA );
                 return;
             }
@@ -846,12 +738,10 @@ public class CertificateEditController extends BaseCertificateController
     }
 
     @RequestMapping(value="/removeCriterion.form")
-    protected void removeCertCriteria(HttpServletRequest request, HttpServletResponse response) throws Exception
-    {
+    protected void removeCertCriteria(HttpServletRequest request, HttpServletResponse response) throws Exception {
         CertificateDefinition certDef = CertificateToolState.getState().getCertificateDefinition();
         String paramCritId = "criterionId";
-        if (!isAdministrator())
-        {
+        if (!isAdministrator()) {
             response.sendError(ERROR_BAD_REQUEST);
             return;
         }
@@ -862,18 +752,14 @@ public class CertificateEditController extends BaseCertificateController
         Set<Criterion> awardCriteria = certDef.getAwardCriteria();
         Criterion match = null;
         Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
-        while (itAwardCriteria.hasNext())
-        {
+        while (itAwardCriteria.hasNext()) {
             Criterion next = itAwardCriteria.next();
-            if (criterionId[0].equals(next.getId()))
-            {
+            if (criterionId[0].equals(next.getId())) {
                 match = next;
             }
         }
-        if (match != null)
-        {
-            if (match instanceof WillExpireCriterionHibernateImpl)
-            {
+        if (match != null) {
+            if (match instanceof WillExpireCriterionHibernateImpl) {
                 //expiry date field values are meaningless if the certificate will not expire.
                 //switch any expiry date field values to unassigned
                 Map<String, String> fieldValues = certDef.getFieldValues();
@@ -882,18 +768,15 @@ public class CertificateEditController extends BaseCertificateController
                 List<String> keysToReplace = new ArrayList<>();
 
                 Set<String> keySet = fieldValues.keySet();
-                for (String key : keySet)
-                {
+                for (String key : keySet) {
                     String value = fieldValues.get(key);
-                    if ( expireDate.equals(value) )
-                    {
+                    if ( expireDate.equals(value) ) {
                         keysToReplace.add(key);
                     }
                 }
 
                 String unassigned = "${" + VariableResolver.UNASSIGNED + "}";
-                for (String key : keysToReplace)
-                {
+                for (String key : keysToReplace) {
                     fieldValues.remove(key);
                     fieldValues.put(key, unassigned);
                 }
@@ -907,105 +790,87 @@ public class CertificateEditController extends BaseCertificateController
 
      //****************************NESTED CLASSES****************************
 
-    private class TemplateTransferObject
-    {
+    private class TemplateTransferObject {
         private final String id;
         private final String expression;
         private final List<VariableTransferObject> variables = new ArrayList<>();
         private final CriteriaTemplate template;
 
-        TemplateTransferObject (CriteriaTemplate template)
-        {
+        TemplateTransferObject (CriteriaTemplate template) {
             id = template.getId();
             expression = template.getExpression();
 
-            for (CriteriaTemplateVariable variable : template.getTemplateVariables())
-            {
+            for (CriteriaTemplateVariable variable : template.getTemplateVariables()) {
                 variables.add(new VariableTransferObject(variable));
             }
 
             this.template = template;
         }
 
-        public String getId()
-        {
+        public String getId() {
             return id;
         }
 
-        public String getExpression()
-        {
+        public String getExpression() {
             return expression;
         }
 
-        public List<VariableTransferObject> getTemplateVariables()
-        {
+        public List<VariableTransferObject> getTemplateVariables() {
             return variables;
         }
 
-        public String getMessage()
-        {
+        public String getMessage() {
             return template.getMessage();
         }
     }
 
-    private class VariableTransferObject
-    {
+    private class VariableTransferObject {
         private final String key;
         private final String label;
         private final boolean multipleChoice;
         private final HashMap<String, String> values = new HashMap<>();
 
-        public VariableTransferObject (CriteriaTemplateVariable variable)
-        {
+        public VariableTransferObject (CriteriaTemplateVariable variable) {
             key = variable.getVariableKey();
             label = variable.getVariableLabel();
             multipleChoice = variable.isMultipleChoice();
 
-            if (multipleChoice)
-            {
+            if (multipleChoice) {
                 values.putAll(variable.getValues());
             }
         }
 
-        public String getVariableKey()
-        {
+        public String getVariableKey() {
             return key;
         }
 
-        public String getVariableLabel()
-        {
+        public String getVariableLabel() {
             return label;
         }
 
-        public boolean isMultipleChoice()
-        {
+        public boolean isMultipleChoice() {
             return multipleChoice;
         }
 
-        public Map<String, String> getValues()
-        {
+        public Map<String, String> getValues() {
             return values;
         }
     }
 
-    private class CriterionTransferObject
-    {
+    private class CriterionTransferObject {
         private final String id;
         private final String expression;
 
-        public CriterionTransferObject (CriteriaTemplate template, Criterion criterion)
-        {
+        public CriterionTransferObject (CriteriaTemplate template, Criterion criterion) {
             id = criterion.getId();
             expression = template.getExpression(criterion);
         }
 
-        public String getId()
-        {
+        public String getId() {
             return id;
         }
 
-        public String getExpression()
-        {
+        public String getExpression() {
             return expression;
         }
     }

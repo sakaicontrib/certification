@@ -21,25 +21,21 @@ package org.sakaiproject.certification.api;
  * Date: Jul 11, 2011
  * Time: 12:15:35 PM
  */
-public class UnsupportedTemplateTypeException extends DocumentTemplateException
-{
-    public UnsupportedTemplateTypeException()
-    {
+public class UnsupportedTemplateTypeException extends DocumentTemplateException {
+
+    public UnsupportedTemplateTypeException() {
         super();
     }
 
-    public UnsupportedTemplateTypeException(String s)
-    {
+    public UnsupportedTemplateTypeException(String s) {
         super(s);
     }
 
-    public UnsupportedTemplateTypeException(String s, Throwable throwable)
-    {
+    public UnsupportedTemplateTypeException(String s, Throwable throwable) {
         super(s, throwable);
     }
 
-    public UnsupportedTemplateTypeException(Throwable throwable)
-    {
+    public UnsupportedTemplateTypeException(Throwable throwable) {
         super(throwable);
     }
 }

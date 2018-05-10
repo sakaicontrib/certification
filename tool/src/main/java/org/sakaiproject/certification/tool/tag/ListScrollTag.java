@@ -16,19 +16,17 @@
 
 package org.sakaiproject.certification.tool.tag;
 
-import org.sakaiproject.certification.impl.tag.ListScroll;
-
 import java.io.IOException;
 
 import javax.servlet.jsp.JspException;
 import javax.servlet.jsp.JspWriter;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import lombok.extern.slf4j.Slf4j;
 
-public class ListScrollTag extends AbstractLocalizableTag
-{
-    protected final transient Log LOG = LogFactory.getLog(getClass());
+import org.sakaiproject.certification.impl.tag.ListScroll;
+
+@Slf4j
+public class ListScrollTag extends AbstractLocalizableTag {
 
     private String listUrl;
     private ListScroll listScroll;
@@ -49,29 +47,24 @@ public class ListScrollTag extends AbstractLocalizableTag
      * @throws javax.servlet.jsp.JspException if an error occurred while processing this tag
      * @see javax.servlet.jsp.tagext.BodyTag#doStartTag
      */
-    protected int doStartTagInternal() throws Exception
-    {
+    protected int doStartTagInternal() throws Exception {
         JspWriter writer = pageContext.getOut();
 
-        try
-        {
-            if (listScroll == null)
-            {
+        try {
+            if (listScroll == null) {
                 listScroll = (ListScroll) pageContext.getRequest().getAttribute("listScroll");
             }
 
             // don't print page if no items in list
-            if (listScroll.getTotal() == 0)
-            {
-                LOG.debug("nothing in list, nothing to render...");
+            if (listScroll.getTotal() == 0) {
+                log.debug("nothing in list, nothing to render...");
                 return EVAL_PAGE;
             }
 
 
             writer.write("<div ");
 
-            if (className != null)
-            {
+            if (className != null) {
                 writer.write("class=\"" + className + "\"");
             }
 
@@ -79,28 +72,21 @@ public class ListScrollTag extends AbstractLocalizableTag
             writer.write("<form name=\"listScrollForm\" >");
 
             String htmlOptions = "&nbsp";
-            if(showDropdown)
-            {
-                if(dropdownOptions!=null)
-                {
+            if(showDropdown) {
+                if(dropdownOptions!=null) {
                     String [] vals = dropdownOptions.split(";");
                     htmlOptions = "\n<select name=\""+SCROLL_SIZE+"\" onchange=\"window.document.location=\'"+listUrl+ "&" + ListScroll.STARTING_INDEX_TAG + "=" + (listScroll.getNextIndex()-listScroll.getPerPage());
                     htmlOptions += "&"+SCROLL_SIZE+"='+this.options[this.selectedIndex].value\">\n";
-                    if(vals!=null && vals.length>0)
-                    {
-                        if(listScroll.getPerPage()==-1)
-                        {
+                    if(vals!=null && vals.length>0) {
+                        if(listScroll.getPerPage()==-1) {
                             listScroll.setPerPage(getMinIntValue(vals));
                         }
 
-                        for( String val : vals )
-                        {
-                            if(val!=null && ((val.trim().length())>0))
-                            {
+                        for( String val : vals ) {
+                            if(val!=null && ((val.trim().length())>0)) {
                                 int value = Integer.parseInt(val.trim());
                                 String displayValue = String.valueOf(value);
-                                if (value == Integer.MAX_VALUE)
-                                {
+                                if (value == Integer.MAX_VALUE) {
                                     displayValue = resolveMessage(ALL_KEY);
                                 }
 
@@ -125,8 +111,7 @@ public class ListScrollTag extends AbstractLocalizableTag
             writer.write("<input type=\"button\" value=\"" + resolveMessage("listscroll_first") + "\" onclick=\"window.document.location=\'");
             writer.write(listUrl + "&" + ListScroll.STARTING_INDEX_TAG + "=0");
             writer.write("\'\"");
-            if (listScroll.getPrevIndex() == -1)
-            {
+            if (listScroll.getPrevIndex() == -1) {
                 writer.write(" disabled=\"disabled\" ");
             }
 
@@ -134,8 +119,7 @@ public class ListScrollTag extends AbstractLocalizableTag
             writer.write("<input type=\"button\" value=\"" + resolveMessage("listscroll_previous") + "\" onclick=\"window.document.location=\'");
             writer.write(listUrl + "&" + ListScroll.STARTING_INDEX_TAG + "=" + listScroll.getPrevIndex());
             writer.write("\'\"");
-            if (listScroll.getPrevIndex() == -1)
-            {
+            if (listScroll.getPrevIndex() == -1) {
                 writer.write(" disabled=\"disabled\" ");
             }
 
@@ -146,8 +130,7 @@ public class ListScrollTag extends AbstractLocalizableTag
             writer.write("<input type=\"button\" value=\"" + resolveMessage("listscroll_next") + "\" onclick=\"window.document.location=\'");
             writer.write(listUrl + "&" + ListScroll.STARTING_INDEX_TAG + "=" + listScroll.getNextIndex());
             writer.write("\'\"");
-            if (listScroll.getNextIndex() == -1)
-            {
+            if (listScroll.getNextIndex() == -1) {
                 writer.write(" disabled=\"disabled\" ");
             }
 
@@ -155,8 +138,7 @@ public class ListScrollTag extends AbstractLocalizableTag
             writer.write("<input type=\"button\" value=\"" + resolveMessage("listscroll_last") + "\" onclick=\"window.document.location=\'");
             writer.write(listUrl + "&" + ListScroll.STARTING_INDEX_TAG + "=" + Integer.MAX_VALUE);
             writer.write("\'\"");
-            if (listScroll.getNextIndex() == -1)
-            {
+            if (listScroll.getNextIndex() == -1) {
                 writer.write(" disabled=\"disabled\" ");
             }
 
@@ -171,34 +153,27 @@ public class ListScrollTag extends AbstractLocalizableTag
             pageContext.setAttribute("list_scroll_total_index", listScroll.getTotal    ());
             pageContext.setAttribute("list_scroll_page_size"  , listScroll.getPerPage  ());
         }
-        catch (IOException e)
-        {
-            LOG.error("", e);
+        catch (IOException e) {
+            log.error("{}", e);
             throw new JspException(e);
         }
 
         return EVAL_PAGE;
     }
 
-    private int getMinIntValue(String [] vals)
-    {
+    private int getMinIntValue(String [] vals) {
         int result = -1; //hardcode this in the event all the attribute values are bad
-        for(int d = 0; d < vals.length; d++)
-        {
-            try
-            {
-                if(d == 0)
-                {
+        for(int d = 0; d < vals.length; d++) {
+            try {
+                if(d == 0) {
                     result  = Integer.parseInt(vals[d]);
                 }
-                else
-                {
+                else {
                     result =  Math.min(Integer.parseInt(vals[d]),result);
                 }
             }
-            catch(NumberFormatException nfe)
-            {
-                LOG.warn( nfe );
+            catch(NumberFormatException nfe) {
+                log.warn("{}", nfe);
             }
         }
 
@@ -212,8 +187,7 @@ public class ListScrollTag extends AbstractLocalizableTag
      * @throws javax.servlet.jsp.JspException if an error occurred while processing this tag
      * @see javax.servlet.jsp.tagext.Tag#doEndTag
      */
-    public int doEndTag() throws JspException
-    {
+    public int doEndTag() throws JspException {
         listScroll = null;
         listUrl = null;
         className = null;
@@ -225,8 +199,7 @@ public class ListScrollTag extends AbstractLocalizableTag
      *
      * @see javax.servlet.jsp.tagext.Tag#release
      */
-    public void release()
-    {
+    public void release() {
         listScroll = null;
         listUrl = null;
         className = null;
@@ -236,8 +209,7 @@ public class ListScrollTag extends AbstractLocalizableTag
      * attribute set by servlet container.
      * @param listScroll
      */
-    public void setListScroll(ListScroll listScroll)
-    {
+    public void setListScroll(ListScroll listScroll) {
         this.listScroll = listScroll;
     }
 
@@ -245,8 +217,7 @@ public class ListScrollTag extends AbstractLocalizableTag
      * attribute set by servlet container.
      * @param listUrl
      */
-    public void setListUrl(String listUrl)
-    {
+    public void setListUrl(String listUrl) {
         this.listUrl = listUrl;
     }
 
@@ -254,28 +225,23 @@ public class ListScrollTag extends AbstractLocalizableTag
      * attribute set by servlet container.
      * @param className
      */
-    public void setClassName(String className)
-    {
+    public void setClassName(String className) {
         this.className = className;
     }
 
-    public String getDropdownOptions()
-    {
+    public String getDropdownOptions() {
         return dropdownOptions;
     }
 
-    public void setDropdownOptions(String dropdownOptions)
-    {
+    public void setDropdownOptions(String dropdownOptions) {
         this.dropdownOptions = dropdownOptions;
     }
 
-    public boolean isShowDropdown()
-    {
+    public boolean isShowDropdown() {
         return showDropdown;
     }
 
-    public void setShowDropdown(boolean showDropdown)
-    {
+    public void setShowDropdown(boolean showDropdown) {
         this.showDropdown = showDropdown;
     }
 }

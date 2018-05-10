@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api;
 
-import org.sakaiproject.certification.api.criteria.CriteriaFactory;
-import org.sakaiproject.certification.api.criteria.CriteriaTemplate;
-import org.sakaiproject.certification.api.criteria.Criterion;
-import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
-
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.Date;
@@ -29,6 +24,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.sakaiproject.certification.api.criteria.CriteriaFactory;
+import org.sakaiproject.certification.api.criteria.CriteriaTemplate;
+import org.sakaiproject.certification.api.criteria.Criterion;
+import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.IdUsedException;
@@ -49,8 +48,8 @@ import org.sakaiproject.exception.IdUsedException;
  * Date: Jun 7, 2011
  * Time: 4:40:50 PM
  */
-public interface CertificateService
-{
+public interface CertificateService {
+
     /**
      * Inserts the specified certificate definition into the database as UNPUBLISHED
      * @param cd
@@ -102,7 +101,7 @@ public interface CertificateService
      * @throws IdUnusedException
      * @throws DocumentTemplateException
      */
-    public void deleteCertificateDefinition (String certificateDefinitionId)
+    public void deleteCertificateDefinition(String certificateDefinitionId)
         throws IdUnusedException, DocumentTemplateException;
 
     /**
@@ -119,7 +118,7 @@ public interface CertificateService
      * @throws UnsupportedTemplateTypeException
      * @throws DocumentTemplateException
      */
-    public CertificateDefinition createCertificateDefinition (String name, String description, String siteId,
+    public CertificateDefinition createCertificateDefinition(String name, String description, String siteId,
                                                               Boolean progressHidden, String fileName,
                                                               String mimeType, InputStream template)
         throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException;
@@ -136,7 +135,7 @@ public interface CertificateService
      * @throws org.sakaiproject.exception.IdUnusedException
      * @throws org.sakaiproject.certification.api.UnsupportedTemplateTypeException
      */
-    public DocumentTemplate setDocumentTemplate (String certificateDefinitionId, String name, String mimeType,
+    public DocumentTemplate setDocumentTemplate(String certificateDefinitionId, String name, String mimeType,
                                                  InputStream template)
         throws IdUnusedException, UnsupportedTemplateTypeException, DocumentTemplateException;
 
@@ -152,7 +151,7 @@ public interface CertificateService
      * @throws org.sakaiproject.exception.IdUnusedException
      * @throws org.sakaiproject.certification.api.UnsupportedTemplateTypeException
      */
-    public DocumentTemplate setDocumentTemplate (String certificateDefinitionId, String name, InputStream template)
+    public DocumentTemplate setDocumentTemplate(String certificateDefinitionId, String name, InputStream template)
         throws IdUnusedException, UnsupportedTemplateTypeException, DocumentTemplateException;
 
     /**
@@ -172,7 +171,7 @@ public interface CertificateService
      * @param fieldValues
      * @throws IdUnusedException
      */
-    public void setFieldValues (String certificateDefinitionId, Map<String, String> fieldValues)
+    public void setFieldValues(String certificateDefinitionId, Map<String, String> fieldValues)
         throws IdUnusedException;
 
     /**
@@ -188,32 +187,32 @@ public interface CertificateService
      * @throws org.sakaiproject.certification.api.IncompleteCertificateDefinitionException
      * @throws org.sakaiproject.exception.IdUnusedException
      */
-    public void activateCertificateDefinition (String certificateDefinitionId, boolean active)
+    public void activateCertificateDefinition(String certificateDefinitionId, boolean active)
         throws IncompleteCertificateDefinitionException, IdUnusedException;
 
-    public CertificateDefinition getCertificateDefinitionByName (String siteId, String name)
+    public CertificateDefinition getCertificateDefinitionByName(String siteId, String name)
         throws IdUnusedException;
 
-    public CertificateDefinition getCertificateDefinition (String id)
+    public CertificateDefinition getCertificateDefinition(String id)
         throws IdUnusedException;
 
     /**
      * @return All CertificateDefinition objects.
      */
-    public Set<CertificateDefinition> getCertificateDefinitions ();
+    public Set<CertificateDefinition> getCertificateDefinitions();
 
     /**
      * @param siteId
      * @return All CertificateDefinition objects for the given siteId.
      */
-    public Set<CertificateDefinition> getCertificateDefinitionsForSite (String siteId);
+    public Set<CertificateDefinition> getCertificateDefinitionsForSite(String siteId);
 
     /**
      * @param siteId
      * @param statuses
      * @return All CertificateDefinition objects for the given siteId filtered by the supplied statuses.
      */
-    public Set<CertificateDefinition> getCertificateDefinitionsForSite (String siteId, CertificateDefinitionStatus statuses[]);
+    public Set<CertificateDefinition> getCertificateDefinitionsForSite(String siteId, CertificateDefinitionStatus statuses[]);
 
     /**
      * This sets the AwardCriteria for the identified CertificateDefinition by using the supplied conditions. The
@@ -225,13 +224,13 @@ public interface CertificateService
      * @throws org.sakaiproject.exception.IdUnusedException
      * @throws org.sakaiproject.certification.api.UnmodifiableCertificateDefinitionException
      */
-    public void setAwardCriteria (String certificateDefinitionId, Set<Criterion> conditions)
+    public void setAwardCriteria(String certificateDefinitionId, Set<Criterion> conditions)
         throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
-    public Criterion addAwardCriterion (String certificateDefinitionId, Criterion criterion)
+    public Criterion addAwardCriterion(String certificateDefinitionId, Criterion criterion)
         throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
-    public void removeAwardCriterion (String certificateDefinitionId, String criterionId)
+    public void removeAwardCriterion(String certificateDefinitionId, String criterionId)
         throws IdUnusedException, UnmodifiableCertificateDefinitionException;
 
     /**
@@ -243,7 +242,7 @@ public interface CertificateService
      * @throws org.sakaiproject.exception.IdUnusedException
      * @throws org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException
      */
-    public Set<Criterion> getUnmetAwardConditions (String certificateDefinitionId, boolean useCaching)
+    public Set<Criterion> getUnmetAwardConditions(String certificateDefinitionId, boolean useCaching)
         throws IdUnusedException, UnknownCriterionTypeException;
 
     /**
@@ -256,7 +255,7 @@ public interface CertificateService
      * @throws org.sakaiproject.exception.IdUnusedException
      * @throws org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException
      */
-    public Set<Criterion> getUnmetAwardConditionsForUser (String certificateDefinitionId, String userId, boolean useCaching)
+    public Set<Criterion> getUnmetAwardConditionsForUser(String certificateDefinitionId, String userId, boolean useCaching)
         throws IdUnusedException, UnknownCriterionTypeException;
 
     /**
@@ -265,17 +264,17 @@ public interface CertificateService
      *
      * @return
      */
-    public Map<String, String> getPredefinedTemplateVariables ();
+    public Map<String, String> getPredefinedTemplateVariables();
 
     /**
      * Registers a new CriteriaFactory which can then be used to create (and manage) new criteria
      * @param cFact
      */
-    public void registerCriteriaFactory (CriteriaFactory cFact);
+    public void registerCriteriaFactory(CriteriaFactory cFact);
 
     public Set<CriteriaTemplate> getCriteriaTemplates();
 
-    public CriteriaFactory getCriteriaFactory (String criteriaTemplateId);
+    public CriteriaFactory getCriteriaFactory(String criteriaTemplateId);
 
     public int getCategoryType(final String gradebookId);
 

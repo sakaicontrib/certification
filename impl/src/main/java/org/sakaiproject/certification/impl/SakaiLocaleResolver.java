@@ -21,20 +21,18 @@ import java.util.Locale;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.sakaiproject.util.ResourceLoader;
-
 import org.springframework.web.servlet.LocaleResolver;
 
-public class SakaiLocaleResolver implements LocaleResolver
-{
-    public Locale resolveLocale(HttpServletRequest httpServletRequest)
-    {
+import org.sakaiproject.util.ResourceLoader;
+
+public class SakaiLocaleResolver implements LocaleResolver {
+
+    public Locale resolveLocale(HttpServletRequest httpServletRequest) {
         ResourceLoader rb = new ResourceLoader();
         Locale locale = rb.getLocale();
         return locale;
     }
 
-    public void setLocale(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Locale locale)
-    {
+    public void setLocale(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Locale locale) {
     }
 }

@@ -16,11 +16,12 @@
 
 package org.sakaiproject.certification.api;
 
-import org.sakaiproject.certification.api.criteria.Criterion;
-import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
+
+import org.sakaiproject.certification.api.criteria.Criterion;
+import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
 
 /**
  * CertificateDefinition represents the context and criteria for a certificate and maintains a DocumentTemplate that
@@ -30,13 +31,13 @@ import java.util.Set;
  * Date: Jun 7, 2011
  * Time: 4:41:15 PM
  */
-public interface CertificateDefinition
-{
+public interface CertificateDefinition {
+
     /**
      * Integers to identify the fields in the certificate definition
      */
-   public static final int FIELD_NAME = 1;
-   public static final int FIELD_DESCRIPTION = 2;
+    public static final int FIELD_NAME = 1;
+    public static final int FIELD_DESCRIPTION = 2;
 
     /**
      * Unique ID for this certificate

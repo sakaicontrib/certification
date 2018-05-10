@@ -16,17 +16,16 @@
 
 package org.sakaiproject.certification.impl;
 
-import org.sakaiproject.certification.api.CertificateDefinition;
-import org.sakaiproject.certification.api.VariableResolutionException;
-import org.sakaiproject.certification.api.criteria.Criterion;
-import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
-
 import java.text.DateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.Set;
 
+import org.sakaiproject.certification.api.CertificateDefinition;
+import org.sakaiproject.certification.api.VariableResolutionException;
+import org.sakaiproject.certification.api.criteria.Criterion;
+import org.sakaiproject.certification.impl.hibernate.criteria.gradebook.WillExpireCriterionHibernateImpl;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.service.gradebook.shared.GradebookService;
@@ -35,8 +34,8 @@ import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
 
-public class GradebookVariableResolver extends AbstractVariableResolver
-{
+public class GradebookVariableResolver extends AbstractVariableResolver {
+
     private GradebookService gradebookService = null;
     private UserDirectoryService userDirectoryService = null;
     private ToolManager toolManager = null;
@@ -49,35 +48,29 @@ public class GradebookVariableResolver extends AbstractVariableResolver
     private static final String PERM_VIEWOWNGRADES = "gradebook.viewOwnGrades";
     private static final String PERM_EDITASSIGNMENT = "gradebook.editAssignments";
 
-    public GradebookVariableResolver()
-    {
+    public GradebookVariableResolver() {
         String expirationDate = getMessages().getString(MESSAGE_EXPIRATION);
         String awardDate = getMessages().getString(MESSAGE_ISSUEDATE);
         addVariable(CERT_EXPIREDATE, expirationDate);
         addVariable(CERT_AWARDDATE, awardDate);
     }
 
-    public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException
-    {
+    public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException {
         ResourceLoader resourceLoader = new ResourceLoader();
         DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, resourceLoader.getLocale());
 
-        if (CERT_EXPIREDATE.equals(varLabel))
-        {
+        if (CERT_EXPIREDATE.equals(varLabel)) {
             Date issueDate = certDef.getIssueDate(userId, useCaching);
-            if (issueDate == null)
-            {
+            if (issueDate == null) {
                 //shouldn't happen unless new criteria are added where issue date is incalculable
                 return "";
             }
             Set<Criterion> awardCriteria = certDef.getAwardCriteria();
 
             Iterator<Criterion> itAwardCriteria = awardCriteria.iterator();
-            while (itAwardCriteria.hasNext())
-            {
+            while (itAwardCriteria.hasNext()) {
                 Criterion crit = itAwardCriteria.next();
-                if (crit instanceof WillExpireCriterionHibernateImpl)
-                {
+                if (crit instanceof WillExpireCriterionHibernateImpl) {
                     //get the offset
                     WillExpireCriterionHibernateImpl wechi = (WillExpireCriterionHibernateImpl) crit;
                     int expiryOffset = Integer.parseInt(wechi.getExpiryOffset());
@@ -94,12 +87,10 @@ public class GradebookVariableResolver extends AbstractVariableResolver
             }
 
             return "";
-        }
-        else if (CERT_AWARDDATE.equals(varLabel))
-        {
+
+        } else if (CERT_AWARDDATE.equals(varLabel)) {
             Date issueDate = certDef.getIssueDate(userId, useCaching);
-            if (issueDate == null)
-            {
+            if (issueDate == null) {
                 return "";
             }
 
@@ -109,102 +100,79 @@ public class GradebookVariableResolver extends AbstractVariableResolver
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");
     }
 
-    public GradebookService getGradebookService()
-    {
+    public GradebookService getGradebookService() {
         return gradebookService;
     }
 
-    public void setGradebookService(GradebookService gradebookService)
-    {
+    public void setGradebookService(GradebookService gradebookService) {
         this.gradebookService = gradebookService;
     }
 
-    public UserDirectoryService getUserDirectoryService()
-    {
+    public UserDirectoryService getUserDirectoryService() {
         return userDirectoryService;
     }
 
-    public void setUserDirectoryService(UserDirectoryService userDirectoryService)
-    {
+    public void setUserDirectoryService(UserDirectoryService userDirectoryService) {
         this.userDirectoryService = userDirectoryService;
     }
 
-    public ToolManager getToolManager()
-    {
+    public ToolManager getToolManager() {
         return toolManager;
     }
 
-    public void setToolManager (ToolManager toolManager)
-    {
+    public void setToolManager (ToolManager toolManager) {
         this.toolManager = toolManager;
     }
 
-    public SessionManager getSessionManager()
-    {
+    public SessionManager getSessionManager() {
         return sessionManager;
     }
 
-    public void setSessionManager(SessionManager sessionManager)
-    {
+    public void setSessionManager(SessionManager sessionManager) {
         this.sessionManager = sessionManager;
     }
 
-    public SecurityService getSecurityService()
-    {
+    public SecurityService getSecurityService() {
         return securityService;
     }
 
-    public void setSecurityService(SecurityService securityService)
-    {
+    public void setSecurityService(SecurityService securityService) {
         this.securityService = securityService;
     }
 
-    protected final String contextId()
-    {
+    protected final String contextId() {
         return getToolManager().getCurrentPlacement().getContext();
     }
 
-    protected final String userId()
-    {
+    protected final String userId() {
         return getUserDirectoryService().getCurrentUser().getId();
     }
 
-    protected Object doSecureGradebookAction(SecureGradebookActionCallback callback) throws Exception
-    {
+    protected Object doSecureGradebookAction(SecureGradebookActionCallback callback) throws Exception {
         final String contextId = contextId();
 
-        try
-        {
-            securityService.pushAdvisor(new SecurityAdvisor ()
-            {
-                public SecurityAdvice isAllowed(String userId, String function, String reference)
-                {
+        try {
+            securityService.pushAdvisor(new SecurityAdvisor () {
+                public SecurityAdvice isAllowed(String userId, String function, String reference) {
                     String compTo;
-                    if (contextId.startsWith("/site/"))
-                    {
+                    if (contextId.startsWith("/site/")) {
                         compTo = contextId;
-                    }
-                    else
-                    {
+                    } else {
                         compTo = "/site/" + contextId;
                     }
 
                     if (reference.equals(compTo) && (PERM_VIEWOWNGRADES.equals(function) ||
-                                                     PERM_EDITASSIGNMENT.equals(function)))
-                    {
+                                                     PERM_EDITASSIGNMENT.equals(function))) {
                         return SecurityAdvice.ALLOWED;
-                    }
-                    else
-                    {
+                    } else {
                         return SecurityAdvice.PASS;
                     }
                 }
             });
 
             return callback.doSecureAction();
-        }
-        finally
-        {
+
+        } finally {
             securityService.popAdvisor();
         }
     }

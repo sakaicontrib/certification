@@ -25,8 +25,8 @@ package org.sakaiproject.certification.api;
  * Date: Jun 7, 2011
  * Time: 5:09:06 PM
  */
-public interface DocumentTemplate
-{
+public interface DocumentTemplate {
+
     /**
      * The resource directory in which the templates get stored
      */

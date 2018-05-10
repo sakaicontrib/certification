@@ -29,14 +29,14 @@ import java.util.Set;
  * Date: Jun 7, 2011
  * Time: 4:41:50 PM
  */
-public interface DocumentTemplateService
-{
+public interface DocumentTemplateService {
+
     /**
      * Allows the given mimeType to be rendered by the specified DocumentTemplateRenderEngine
      * @param mimeType
      * @param engine
      */
-    public void register (String mimeType, DocumentTemplateRenderEngine engine);
+    public void register(String mimeType, DocumentTemplateRenderEngine engine);
 
     /**
      * Determines whether this document template is supported for preview
@@ -44,9 +44,9 @@ public interface DocumentTemplateService
      * @return
      * @throws TemplateReadException
      */
-    public boolean isPreviewable (DocumentTemplate template) throws TemplateReadException;
+    public boolean isPreviewable(DocumentTemplate template) throws TemplateReadException;
 
-     /**
+    /**
      * Gets the mime type for previewing this document template
      * @param template
      * @return
@@ -54,7 +54,7 @@ public interface DocumentTemplateService
      */
     public String getPreviewMimeType(DocumentTemplate template) throws TemplateReadException;
 
-     /**
+    /**
      * Gets all registered DocumentTemplateRenderEngines
      * @return
      */
@@ -86,9 +86,9 @@ public interface DocumentTemplateService
      * @throws TemplateReadException
      * @throws VariableResolutionException
      */
-    public InputStream render (DocumentTemplate template, CertificateDefinition certDef, String userId) throws TemplateReadException, VariableResolutionException;
+    public InputStream render(DocumentTemplate template, CertificateDefinition certDef, String userId) throws TemplateReadException, VariableResolutionException;
 
-    public Set<VariableResolver> getVariableResolvers ();
+    public Set<VariableResolver> getVariableResolvers();
 
     /**
      * Gets all mimeTypes that have a registered DocumentTemplateRenderEngine

@@ -31,7 +31,6 @@ public class TestIText
 
         for (String key : fieldKeys)
         {
-            System.out.println ("field: " + key);
             if (acroFields.getFieldType(key) == (AcroFields.FIELD_TYPE_TEXT))
             {
                 textFieldKeys.add(key);
