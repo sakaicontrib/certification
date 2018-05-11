@@ -91,7 +91,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <c:forEach items="${certificateToolState.certificateDefinition.fieldValues}" var="tField" >
+                    <c:forEach items="${certificateToolState.fieldToDescription}" var="tField" >
                         <tr>
                             <td>${tField.key}</td>
                             <td>${tField.value}</td>
