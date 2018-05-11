@@ -200,6 +200,19 @@ public class CertificateToolState
         this.templateFields = templateFields;
     }
 
+    public Map<String, String> getFieldToDescription()
+    {
+        HashMap<String, String> fieldToDesc = new HashMap<>();
+        for (String key : getTemplateFields().keySet())
+        {
+            String expression = getTemplateFields().get(key);
+            String description = getPredifinedFields().get(expression);
+            fieldToDesc.put(key, description);
+        }
+
+        return fieldToDesc;
+    }
+
     /**
      *
      * @return a map of ${} format to description
