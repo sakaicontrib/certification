@@ -21,7 +21,6 @@
         <module>api</module>
         <module>tool</module>
         <module>impl</module>
-        <module>pack</module>
         <module>model</module>
     </modules>
 

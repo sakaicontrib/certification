@@ -11,7 +11,10 @@
     <name>Certification Impl</name>
     <groupId>org.sakaiproject.certification</groupId>
     <artifactId>certification-impl</artifactId>
-    <packaging>jar</packaging>
+    <packaging>sakai-component</packaging>
+    <properties>
+        <deploy.target>components</deploy.target>
+    </properties>
 
     <dependencies>
 
