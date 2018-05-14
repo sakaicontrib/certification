@@ -19,6 +19,7 @@ package org.sakaiproject.certification.criteria.impl.gradebook;
 import org.sakaiproject.certification.api.criteria.CriteriaFactory;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion;
+import org.sakaiproject.certification.impl.util.FormatHelper;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -39,7 +40,7 @@ public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTempl
         super(factory, null, new AssignmentLabeler() {
             public String getLabel(Assignment assignment) {
                 StringBuilder assnLabel = new StringBuilder();
-                assnLabel.append(assignment.getName()).append(" (").append(assignment.getPoints().toString()).append(" ");
+                assnLabel.append(assignment.getName()).append(" (").append(FormatHelper.formatGradeForDisplay(assignment.getPoints().toString())).append(" ");
                 ResourceLoader rl = factory.getResourceLoader();
 
                 if (assignment.getPoints() == 1) {
@@ -76,8 +77,8 @@ public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTempl
 
         String score = gischi.getScore();
         if (score != null) {
-            Double dblScore = new Double (score);
-            StringBuilder sbScore = new StringBuilder(score);
+            Double dblScore = new Double(score);
+            StringBuilder sbScore = new StringBuilder(FormatHelper.formatGradeForDisplay(score));
             if (dblScore == 1) {
                 sbScore.append(" ").append(rl.getString(MESSAGE_POINT));
             } else {

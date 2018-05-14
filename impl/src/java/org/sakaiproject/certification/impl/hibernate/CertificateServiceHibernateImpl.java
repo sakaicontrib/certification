@@ -76,6 +76,7 @@ import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException
 import org.sakaiproject.certification.api.criteria.UserProgress;
 import org.sakaiproject.certification.api.criteria.gradebook.WillExpireCriterion;
 import org.sakaiproject.certification.impl.security.AllowMapSecurityAdvisor;
+import org.sakaiproject.certification.impl.util.FormatHelper;
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.content.api.ContentResource;
 import org.sakaiproject.content.api.ContentResourceEdit;
@@ -1327,7 +1328,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                             // no progress here, create placeholder
                             critProg = new CriterionProgress("", false);
                         } else {
-                            critProg = new CriterionProgress(userProg.getProgress(), userProg.isPassed());
+                            critProg = new CriterionProgress(FormatHelper.formatGradeForDisplay(userProg.getProgress()), userProg.isPassed());
                         }
                     }
 

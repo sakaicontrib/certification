@@ -46,6 +46,7 @@ import org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCri
 import org.sakaiproject.certification.api.criteria.gradebook.WillExpireCriterion;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
+import org.sakaiproject.certification.impl.util.FormatHelper;
 import org.sakaiproject.service.gradebook.shared.AssessmentNotFoundException;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.service.gradebook.shared.CourseGrade;
@@ -451,6 +452,10 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
         for (CriteriaTemplateVariable variable : variables) {
             String value = bindings.get(variable.getVariableKey());
+            if (variable instanceof ScoreTemplateVariable) {
+                value = FormatHelper.inputStringToFormatString(value);
+            }
+
             if (value == null || !variable.isValid(value)) {
                 if (template instanceof DueDatePassedCriteriaTemplate) {
                     InvalidBindingException ibe = new InvalidBindingException();
@@ -544,7 +549,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             criterion.setCriteriaFactory(this);
             Long itemId = new Long(bindings.get(KEY_GRADEBOOK_ITEM));
             Assignment assn = gbs.getAssignment(contextId, itemId);
-            String scoreStr = bindings.get(KEY_SCORE);
+            String scoreStr = FormatHelper.inputStringToFormatString(bindings.get(KEY_SCORE));
 
             criterion.setAssignment(assn);
 
@@ -596,7 +601,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
             FinalGradeScoreCriterion criterion = new FinalGradeScoreCriterion();
             criterion.setCriteriaFactory(this);
-            String scoreStr = bindings.get(KEY_SCORE);
+            String scoreStr = FormatHelper.inputStringToFormatString(bindings.get(KEY_SCORE));
 
             Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
             Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
