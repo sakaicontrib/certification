@@ -326,6 +326,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     CertificateDefinition cdhi = (CertificateDefinition) q.list().get(0);
                     cdhi.setName(cd.getName());
                     cdhi.setDescription(cd.getDescription());
+                    cdhi.setProgressHidden(cd.getProgressHidden());
                     session.update(cdhi);
                     return cdhi;
                 }
