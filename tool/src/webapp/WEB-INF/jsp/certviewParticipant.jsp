@@ -114,7 +114,7 @@
                         <td>
                         <c:choose>
                             <c:when test="${certIsAwarded[cert.id]}">
-                                <a id="viewCert${cert.id}" href="print.form?certId=${cert.id}">
+                                <a target="_blank" id="viewCert${cert.id}" href="print.form?certId=${cert.id}">
                                     <spring:message code="form.submit.print"/>
                                 </a>
                             </c:when>
