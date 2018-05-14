@@ -1,29 +1,29 @@
-<%@ include file="/WEB-INF/jsp/include.jsp" %>
-<jsp:include page="/WEB-INF/jsp/header.jsp"/>
-<form:form id="createCertFormFour" modelAttribute="certificateToolState" action="fourth.form">
-    <%@ include file="/WEB-INF/jsp/adminActionToolBar.jsp" %>
+<%@ include file="/jsp/include.jsp" %>
+<jsp:include page="/jsp/header.jsp" />
+<%@ include file="/jsp/adminActionToolBar.jsp" %>
 
+<form:form id="createCertFormFour" modelAttribute="certificateToolState" action="fourth.form">
     <div class="page-header">
         <c:choose>
             <c:when test="${certificateToolState.certificateDefinition.id == null}">
-                <h1><spring:message code="form.add.title"/></h1>
+                <h1><spring:message code="form.add.title" /></h1>
             </c:when>
             <c:otherwise>
-                <h1><spring:message code="form.modify.title"/></h1>
+                <h1><spring:message code="form.modify.title" /></h1>
             </c:otherwise>
         </c:choose>
     </div>
     <p class="instruction">
-        <spring:message code="form.text.review.description"/>
+        <spring:message code="form.text.review.description" />
     </p>
-    <div id="submitError" class="alertMessage" style="display:none"></div>
-    <c:if test="${statusMessageKey != null}" >
-        <div id="statusMessageKey" class="alertMessage" >
-            <spring:message code="${statusMessageKey}"/>
+    <div id="submitError" class="alertMessage hidden"></div>
+    <c:if test="${statusMessageKey != null}">
+        <div id="statusMessageKey" class="alertMessage">
+            <spring:message code="${statusMessageKey}" />
         </div>
     </c:if>
-    <c:if test="${errorMessage != null}" >
-        <div id="errorMessage" class="alertMessage" >
+    <c:if test="${errorMessage != null}">
+        <div id="errorMessage" class="alertMessage">
             <spring:message code="${errorMessage}" />
         </div>
     </c:if>
@@ -72,9 +72,9 @@
         </label>
         <span class="col-sm-12">
             <ul>
-            <c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criteria">
-                <li>${criteria.expression}</li>
-            </c:forEach>
+                <c:forEach items="${certificateToolState.certificateDefinition.awardCriteria}" var="criteria">
+                    <li>${criteria.expression}</li>
+                </c:forEach>
             </ul>
         </span>
     </div>
@@ -112,7 +112,7 @@
                             <tr>
                                 <td>${tField.key}</td>
                                 <td>${tField.value}</td>
-                                <c:if test = "${tField.value == '${unassigned}'}" >
+                                <c:if test="${tField.value == '${unassigned}'}">
                                     <td><form:input path="templateFields['${tField.key}']" autocomplete="off"/></td>
                                 </c:if>
                             </tr>
@@ -129,10 +129,9 @@
         <form:hidden path="submitValue" />
     </div>
 </form:form>
+
 <script type="text/javascript">
-
     $(document).ready(function() {
-
         loaded();
 
         $("#back").click(function(){
@@ -146,29 +145,24 @@
         $("#cancel").click(function() {
             cancel();
         });
-
     });
 
-    function back()
-    {
-        SPNR.disableControlsAndSpin( this, null );
+    function back() {
+        SPNR.disableControlsAndSpin(this, null);
         $("#submitValue").val("back");
         $("#createCertFormFour").submit();
     }
 
-    function save()
-    {
-        SPNR.disableControlsAndSpin( this, null );
+    function save() {
+        SPNR.disableControlsAndSpin(this, null);
         $("#submitValue").val("save");
         $("#createCertFormFour").submit();
     }
 
-    function cancel()
-    {
-        SPNR.disableControlsAndSpin( this, null );
+    function cancel() {
+        SPNR.disableControlsAndSpin(this, null);
         $("#submitValue").val("cancel");
         $("#createCertFormFour").submit();
     }
-
 </script>
-<%@ include file="/WEB-INF/jsp/footer.jsp" %>
+<%@ include file="/jsp/footer.jsp" %>

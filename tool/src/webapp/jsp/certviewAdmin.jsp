@@ -1,80 +1,78 @@
-<%@ include file="/WEB-INF/jsp/include.jsp" %>
-<jsp:include page="/WEB-INF/jsp/header.jsp"/>
+<%@ include file="/jsp/include.jsp" %>
+<jsp:include page="/jsp/header.jsp" />
 <form:form id="certList" method="POST">
-    <%@ include file="/WEB-INF/jsp/adminActionToolBar.jsp" %>
+    <%@ include file="/jsp/adminActionToolBar.jsp" %>
 
     <div class="page-header">
         <h1><spring:message code="form.menu.list" /></h1>
     </div>
+
     <c:choose>
         <c:when test="${certList.nrOfElements == 0}">
             <p class="instruction">
-                <spring:message code="instructions.admin"/>
+                <spring:message code="instructions.admin" />
             </p>
             <p class="instruction">
-                <spring:message code="form.text.emptycertlist.instruct"/></br>
+                <spring:message code="form.text.emptycertlist.instruct" /></br>
             </p>
         </c:when>
         <c:otherwise>
-            <div class="navPanel">
-                <div id="submitError" class="alertMessage" style="display:none"></div>
-                <c:if test="${errorMessage != null}" >
-                    <div id="errorMessage" class="alertMessage" >
-                        <spring:message code="${errorMessage}" />
-                    </div>
-                </c:if>
-                <div class="instruction">
-                    <p>
-                        <spring:message code="instructions.admin"/>
-                        <c:if test="${highMembers}">
-                            <spring:message code="instructions.high.members"/>
-                        </c:if>
-                    </p>
+            <c:if test="${errorMessage != null}" >
+                <div id="errorMessage" class="alertMessage">
+                    <spring:message code="${errorMessage}" />
                 </div>
-                <div class="row">
-                    <div class="col-sm-7 col-xs-12">
-                        <nav class="certPager panel panel-default">
-                            <div class="panel-heading">
-                                <spring:message code="form.pager.showing"/> <c:out value="${firstElement}" /> - <c:out value="${lastElement}" /> of ${certList.nrOfElements}
-                                <div id="spinner" class="allocatedSpinPlaceholder"></div>
-                            </div>
-                            <div class="panel-body">
-                                <c:choose>
-                                    <c:when test="${!certList.firstPage}">
-                                        <input type="button" id="first" value="<spring:message code='pagination.first' />" />
-                                        <input type="button" id="prev" value="<spring:message code='pagination.previous' />" />
-                                    </c:when>
-                                    <c:otherwise>
-                                        <input type="button" id="nofirst" value="<spring:message code='pagination.first' />" disabled="disabled" />
-                                        <input type="button" id="noPrev" value="<spring:message code='pagination.previous' />" disabled="disabled" />
-                                    </c:otherwise>
-                                </c:choose>
-                                <input type="hidden" id="pageNo" value="${pageNo}" />
-                                <select id="pageSize">
-                                    <c:forEach items="${pageSizeList}" var="list">
-                                        <c:choose>
+            </c:if>
+            <div class="instruction">
+                <p>
+                    <spring:message code="instructions.admin" />
+                    <c:if test="${highMembers}">
+                        <spring:message code="instructions.high.members" />
+                    </c:if>
+                </p>
+            </div>
+            <div class="row">
+                <div class="col-sm-7 col-xs-12">
+                    <nav class="certPager panel panel-default">
+                        <div class="panel-heading">
+                            <spring:message code="form.pager.showing" /> <c:out value="${firstElement}" /> - <c:out value="${lastElement}" /> of ${certList.nrOfElements}
+                            <div id="spinner" class="allocatedSpinPlaceholder"></div>
+                        </div>
+                        <div class="panel-body">
+                            <c:choose>
+                                <c:when test="${!certList.firstPage}">
+                                    <input type="button" id="first" value="<spring:message code='pagination.first' />" />
+                                    <input type="button" id="prev" value="<spring:message code='pagination.previous' />" />
+                                </c:when>
+                                <c:otherwise>
+                                    <input type="button" id="nofirst" value="<spring:message code='pagination.first' />" disabled="disabled" />
+                                    <input type="button" id="noPrev" value="<spring:message code='pagination.previous' />" disabled="disabled" />
+                                </c:otherwise>
+                            </c:choose>
+                            <input type="hidden" id="pageNo" value="${pageNo}" />
+                            <select id="pageSize">
+                                <c:forEach items="${pageSizeList}" var="list">
+                                    <c:choose>
                                         <c:when test="${list > 200}">
                                             <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
                                         </c:when>
                                         <c:otherwise>
                                             <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.show" arguments="${list}" /></option>
                                         </c:otherwise>
-                                        </c:choose>
-                                    </c:forEach>
-                                </select>
-                                <c:choose>
-                                    <c:when test="${!certList.lastPage}">
-                                        <input type="button" id="next" value="<spring:message code='pagination.next' />" />
-                                        <input type="button" id="last" value="<spring:message code='pagination.last' />" />
-                                    </c:when>
-                                    <c:otherwise>
-                                        <input type="button" id="noNext" value="<spring:message code='pagination.next' />" disabled="disabled"/>
-                                        <input type="button" id="noLast" value="<spring:message code='pagination.last' />" disabled="disabled"/>
-                                    </c:otherwise>
-                                </c:choose>
-                            </div>
-                        </nav>
-                    </div>
+                                    </c:choose>
+                                </c:forEach>
+                            </select>
+                            <c:choose>
+                                <c:when test="${!certList.lastPage}">
+                                    <input type="button" id="next" value="<spring:message code='pagination.next' />" />
+                                    <input type="button" id="last" value="<spring:message code='pagination.last' />" />
+                                </c:when>
+                                <c:otherwise>
+                                    <input type="button" id="noNext" value="<spring:message code='pagination.next' />" disabled="disabled"/>
+                                    <input type="button" id="noLast" value="<spring:message code='pagination.last' />" disabled="disabled"/>
+                                </c:otherwise>
+                            </c:choose>
+                        </div>
+                    </nav>
                 </div>
             </div>
             <table id="cList" class="table table-hover table-striped table-bordered" summary="Certificates">
@@ -94,13 +92,13 @@
                             <td class="colCertificate">
                                 <a href="first.form?certId=${cert.id}" title="${form.actions.edit.title} ${cert.name}">
                                     <c:out value="${cert.name}"></c:out>
-                                </a>                                
+                                </a>
                             </td>
                             <td class="colActions colMin">
                                 <div class="btn-group pull-right">
                                     <button id="" type="button" class="btn btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="sr-only">Action</span>
-                                        <span>Actions</span>
+                                        <span class="sr-only"><spring:message code="form.actions" /></span>
+                                        <span><spring:message code="form.actions" /></span>
                                         <span class="caret"></span>
                                     </button>
                                     <ul class="dropdown-menu row" role="menu">
@@ -110,7 +108,7 @@
                                             </a>
                                             <c:if test="${cert.status == 'ACTIVE'}" >
                                                 <a id="report${cert.id}" href="reportView.form?certId=${cert.id}" onclick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner_${cert.id}' );">
-                                                    <spring:message code="form.label.report.cell"/>
+                                                    <spring:message code="form.label.report.cell" />
                                                 </a>
                                             </c:if>
                                             <a href="#" onClick="deleteCert('${cert.id}')">
@@ -120,28 +118,17 @@
                                     </ul>
                                 </div>
                             </td>
-                            <td class="hidden-xs">
-                                <c:out value="${cert.description}"></c:out>
-                            </td>
+                            <td class="hidden-xs"><c:out value="${cert.description}"></c:out></td>
+                            <td>${cert.status}</td>
+                            <td><span class="createdDate">${cert.createDate}</span></td>
                             <td>
-                                ${cert.status}
-                            </td>
-                            <td>
-                                <span class="createdDate">
-                                ${cert.createDate}
-                                </span>
-                            </td>
-                            <td>
-                                <c:if test="${cert.status == 'ACTIVE'}" >
-                                    <a id="report${cert.id}" href="reportView.form?certId=${cert.id}" onclick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner_${cert.id}' );">
+                                <c:if test="${cert.status == 'ACTIVE'}">
+                                    <a id="report${cert.id}" href="reportView.form?certId=${cert.id}" onclick="SPNR.insertSpinnerInPreallocated(this, null, 'spinner_${cert.id}');">
                                         <spring:message code="form.label.report.cell"/>
                                     </a>
                                     <div id="spinner_${cert.id}" class="allocatedSpinPlaceholder"></div>
                                 </c:if>
                             </td>
-                            <!--<td>
-                                <input type="radio" name="certDefRadioButtons" value="${cert.id}"/>
-                            </td>-->
                         </tr>
                     </c:forEach>
                 </tbody>
@@ -149,22 +136,20 @@
         </c:otherwise>
     </c:choose>
 </form:form>
+
 <script type="text/javascript">
-
     var redirecting = false;
+
     $(document).ready(function() {
-
-        loaded();
-
         $("tr.certificate").each(function() {
             var createdDate = $(this).find("span.createdDate");
             var value = createdDate.html();
             createdDate.html(moment(value).format('LLL'));
         });
 
-        $("#first").click( function() {
-            SPNR.disableControlsAndSpin( this, null );
-            location.href="list.form?page=first";
+        $("#first").click(function() {
+            SPNR.disableControlsAndSpin(this, null);
+            location.href = "list.form?page=first";
             return false;
         });
 
@@ -192,16 +177,6 @@
             return false;
         });
 
-        $("#Edit").click( function() {
-
-            if(singleChecked())
-            {
-                location.href="first.form?certId="+$("input:checked").val();
-                return false;
-            }
-            return false;
-        });
-
         $(":checkbox").click( function() {
             $(":checkbox").not(this).removeAttr("checked");
         });
@@ -218,4 +193,4 @@
         return false;
     }
 </script>
-<%@ include file="/WEB-INF/jsp/footer.jsp" %>
+<%@ include file="/jsp/footer.jsp" %>

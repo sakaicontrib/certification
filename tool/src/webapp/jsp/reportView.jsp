@@ -1,29 +1,32 @@
-<%@ include file="/WEB-INF/jsp/include.jsp" %>
-<jsp:include page="/WEB-INF/jsp/header.jsp"/>
+<%@ include file="/jsp/include.jsp" %>
+<jsp:include page="/jsp/header.jsp" />
 <script type="text/javascript" src="/library/js/jquery/cookie/jquery.cookie.js"></script>
 <script type="text/javascript" src="/library/js/lang-datepicker/lang-datepicker.js"></script>
+
 <form:form id="reportView" method="POST">
     <ul class="navIntraTool actionToolBar">
-        <li><span><a href="${toolUrl}/reportView.form?certId=${cert.id}&export=true" id="export"><spring:message code="export.csv"/></a></span></li>
-        <li><span><a href="" id="return"><spring:message code="return.cert.list"/></a></span></li>
+        <li>
+            <span><a href="${toolUrl}/reportView.form?certId=${cert.id}&export=true" id="export"><spring:message code="export.csv" /></a></span>
+        </li>
+        <li>
+            <span><a href="" id="return"><spring:message code="return.cert.list" /></a></span>
+        </li>
     </ul>
     <div class="page-header">
         <h1><spring:message code="report.header" arguments="${cert.name}" htmlEscape="true"/></h1>
     </div>
     <div id="errorDiv">
         <c:forEach items="${errors}" var="error">
-            <div class="alertMessage">
-                ${error}
-            </div>
+            <div class="alertMessage">${error}</div>
         </c:forEach>
     </div>
 
-    <div class="panel-group" id="accordion">
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#panel-requeriments">
-                        <spring:message code="report.requirements"/>
+                    <a data-toggle="collapse" href="#panel-requeriments" aria-controls="panel-requeriments">
+                        <spring:message code="report.requirements" />
                     </a>
                 </h4>
             </div>
@@ -46,67 +49,73 @@
         <div class="panel panel-default">
             <div class="panel-heading">
                 <h4 class="panel-title">
-                    <a data-toggle="collapse" data-parent="#accordion" href="#panel-display-options">
-                        <spring:message code="report.filter.head"/>
+                    <a data-toggle="collapse" href="#panel-display-options" aria-controls="panel-display-options">
+                        <spring:message code="report.filter.head" />
                     </a>
                 </h4>
             </div>
-            <div id="panel-display-options" class="panel-collapse collapse in">
-              <div class="panel-body">
-                <p>
-                    <b><spring:message code="report.filter.show"/></b>
-                </p>
-                <p>
-                    <label>
-                        <input id="rdAll" type="radio" name="show" value="all" onclick="$('#dateRange').css('display','none');" checked>
-                            <spring:message code="report.filter.all"/>
-                        </input>
-                    </label><br/>
-                    <label>
-                        <input id="idUnawarded" type="radio" name="show" value="unawarded" onclick="$('#dateRange').css('display','none');">
-                            <spring:message code="report.filter.unawarded"/>
-                        </input>
-                    </label><br/>
-                    <label>
-                        <input id="idAwarded" type="radio" name="show" value="awarded" onclick="$('#dateRange').css('display','inline');">
-                            <spring:message code="report.filter.awarded"/>
-                        </input>
-                    </label><br/>
-                    <div id="dateRange" style="display:none;">
-                        <spring:message code="report.filter.awarded.1"/>
-                        <c:choose>
-                            <c:when test="${expiryOffset != null}">
-                                <select id="filterDateType">
-                                    <option value="issueDate"><spring:message code="report.filter.issuedate"/></option>
-                                    <option value="expiryDate"><spring:message code="report.filter.expirydate"/></option>
-                                </select>
-                            </c:when>
-                            <c:otherwise>
-                                <spring:message code="report.filter.issuedate.lower"/>
-                            </c:otherwise>
-                        </c:choose>
-                        <spring:message code="report.filter.awarded.2"/>
-                        <input id="startDate" type="text"/>
-                        <spring:message code="report.filter.awarded.3"/>
-                        <input id="endDate" type="text"/>
+            <div id="panel-display-options" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <p>
+                        <b><spring:message code="report.filter.show"/></b>
+                    </p>
+                    <p>
+                        <div>
+                            <label>
+                                <input id="rdAll" type="radio" name="show" value="all" checked>
+                                    <spring:message code="report.filter.all" />
+                                </input>
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                <input id="idUnawarded" type="radio" name="show" value="unawarded">
+                                    <spring:message code="report.filter.unawarded" />
+                                </input>
+                            </label>
+                        </div>
+                        <div>
+                            <label>
+                                <input id="idAwarded" type="radio" name="show" value="awarded">
+                                    <spring:message code="report.filter.awarded" />
+                                </input>
+                            </label>
+                        </div>
+                        <div id="dateRange" class="hidden">
+                            <spring:message code="report.filter.awarded.1" />
+                            <c:choose>
+                                <c:when test="${expiryOffset != null}">
+                                    <select id="filterDateType">
+                                        <option value="issueDate"><spring:message code="report.filter.issuedate" /></option>
+                                        <option value="expiryDate"><spring:message code="report.filter.expirydate" /></option>
+                                    </select>
+                                </c:when>
+                                <c:otherwise>
+                                    <spring:message code="report.filter.issuedate.lower" />
+                                </c:otherwise>
+                            </c:choose>
+                            <spring:message code="report.filter.awarded.2" />
+                            <input id="startDate" type="text" />
+                            <spring:message code="report.filter.awarded.3" />
+                            <input id="endDate" type="text" />
+                        </div>
+                    </p>
+                    <p>
+                        <label>
+                            <input id="historical" type="checkbox" value="historical">
+                                <spring:message code="report.filter.historical" />
+                            </input>
+                        </label>
+                    </p>
+                    <div>
+                        <input id="filterApply" type="submit" value="Apply" />
+                        <input id="filterReset" type="submit" value="Reset" />
                     </div>
-                </p>
-                <p>
-                    <label>
-                        <input id="historical" type="checkbox" value="historical">
-                            <spring:message code="report.filter.historical"/>
-                        </input>
-                    </label>
-                </p>
-                <div>
-                    <input id="filterApply" type="submit" value="Apply"/>
-                    <input id="filterReset" type="submit" value="Reset"/>
                 </div>
-              </div>
             </div>
         </div>
     </div>
-    <p class="viewNav"><spring:message code="report.blurb"/></p>
+    <p class="viewNav"><spring:message code="report.blurb" /></p>
     <div class="navPanel row">
         <div class="col-sm-7 col-xs-12">
             <nav class="certPager panel panel-default">
@@ -129,12 +138,12 @@
                     <select id="pageSize">
                         <c:forEach items="${pageSizeList}" var="list">
                             <c:choose>
-                            <c:when test="${list > 200}">
-                                <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
-                            </c:when>
-                            <c:otherwise>
-                                <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.show" arguments="${list}" /></option>
-                            </c:otherwise>
+                                <c:when test="${list > 200}">
+                                    <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
+                                </c:when>
+                                <c:otherwise>
+                                    <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.show" arguments="${list}" /></option>
+                                </c:otherwise>
                             </c:choose>
                         </c:forEach>
                     </select>
@@ -144,55 +153,51 @@
                             <input type="button" id="last" value="<spring:message code='pagination.last' />" />
                         </c:when>
                         <c:otherwise>
-                            <input type="button" id="noNext" value="<spring:message code='pagination.next' />" disabled="disabled"/>
-                            <input type="button" id="noLast" value="<spring:message code='pagination.last' />" disabled="disabled"/>
+                            <input type="button" id="noNext" value="<spring:message code='pagination.next' />" disabled="disabled" />
+                            <input type="button" id="noLast" value="<spring:message code='pagination.last' />" disabled="disabled" />
                         </c:otherwise>
                     </c:choose>
                 </div>
             </nav>
         </div>
     </div>
-    <input id="certificateId" type="button" style="display:none" value="${cert.id}"></input>
+    <input id="certificateId" type="button" class="hidden" value="${cert.id}"></input>
     <table id="reporttable" class="table table-hover table-striped table-bordered" summary="Report">
         <thead align="center">
             <tr>
-                <!-- the columns need to be in a c:for -->
-                <!-- create the headers in an array from java code -->
                 <th>
                     <a href="reportViewSort.form?certId=${cert.id}&sort=name" id="sortByName" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
-                        <spring:message code="report.table.header.name"/>
+                        <spring:message code="report.table.header.name" />
                     </a>
                 </th>
                 <th>
                     <a href="reportViewSort.form?certId=${cert.id}&sort=userId" id="sortByUserId" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
-                        <spring:message code="report.table.header.userid"/>
+                        <spring:message code="report.table.header.userid" />
                     </a>
                 </th>
                 <th class="hidden-xs">
                     <a href="reportViewSort.form?certId=${cert.id}&sort=role" id="sortByRole" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
-                        <spring:message code="report.table.header.role"/>
+                        <spring:message code="report.table.header.role" />
                     </a>
                 </th>
                 <c:if test="${canUserViewStudentNums != false}">
                     <th class="hidden-xs">
                         <a href="reportViewSort.form?certId=${cert.id}&sort=studentNumber" id="sortByStudentNum" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
-                            <spring:message code="report.table.header.studentNum"/>
+                            <spring:message code="report.table.header.studentNum" />
                         </a>
                     </th>
                 </c:if>
                 <th class="hidden-xs">
                     <a href="reportViewSort.form?certId=${cert.id}&sort=issueDate" id="sortByIssueDate" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
-                        <spring:message code="report.table.header.issuedate"/>
+                        <spring:message code="report.table.header.issuedate" />
                     </a>
                 </th>
                 <c:forEach items="${critHeaders}" var="crit">
-                    <th class="hidden-xs">
-                        ${crit}
-                    </th>
+                    <th class="hidden-xs">${crit}</th>
                 </c:forEach>
                 <th>
                     <a href="reportViewSort.form?certId=${cert.id}&sort=awarded" id="sortByAwarded" onClick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner' );">
-                        <spring:message code="report.table.header.awarded"/>
+                        <spring:message code="report.table.header.awarded" />
                     </a>
                 </th>
             </tr>
@@ -213,8 +218,7 @@
                                 <td class="hidden-xs">${criterionCell.progress}</td>
                             </c:when>
                             <c:otherwise>
-                                <%--TODO - use a css class--%>
-                                <td  class="hidden-xs" style="color:red;">${criterionCell.progress}</td>
+                                <td class="not-met-criterion hidden-xs">${criterionCell.progress}</td>
                             </c:otherwise>
                         </c:choose>
                     </c:forEach>
@@ -224,61 +228,36 @@
         </tbody>
     </table>
 </form:form>
+
 <script type="text/javascript">
-    $(document).ready(function()
-    {
+    $(document).ready(function() {
         loaded();
 
         /*If the user expands/collapses elements, use cookies to keep track of this*/
-        if ($.cookie("requirementsExpanded") === "false")
-        {
-            $("#requirementsPanel").hide();
-            $("#requirementsHeadRightArrow").css("display","inline-block");
-            $("#requirementsHeadDownArrow").css("display","none");
+        if ($.cookie("requirementsExpanded") !== "false") {
+            $("#panel-requeriments").addClass("in");
         }
 
-        $("#requirementsHead").click(function()
-        {
-            $("#requirementsPanel").slideToggle(200, function() { resetHeight(); } );
-            if ($.cookie('requirementsExpanded') === "false")
-            {
-                $("#requirementsHeadRightArrow").css("display","none");
-                $("#requirementsHeadDownArrow").css("display","inline-block");
+        $("[aria-controls=panel-requeriments]").click(function() {
+            if ($.cookie('requirementsExpanded') === "false") {
                 $.cookie('requirementsExpanded', 'true');
-            }
-            else
-            {
-                $("#requirementsHeadRightArrow").css("display","inline-block");
-                $("#requirementsHeadDownArrow").css("display","none");
+            } else {
                 $.cookie('requirementsExpanded', 'false');
             }
         });
 
-        if (!$.cookie('displayOptionsExpanded'))
-        {
-            $.cookie('displayOptionsExpanded',"false");
+        if (!$.cookie('displayOptionsExpanded')) {
+            $.cookie('displayOptionsExpanded', "false");
         }
 
-        if ($.cookie('displayOptionsExpanded') === "false")
-        {
-            $("#displayOptionsHeadRightArrow").css("display","inline-block");
-            $("#displayOptionsHeadDownArrow").css("display","none");
-            $("#displayOptionsPanel").hide();
+        if ($.cookie('displayOptionsExpanded') !== "false") {
+            $("#panel-display-options").addClass("in");
         }
 
-        $("#displayOptionsHead").click(function()
-        {
-            $("#displayOptionsPanel").slideToggle(200, function() { resetHeight(); } );
-            if ($.cookie('displayOptionsExpanded') === "false")
-            {
-                $("#displayOptionsHeadRightArrow").css("display","none");
-                $("#displayOptionsHeadDownArrow").css("display","inline-block");
+        $("[aria-controls=panel-display-options]").click(function() {
+            if ($.cookie('displayOptionsExpanded') === "false") {
                 $.cookie('displayOptionsExpanded', "true");
-            }
-            else
-            {
-                $("#displayOptionsHeadRightArrow").css("display","inline-block");
-                $("#displayOptionsHeadDownArrow").css("display","none");
+            } else {
                 $.cookie('displayOptionsExpanded', "false");
             }
         });
@@ -299,6 +278,14 @@
               allowEmptyDate: false,
               val: '${filterEndDate}',
               ashidden: { iso8601: 'endDateISO8601' }
+        });
+
+        $("#rdAll, #idUnawarded").click(function() {
+            $("#dateRange").addClass("hidden");
+        });
+
+        $("#idAwarded").click(function() {
+            $("#dateRange").removeClass("hidden");
         });
 
         /*Use cookies to keep track of the user's display options*/
@@ -347,44 +334,44 @@
             </c:otherwise>
         </c:choose>
 
-        $("#return").click( function() {
+        $("#return").click(function() {
             location.href="list.form";
             return false;
         });
 
         var id = $("#certificateId").val();
 
-        $("#first").click( function() {
+        $("#first").click(function() {
             SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=first";
             return false;
         });
 
-        $("#prev").click( function() {
+        $("#prev").click(function() {
             SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=previous";
             return false;
         });
 
-        $("#next").click( function() {
+        $("#next").click(function() {
             SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=next";
             return false;
         });
 
-        $("#last").click( function() {
+        $("#last").click(function() {
             SPNR.disableControlsAndSpin( this, null );
             location.href="reportView.form?certId=" + id + "&page=last";
             return false;
         });
 
-        $("#pageSize").change( function() {
+        $("#pageSize").change(function() {
             SPNR.insertSpinnerInPreallocated( this, null, "spinner" );
             location.href="reportView.form?certId=" + id + "&pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
             return false;
         });
 
-        $("#filterApply").click( function() {
+        $("#filterApply").click(function() {
             SPNR.disableControlsAndSpin( this, null );
             $("#filterReset").attr('disabled', 'disabled');
             var filterType = $("input[name='show']:checked").val();
@@ -410,7 +397,7 @@
             return false;
         });
 
-        $("#filterReset").click( function() {
+        $("#filterReset").click(function() {
             SPNR.disableControlsAndSpin( this, null );
             $("#filterApply").attr('disabled', 'disabled');
             location.href="reportView.form?certId=" + id;
@@ -418,4 +405,4 @@
         });
     });
 </script>
-<%@ include file="/WEB-INF/jsp/footer.jsp" %>
+<%@ include file="/jsp/footer.jsp" %>

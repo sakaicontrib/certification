@@ -23,6 +23,7 @@
     -moz-border-radius: 5px;
     -webkit-border-radius: 5px;
     border-radius: 5px;
+    padding: 10px;
 }
 
 #newCriteriaForm h4:first-child {
@@ -38,4 +39,12 @@
 
 #cList .instruction {
     margin: 0;
+}
+
+.mimetype {
+    font-size: xx-small;
+}
+
+.not-met-criterion {
+    color: red;
 }

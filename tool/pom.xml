@@ -104,34 +104,5 @@
                 </includes>
             </resource>
         </resources>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                <webResources>
-                    <resource>
-                        <directory>src/webapp/WEB-INF</directory>
-                        <targetPath>WEB-INF</targetPath>
-                    </resource>
-                    <resource>
-                        <directory>src/webapp/tools</directory>
-                        <targetPath>tools</targetPath>
-                    </resource>
-                </webResources>
-                <webXml>src/webapp/WEB-INF/web.xml</webXml>
-                </configuration>
-            </plugin>
-            <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <configuration>
-                    <filesets>
-                        <fileset>
-                            <directory>src/webapp/WEB-INF/lib</directory>
-                        </fileset>
-                    </filesets>
-                </configuration>
-            </plugin>
-        </plugins>
     </build>
 </project>
