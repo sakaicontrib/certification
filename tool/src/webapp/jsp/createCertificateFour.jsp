@@ -123,8 +123,8 @@
         </span>
     </div>
     <div>
-        <input id="back" type="button" value="<spring:message code='form.submit.back' />" />
         <input id="save" type="button" value="<spring:message code='form.submit.activateCert' />" />
+        <input id="back" type="button" value="<spring:message code='form.submit.back' />" />
         <input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
         <form:hidden path="submitValue" />
     </div>

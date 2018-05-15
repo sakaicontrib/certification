@@ -61,8 +61,8 @@
         </table>
     </div>
     <div>
+        <input id="continue" type="button" value="<spring:message code='form.submit.continue' />" />
         <input id="back" type="button" value="<spring:message code='form.submit.back' />" />
-        <input id="next" type="button" value="<spring:message code='form.submit.next' />" />
         <input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
         <form:hidden path="submitValue" />
     </div>
@@ -74,7 +74,7 @@
             back();
         });
 
-        $("#next").click(function() {
+        $("#continue").click(function() {
             next();
         });
 

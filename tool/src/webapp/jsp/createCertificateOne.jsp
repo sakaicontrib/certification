@@ -62,7 +62,7 @@
     </table>
 
     <div>
-        <input id="next" type="button" value="<spring:message code='form.submit.next' />" />
+        <input id="continue" type="button" value="<spring:message code='form.submit.continue' />" />
         <input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
         <form:hidden path="submitValue" />
     </div>
@@ -73,7 +73,7 @@
         $("#name").attr("placeholder", "<spring:message code='form.label.name'/>");
         $("#description").attr("placeholder", "<spring:message code='form.label.description'/>");
 
-        $("#next").click(function() {
+        $("#continue").click(function() {
             next();
         });
 
