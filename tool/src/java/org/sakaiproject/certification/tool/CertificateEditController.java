@@ -32,6 +32,7 @@ import java.util.regex.Pattern;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
@@ -126,7 +127,7 @@ public class CertificateEditController extends BaseCertificateController {
     @ModelAttribute(MOD_ATTR)
     public CertificateToolState initializeModel(@RequestParam(value=REQUEST_PARAM_CERT_ID, required=false) String certId) throws Exception {
         CertificateToolState certificateToolState = CertificateToolState.getState();
-        if(certId != null && !"".equals(certId)) {
+        if(StringUtils.isNotEmpty(certId)) {
                 /* We are editing an existing certificate definition.
                  * It may already be stored in the tool state.
                  * If not, we'll need to grab it */
@@ -236,8 +237,7 @@ public class CertificateEditController extends BaseCertificateController {
 
             CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
             if (certDef != null
-                    && certDef.getId() != null
-                    && !"".equals(certDef.getId())
+                    && StringUtils.isNotEmpty(certDef.getId())
                     && certificateToolState.getNewTemplate() == null) {
                 /*It's an existing certificate and a new template was not provided,
                  * so we need to load the existing template from resources*/
@@ -296,7 +296,7 @@ public class CertificateEditController extends BaseCertificateController {
             throw icde;
         }
 
-        if(certDef.getId() == null || "".equals(certDef.getId())) {
+        if(StringUtils.isEmpty(certDef.getId())) {
             CertificateDefinition existing = null;
 
             try {
@@ -398,7 +398,7 @@ public class CertificateEditController extends BaseCertificateController {
             //The certificate definition's award criteria will be changed in memory.
             //Reloading will overwrite the changes
             String id = certDef.getId();
-            if (id != null && !"".equals(id)) {
+            if (StringUtils.isNotEmpty(id)) {
                 certificateService.getCertificateDefinition(id);
             }
 
@@ -576,7 +576,7 @@ public class CertificateEditController extends BaseCertificateController {
                  * However, once we refresh the certificate definition, our new awardCriteria will disappear.
                  * So, let's grab it now*/
                 Set<Criterion> newAwardCriteria = certDef.getAwardCriteria();
-                if (certDef.getId() == null || "".equals(certDef.getId())) {
+                if (StringUtils.isEmpty(certDef.getId())) {
                     //create a hibernate impl
                     certificateService.createCertificateDefinition(certDef.getName(), certDef.getDescription(),
                             siteId(), certDef.getProgressHidden(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(),

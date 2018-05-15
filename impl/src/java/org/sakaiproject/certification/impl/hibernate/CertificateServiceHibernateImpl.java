@@ -289,29 +289,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         deleteTemplateFile(cd.getDocumentTemplate().getResourceId());
     }
 
-    public CertificateDefinition createCertificateDefinition(CertificateDefinition certificateDefinition) throws IdUsedException {
-        CertificateDefinition cd = (CertificateDefinition)certificateDefinition;
-        CertificateDefinition myCertDefn = new CertificateDefinition();
-
-        myCertDefn.setAwardCriteria(cd.getAwardCriteria());
-        myCertDefn.setCreateDate(new Date());
-        myCertDefn.setCreatorUserId(userId());
-        myCertDefn.setDescription(cd.getDescription());
-        myCertDefn.setDocumentTemplate(cd.getDocumentTemplate());
-        myCertDefn.setFieldValues(cd.getFieldValues());
-        myCertDefn.setSiteId(cd.getSiteId());
-        myCertDefn.setName(cd.getName());
-        myCertDefn.setStatus(CertificateDefinitionStatus.UNPUBLISHED);
-
-        try {
-            getHibernateTemplate().save(myCertDefn);
-        } catch (DataIntegrityViolationException dive) {
-            throw new IdUsedException("name: " + cd.getName() + " siteId: " + cd.getSiteId());
-        }
-
-        return myCertDefn;
-    }
-
     public CertificateDefinition updateCertificateDefinition(final CertificateDefinition cd) throws IdUnusedException {
         CertificateDefinition retVal = null;
         if (cd instanceof CertificateDefinition) {
@@ -1025,7 +1002,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             String progress = crit.getProgress(userId, siteId, useCaching);
 
             //progress is "" if it's irrelevant (ie. WillExpire criterion)
-            if ( !"".equals(progress) ) {
+            if ( StringUtils.isNotEmpty(progress) ) {
                 requirements.put(expression, progress);
             }
         }
@@ -1036,18 +1013,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     public Collection<String> getGradedUserIds(final String siteId) {
         /* Gets all users who have earned grades in the site - regardless of whether they are still enrolled
          * (for historical purposes)*/
-
-        /*
-        The query would translate to this (minus the the sakai_user_id_map part):
-        SELECT map.eid from sakai_user_id_map map
-        WHERE map.user_id in (
-            SELECT distinct gr.student_id from gb_grade_record_t gr
-            WHERE gr.gradable_object_id in (
-            SELECT gbo.id from gb_gradable_object_t gbo
-            WHERE gbo.gradebook_id in (
-                SELECT gb.id from gb_gradebook_t gb
-                WHERE gb.gradebook_uid = '<siteId>')));
-        */
 
         HibernateCallback callback = new HibernateCallback() {
             public Object doInHibernate(Session session) throws HibernateException {
@@ -1423,10 +1388,10 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
 
         //if one name is missing, use the opposite
-        if ("".equals(lastName)) {
+        if (StringUtils.isEmpty(lastName)) {
             //use the opposite name or empty string if firstName is missing (both cases are covered here)
             row.setName(firstName);
-        } else if ("".equals(firstName)) {
+        } else if (StringUtils.isEmpty(firstName)) {
             row.setName(lastName);
         } else {
             //both names present

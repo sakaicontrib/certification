@@ -51,14 +51,6 @@ import org.sakaiproject.exception.IdUsedException;
 public interface CertificateService {
 
     /**
-     * Inserts the specified certificate definition into the database as UNPUBLISHED
-     * @param cd
-     * @return
-     * @throws IdUsedException
-     */
-    public CertificateDefinition createCertificateDefinition (CertificateDefinition cd) throws IdUsedException;
-
-    /**
      * Updates the specified certification definition in the database
      * @param cd
      * @return

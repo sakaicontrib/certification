@@ -479,7 +479,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     }
 
                 } else if (variable.getVariableKey().equals(KEY_SCORE)) {
-                    if (!"".equals(value)) {
+                    if (StringUtils.isNotEmpty(value)) {
                         try {
                             Double.parseDouble(value);
                         } catch (NumberFormatException nfe) {
@@ -498,7 +498,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     throw ibe;
 
                 } else if (variable.getVariableKey().equals(KEY_EXPIRY_OFFSET)) {
-                    if (!"".equals(value)) {
+                    if (StringUtils.isNotEmpty(value)) {
                         try {
                             Double.parseDouble(value);
                         } catch (NumberFormatException nfe) {
