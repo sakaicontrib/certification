@@ -24,10 +24,6 @@ import java.util.Set;
  * DocumentTemplateRenderingEngine objects, each of which is capable of rendering templates of one or more MIME types.
  * The ability to register more than one DocumentTemplateRenderingEngine or the resolution of which
  * to use when more than one supports the same MIME type are implementation-specific concerns.
- *
- * User: duffy
- * Date: Jun 7, 2011
- * Time: 4:41:50 PM
  */
 public interface DocumentTemplateService {
 

@@ -22,11 +22,6 @@ import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.user.api.UserNotDefinedException;
 
-/**
- * User: duffy
- * Date: Jul 7, 2011
- * Time: 7:52:26 AM
- */
 public class RecipientVariableResolver extends AbstractVariableResolver {
 
     private UserDirectoryService uds = null;

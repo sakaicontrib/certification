@@ -64,11 +64,6 @@ import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.util.api.FormattedText;
 
-/**
- * User: duffy
- * Date: Jun 7, 2011
- * Time: 4:15:18 PM
- */
 @Slf4j
 @Controller
 public class CertificateListController extends BaseCertificateController {

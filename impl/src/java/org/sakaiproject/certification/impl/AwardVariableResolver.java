@@ -19,11 +19,6 @@ package org.sakaiproject.certification.impl;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.VariableResolutionException;
 
-/**
- * User: duffy
- * Date: Jul 7, 2011
- * Time: 8:28:13 AM
- */
 public class AwardVariableResolver extends AbstractVariableResolver {
 
     private static final String MESSAGE_NAMEOFCERT = "variable.nameOfCert";

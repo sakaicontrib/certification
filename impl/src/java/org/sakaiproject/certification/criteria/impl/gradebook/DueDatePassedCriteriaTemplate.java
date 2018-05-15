@@ -25,11 +25,6 @@ import org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriter
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jul 18, 2011
- * Time: 9:47:57 PM
- */
 public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate {
 
     private static final String MESSAGE_DUEDATE = "duedate";

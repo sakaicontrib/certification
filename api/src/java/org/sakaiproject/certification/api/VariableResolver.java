@@ -18,11 +18,6 @@ package org.sakaiproject.certification.api;
 
 import java.util.Set;
 
-/**
- * User: duffy
- * Date: Jul 5, 2011
- * Time: 8:59:48 AM
- */
 public interface VariableResolver {
 
     public static final String CERT_NAME = "cert.name";

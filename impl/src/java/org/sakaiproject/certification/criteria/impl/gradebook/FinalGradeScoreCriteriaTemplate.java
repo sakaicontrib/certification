@@ -32,11 +32,6 @@ import org.sakaiproject.certification.api.criteria.gradebook.FinalGradeScoreCrit
 import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jul 5, 2011
- * Time: 9:26:50 AM
- */
 @Slf4j
 public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
 

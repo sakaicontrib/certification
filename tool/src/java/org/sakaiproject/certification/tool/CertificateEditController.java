@@ -69,10 +69,6 @@ import org.sakaiproject.tool.cover.SessionManager;
  * Clicking a button from the jsp is going to trigger a request mapping method.
  * certificateToolState.getSubmitValue() represents the button that was clicked
  * If the submit value is (null, I think?), then the page is loading.
- *
- * User: duffy
- * Date: Jun 7, 2011
- * Time: 4:15:32 PM
  */
 @Slf4j
 @Controller

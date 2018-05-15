@@ -26,11 +26,6 @@ import org.sakaiproject.service.gradebook.shared.GradebookService;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jun 23, 2011
- * Time: 3:06:49 PM
- */
 public class GradebookItemTemplateVariable implements CriteriaTemplateVariable {
 
     private GradebookCriteriaFactory criteriaFactory = null;

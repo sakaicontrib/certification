@@ -29,20 +29,4 @@ public class CertAssignmentScore extends CertGradeRecordObject
     private Boolean excludedFromGrade;
     private Boolean excluded;
     private Date dateRecorded;
-
-
-    /**
-     * The graderId and dateRecorded properties will be set explicitly by the
-     * grade manager before the database is updated.
-     * @param assignment The assignment this grade record is associated with
-     * @param studentId The student id for whom this grade record belongs
-     * @param grade The grade, or points earned
-     */
-    /*public CertAssignmentScore(CertAssignment assignment, String studentId, Double grade)
-    {
-        super();
-        this.gradableObject = assignment;
-        this.studentId = studentId;
-        this.pointsEarned = grade;
-    }*/
 }

@@ -16,9 +16,12 @@
 
 package org.sakaiproject.certification.api;
 
+import lombok.Data;
+
 /**
  * Thrown when creating a certificate definition, but some constraint isn't met
  */
+@Data
 public class InvalidCertificateDefinitionException extends CertificationException {
 
     public static final int REASON_TOO_LONG = 1;
@@ -40,21 +43,5 @@ public class InvalidCertificateDefinitionException extends CertificationExceptio
 
     public InvalidCertificateDefinitionException(Throwable t) {
         super(t);
-    }
-
-    public void setInvalidField(int field) {
-        this.invalidField = field;
-    }
-
-    public int getInvalidField() {
-        return invalidField;
-    }
-
-    public void setReason(int reason) {
-        this.reason = reason;
-    }
-
-    public int getReason() {
-        return reason;
     }
 }

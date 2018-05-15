@@ -14,11 +14,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * User: duffy
- * Date: Jun 20, 2011
- * Time: 3:02:22 PM
- */
 public class MockDocumentTemplateRenderEngine implements DocumentTemplateRenderEngine
 {
     private DocumentTemplateService documentTemplateService = null;

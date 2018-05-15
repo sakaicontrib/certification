@@ -18,11 +18,6 @@ package org.sakaiproject.certification.api.criteria;
 
 import java.util.Map;
 
-/**
- * User: duffy
- * Date: Jun 21, 2011
- * Time: 2:22:33 PM
- */
 public interface CriteriaTemplateVariable {
 
     public String getVariableKey();

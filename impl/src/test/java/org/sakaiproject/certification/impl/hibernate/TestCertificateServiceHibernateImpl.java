@@ -31,11 +31,6 @@ import org.junit.Assert;
 
 import org.sakaiproject.exception.IdUnusedException;
 
-/**
- * User: duffy
- * Date: Jun 30, 2011
- * Time: 9:27:59 AM
- */
 public class TestCertificateServiceHibernateImpl extends SpringUnitTest
 {
     private CertificateService getCertificateService() throws Exception

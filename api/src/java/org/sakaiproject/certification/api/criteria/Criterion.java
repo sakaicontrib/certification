@@ -20,11 +20,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-/**
- * User: duffy
- * Date: Jun 21, 2011
- * Time: 10:19:22 AM
- */
 public interface Criterion {
 
     public String getId();

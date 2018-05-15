@@ -21,11 +21,6 @@ import java.util.Map;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jul 5, 2011
- * Time: 9:30:23 AM
- */
 public class ScoreTemplateVariable implements CriteriaTemplateVariable {
 
     private GradebookCriteriaFactory criteriaFactory = null;

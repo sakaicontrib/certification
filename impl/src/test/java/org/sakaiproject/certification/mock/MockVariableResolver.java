@@ -7,11 +7,6 @@ import org.sakaiproject.certification.api.VariableResolver;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * User: duffy
- * Date: Jul 5, 2011
- * Time: 1:43:00 PM
- */
 public class MockVariableResolver implements VariableResolver
 {
     public Set<String> getVariableLabels()

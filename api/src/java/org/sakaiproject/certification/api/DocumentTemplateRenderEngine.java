@@ -22,10 +22,6 @@ import java.util.Set;
 
 /**
  * This represents a service capable of rendering templates of a specific set of MIME types.
- *
- * User: duffy
- * Date: Jun 7, 2011
- * Time: 5:06:44 PM
  */
 public interface DocumentTemplateRenderEngine {
 

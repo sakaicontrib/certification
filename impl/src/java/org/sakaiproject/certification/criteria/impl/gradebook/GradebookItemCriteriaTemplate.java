@@ -24,11 +24,6 @@ import org.sakaiproject.certification.api.criteria.CriteriaTemplate;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jul 18, 2011
- * Time: 10:38:10 PM
- */
 public abstract class GradebookItemCriteriaTemplate implements CriteriaTemplate {
 
     GradebookItemTemplateVariable itemVariable = null;

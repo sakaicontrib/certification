@@ -19,11 +19,15 @@ package org.sakaiproject.certification.api;
 import java.util.ArrayList;
 import java.util.List;
 
+import lombok.Data;
+
 import org.sakaiproject.certification.api.criteria.CriterionProgress;
 
 /**
  * Represents information pertaining to one user in the reporting interface
  */
+ 
+@Data
 public class ReportRow {
 
     /**
@@ -60,60 +64,4 @@ public class ReportRow {
      * Whether the user was awarded or not (ie. yes/no)
      */
     private String awarded = "";
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setStudentNumber(String studentNumber) {
-        this.studentNumber = studentNumber;
-    }
-
-    public String getStudentNumber() {
-        return studentNumber;
-    }
-
-    public void setIssueDate(String issueDate) {
-        this.issueDate = issueDate;
-    }
-
-    public String getIssueDate() {
-        return issueDate;
-    }
-
-    public void setCriterionCells(List<CriterionProgress> criterionCells) {
-        this.criterionCells = criterionCells;
-    }
-
-    public List<CriterionProgress> getCriterionCells() {
-        return criterionCells;
-    }
-
-    public void setAwarded(String awarded) {
-        this.awarded = awarded;
-    }
-
-    public String getAwarded() {
-        return awarded;
-    }
 }

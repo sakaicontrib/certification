@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api.criteria;
 
-/**
- * User: duffy
- * Date: Jul 5, 2011
- * Time: 8:43:03 AM
- */
 public class CriterionCreationException extends Exception {
 
     public CriterionCreationException() {

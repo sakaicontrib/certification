@@ -32,11 +32,6 @@ import org.sakaiproject.certification.api.TemplateReadException;
 import org.sakaiproject.certification.api.VariableResolutionException;
 import org.sakaiproject.certification.api.VariableResolver;
 
-/**
- * User: duffy
- * Date: Jun 30, 2011
- * Time: 1:51:57 PM
- */
 public class DocumentTemplateServiceImpl implements DocumentTemplateService {
 
     private final Pattern varPattern = Pattern.compile("\\$\\{(.+)\\}");

@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api;
 
-/**
- * User: duffy
- * Date: Jun 9, 2011
- * Time: 11:15:58 AM
- */
 public class CertificationException extends Exception {
 
     public CertificationException() {

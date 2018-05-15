@@ -22,11 +22,6 @@ import java.util.Set;
 import org.sakaiproject.certification.api.VariableResolver;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jul 7, 2011
- * Time: 8:29:29 AM
- */
 public abstract class AbstractVariableResolver implements VariableResolver {
 
     private final ResourceLoader messages = new ResourceLoader("org.sakaiproject.certification.Messages");

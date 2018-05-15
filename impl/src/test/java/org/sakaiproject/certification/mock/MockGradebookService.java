@@ -23,11 +23,6 @@ import org.sakaiproject.service.gradebook.shared.InvalidGradeException;
 import org.sakaiproject.service.gradebook.shared.SortType;
 import org.sakaiproject.service.gradebook.shared.StaleObjectModificationException;
 
-/**
- * User: duffy
- * Date: Jul 5, 2011
- * Time: 10:26:57 AM
- */
 public class MockGradebookService implements GradebookService
 {
 

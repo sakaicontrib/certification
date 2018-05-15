@@ -13,11 +13,6 @@ import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-/**
- * User: duffy
- * Date: Jul 6, 2011
- * Time: 12:37:24 PM
- */
 public class TestIText
 {
     @Test

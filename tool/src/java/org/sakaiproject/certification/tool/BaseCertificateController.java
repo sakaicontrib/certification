@@ -39,11 +39,6 @@ import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jul 7, 2011
- * Time: 3:15:05 PM
- */
 public class BaseCertificateController {
 
     protected static final String REQUEST_PARAMATER_SUBVAL = "submitValue";

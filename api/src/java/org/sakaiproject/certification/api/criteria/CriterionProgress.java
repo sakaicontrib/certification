@@ -24,32 +24,15 @@ package org.sakaiproject.certification.api.criteria;
  * An example: FinalGradeScoreCriterion - progress would be a String representation of
  * the user's final grade (ie. 89), and if the minimum score is 80, then met would be true
  */
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class CriterionProgress {
 
     private String progress = "";
     private boolean met = false;
-
-    public CriterionProgress() {
-    }
-
-    public CriterionProgress(String progress, boolean met) {
-        this.progress = progress;
-        this.met = met;
-    }
-
-    public String getProgress() {
-        return progress;
-    }
-
-    public void setProgress(String progress) {
-        this.progress = progress;
-    }
-
-    public boolean isMet() {
-        return met;
-    }
-
-    public void setMet(boolean met) {
-        this.met = met;
-    }
 }

@@ -10,11 +10,6 @@ import java.net.URL;
 
 import static org.junit.Assert.*;
 
-/**
- * User: duffy
- * Date: Jul 7, 2011
- * Time: 7:33:57 AM
- */
 public class TestMimeMagic
 {
     @Test

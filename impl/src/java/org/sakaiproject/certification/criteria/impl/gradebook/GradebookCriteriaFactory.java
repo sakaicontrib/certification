@@ -58,11 +58,6 @@ import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jun 23, 2011
- * Time: 11:44:38 AM
- */
 @Slf4j
 public class GradebookCriteriaFactory implements CriteriaFactory {
 

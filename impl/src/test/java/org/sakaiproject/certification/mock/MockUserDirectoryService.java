@@ -25,11 +25,6 @@ import org.sakaiproject.user.api.UserPermissionException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-/**
- * User: duffy
- * Date: Jun 27, 2011
- * Time: 1:30:56 PM
- */
 public class MockUserDirectoryService implements UserDirectoryService
 {
     public UserEdit addUser(String id, String eid) throws UserIdInvalidException, UserAlreadyDefinedException, UserPermissionException

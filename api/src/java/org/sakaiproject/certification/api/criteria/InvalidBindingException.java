@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api.criteria;
 
-/**
- * User: duffy
- * Date: Jul 15, 2011
- * Time: 4:46:54 PM
- */
 public class InvalidBindingException extends CriterionCreationException {
 
     private String bindingKey;

@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api;
 
-/**
- * User: duffy
- * Date: Jul 11, 2011
- * Time: 12:15:35 PM
- */
 public class UnsupportedTemplateTypeException extends DocumentTemplateException {
 
     public UnsupportedTemplateTypeException() {

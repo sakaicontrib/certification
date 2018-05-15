@@ -20,11 +20,6 @@ import java.util.Set;
 
 import org.sakaiproject.certification.api.criteria.Criterion;
 
-/**
- * User: duffy
- * Date: Jun 9, 2011
- * Time: 11:18:07 AM
- */
 public class UnmetCriteriaException extends CertificationException {
 
     private Set<Criterion> unmetCriteria = null;

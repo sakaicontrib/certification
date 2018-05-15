@@ -23,14 +23,6 @@ import java.util.Set;
 
 import org.sakaiproject.certification.api.CertificateDefinition;
 
-/**
- * TODO: Rename this to CriteriaManager.
- * This class has too many other responsibilities to be considered a factory class
- *
- * User: duffy
- * Date: Jun 23, 2011
- * Time: 11:43:32 AM
- */
 public interface CriteriaFactory {
 
     public static final String KEY_SCORE = "score";

@@ -100,11 +100,6 @@ import org.sakaiproject.user.api.User;
 import org.sakaiproject.user.api.UserDirectoryService;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jun 30, 2011
- * Time: 9:21:59 AM
- */
 @Slf4j
 public class CertificateServiceHibernateImpl extends HibernateDaoSupport implements CertificateService {
 

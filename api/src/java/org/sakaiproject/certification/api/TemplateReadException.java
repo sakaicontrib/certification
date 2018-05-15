@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api;
 
-/**
- * User: duffy
- * Date: Jun 9, 2011
- * Time: 1:05:51 PM
- */
 public class TemplateReadException extends DocumentTemplateException {
 
     public TemplateReadException() {

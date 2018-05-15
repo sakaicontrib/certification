@@ -43,10 +43,6 @@ import org.sakaiproject.exception.IdUsedException;
  *
  *  DocumentTemplateService is used to manage DocumentTemplate objects and to use those objects to render
  *  printable certificates.
- *
- * User: duffy
- * Date: Jun 7, 2011
- * Time: 4:40:50 PM
  */
 public interface CertificateService {
 

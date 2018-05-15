@@ -13,11 +13,6 @@ import org.sakaiproject.tool.api.ToolManager;
 
 import org.w3c.dom.Document;
 
-/**
- * User: duffy
- * Date: Jun 30, 2011
- * Time: 10:07:22 AM
- */
 public class MockToolManager implements ToolManager
 {
     public void register(Tool tool) {}

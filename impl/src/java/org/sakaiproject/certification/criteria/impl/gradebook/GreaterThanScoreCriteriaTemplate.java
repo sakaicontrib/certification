@@ -23,11 +23,6 @@ import org.sakaiproject.certification.impl.util.FormatHelper;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
-/**
- * User: duffy
- * Date: Jul 5, 2011
- * Time: 9:26:50 AM
- */
 public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTemplate {
 
     ScoreTemplateVariable scoreVariable = null;

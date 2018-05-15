@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api;
 
-/**
- * User: duffy
- * Date: Jul 7, 2011
- * Time: 8:23:49 AM
- */
 public class VariableResolutionException extends Exception {
 
     public VariableResolutionException() {

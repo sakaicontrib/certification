@@ -35,11 +35,6 @@ import org.sakaiproject.certification.api.DocumentTemplateRenderEngine;
 import org.sakaiproject.certification.api.DocumentTemplateService;
 import org.sakaiproject.certification.api.TemplateReadException;
 
-/**
- * User: duffy
- * Date: Jul 6, 2011
- * Time: 12:14:52 PM
- */
 public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRenderEngine {
 
     private static final String MIME_TYPE = "application/pdf";

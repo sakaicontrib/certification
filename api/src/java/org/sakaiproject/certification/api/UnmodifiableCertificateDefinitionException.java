@@ -16,11 +16,6 @@
 
 package org.sakaiproject.certification.api;
 
-/**
- * User: duffy
- * Date: Jun 30, 2011
- * Time: 3:54:38 PM
- */
 public class UnmodifiableCertificateDefinitionException extends CertificationException {
 
     public UnmodifiableCertificateDefinitionException() {
