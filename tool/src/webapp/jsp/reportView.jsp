@@ -231,8 +231,6 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        loaded();
-
         /*If the user expands/collapses elements, use cookies to keep track of this*/
         if ($.cookie("requirementsExpanded") !== "false") {
             $("#panel-requeriments").addClass("in");
@@ -262,24 +260,6 @@
             }
         });
 
-        localDatePicker({
-              input: '#startDate',
-              useTime: 0,
-              parseFormat: 'YYYY-MM-DD',
-              allowEmptyDate: false,
-              val: '${filterStartDate}',
-              ashidden: { iso8601: 'startDateISO8601' }
-        });
-
-        localDatePicker({
-              input: '#endDate',
-              useTime: 0,
-              parseFormat: 'YYYY-MM-DD',
-              allowEmptyDate: false,
-              val: '${filterEndDate}',
-              ashidden: { iso8601: 'endDateISO8601' }
-        });
-
         $("#rdAll, #idUnawarded").click(function() {
             $("#dateRange").addClass("hidden");
         });
@@ -301,8 +281,8 @@
                         var filterDateType = "issueDate";
                     </c:otherwise>
                 </c:choose>
-                var filterStartDate = $("#startDate").val();
-                var filterEndDate = $("#endDate").val();
+                var filterStartDate = $("#startDateYear").val() + "-" + $("#startDateMonth").val() + "-" + $("#startDateDay").val();
+                var filterEndDate = $("#endDateYear").val() + "-" + $("#endDateMonth").val() + "-" + $("#endDateDay").val();
 
                 var filterHistorical = $("#historical").prop('checked');
                 $.cookie("filterType", filterType);
@@ -325,14 +305,49 @@
                 <c:if test="${expiryOffset != null}">
                     $("#filterDateType").val(filterDateType);
                 </c:if>
-                $("#startDate").val(filterStartDate);
-                $("#endDate").val(filterEndDate);
-                if (filterHistorical == "true")
-                {
+                //$("#startDate").val(filterStartDate);
+                //$("#startDate").click().blur();
+                //$("#endDate").val(filterEndDate);
+                if (filterHistorical == "true") {
                     $("#historical").attr("checked", "checked");
                 }
             </c:otherwise>
         </c:choose>
+
+        if (filterStartDate == "") {
+            filterStartDate = '${filterStartDate}';
+        }
+        if (filterEndDate == "") {
+            filterEndDate = '${filterEndDate}';
+        }
+
+        localDatePicker({
+            input: '#startDate',
+            useTime: 0,
+            parseFormat: 'YYYY-MM-DD',
+            allowEmptyDate: false,
+            val: filterStartDate,
+            ashidden: {
+                iso8601: 'startDateISO8601',
+                year: 'startDateYear',
+                month: 'startDateMonth',
+                day: 'startDateDay'
+            }
+        });
+
+        localDatePicker({
+            input: '#endDate',
+            useTime: 0,
+            parseFormat: 'YYYY-MM-DD',
+            allowEmptyDate: false,
+            val: filterEndDate,
+            ashidden: {
+                iso8601: 'endDateISO8601',
+                year: 'endDateYear',
+                month: 'endDateMonth',
+                day: 'endDateDay'
+            }
+        });
 
         $("#return").click(function() {
             location.href="list.form";
@@ -383,8 +398,8 @@
                     var filterDateType = "issueDate";
                 </c:otherwise>
             </c:choose>
-            var filterStartDate = $("#startDate").val();
-            var filterEndDate = $("#endDate").val();
+            var filterStartDate = $("#startDateYear").val() + "-" + $("#startDateMonth").val() + "-" + $("#startDateDay").val();
+            var filterEndDate = $("#endDateYear").val() + "-" + $("#endDateMonth").val() + "-" + $("#endDateDay").val();
             var filterHistorical = $("#historical").prop('checked');
             $.cookie("filterType", filterType);
             $.cookie("filterDateType", filterDateType);
