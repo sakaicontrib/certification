@@ -748,6 +748,9 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                 public Object doSecureAction() {
                     GradebookService gs = getGradebookService();
                     CourseGrade courseGrade = gs.getCourseGradeForStudent( contextId, userId );
+
+                    /* The certification tool works with points and not with percentages */
+                    /*
                     String calculatedGrade = courseGrade.getCalculatedGrade();
 
                     // If the string is null or empty, infer this as a zero
@@ -758,7 +761,9 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     // Otherwise, parse the string to a Double leaving exceptions to be caught by the caller
                     else {
                         return Double.parseDouble( calculatedGrade );
-                    }
+                    }*/
+
+                    return courseGrade.getPointsEarned() ;
                 }
             });
 
