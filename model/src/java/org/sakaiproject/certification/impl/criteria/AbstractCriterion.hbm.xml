@@ -12,7 +12,7 @@
         </id>
         <discriminator column="type"/>
         <map name="variableBindings" lazy="false" cascade="save-update,delete" table="certificate_criterion_binding">
-            <key column="criterion_id"/>
+            <key column="criterion_id" not-null="true"/>
             <map-key type="java.lang.String" column="variable_key"/>
             <element type="java.lang.String" column="variable_value"/>
         </map>

@@ -264,18 +264,9 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         CertificateDefinition cd = (CertificateDefinition) getHibernateTemplate().execute(new HibernateCallback() {
             public Object doInHibernate(Session session) throws HibernateException {
                 CertificateDefinition cd = (CertificateDefinition) session.load(CertificateDefinition.class, certificateDefinitionId);
-                cd.getFieldValues().clear();
-                cd.getAwardCriteria().clear();
 
-                session.update(cd);
+                session.delete(cd);
                 session.flush();
-
-                Query q = session.createQuery("delete from DocumentTemplate where id=:id");
-                q.setString(PARAM_ID, certificateDefinitionId);
-                q.executeUpdate();
-                q = session.getNamedQuery("deleteCertificateDefinition");
-                q.setString(PARAM_ID, certificateDefinitionId);
-                q.executeUpdate();
 
                 return cd;
             }
@@ -720,6 +711,12 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     for (Criterion condition : conditions) {
                         if (!existingConditions.contains(condition)) {
                             session.save(condition);
+                        }
+                    }
+
+                    for (Criterion condition : existingConditions) {
+                        if (!conditions.contains(condition)) {
+                            session.delete(condition);
                         }
                     }
 
