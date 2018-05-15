@@ -5,9 +5,4 @@
         <spring:message code="list.view.unauthorized" />
     </p>
 </form:form>
-<script type="text/javascript">
-    $(document).ready(function() {
-        loaded();
-    });
-</script>
 <%@ include file="/jsp/footer.jsp" %>

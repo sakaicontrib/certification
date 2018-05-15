@@ -74,6 +74,7 @@
                 </div>
             </div>
         </div>
+        <br/>
         <label>
             <form:checkbox path="certificateDefinition.progressShown"/>
             <spring:message code="form.label.showRequirements"/>
@@ -140,7 +141,6 @@
             },
             error: function(foo, bar, baz) {
                 $("#submitError").html("<spring:message code='form.error.criteriaProcessingError' />").removeClass("hidden");
-                resetHeight();
             }
         });
     }
@@ -152,19 +152,32 @@
             $("#removeInstructions").addClass("hidden");
             $("#noCriteria").removeClass("hidden");
         }
-        resetHeight();
     }
 
     function appendCriterionToDiv (criterion) {
         mergeCriteriaItemCriteriaTemplate = checkCriterion();
-        var liContent = "<li id='crit_" + criterion.id + "' mergeItemCriteriaTemplate='" + mergeCriteriaItemCriteriaTemplate + "'>" +
-                        criterion.expression + "<a href='#' onclick=\"removeCriterion('" + criterion.id +
-                        "')\" title='<spring:message code="form.text.criteria.remove"/>'><span class='sr-only'><spring:message code="form.text.criteria.remove"/></span><span class='fa fa-lg fa-fw fa-trash' aria-hidden='true'></span></a></li>\n";
+        var message = '<spring:message code="form.text.criteria.remove"/>';
 
-        $("#criteriaList").append(liContent);
+        var $removeLink = $("<a/>", {
+            href: "#",
+            title: message,
+            click: function() {
+                removeCriterion(criterion.id);
+            },
+            html: "<span class='sr-only'>" + message + "</span>" +
+                  "<span class='fa fa-lg fa-fw fa-trash' aria-hidden='true'></span>",
+        });
+
+        var $li = $("<li/>", {
+            id: "crit_" + criterion.id,
+            mergeItemCriteriaTemplate: mergeCriteriaItemCriteriaTemplate,
+            html: criterion.expression,
+        });
+        $li.append($removeLink);
+
+        $("#criteriaList").append($li);
         $("#removeInstructions").removeClass("hidden");
         $("#noCriteria").addClass("hidden");
-        resetHeight();
     }
 
     function checkCriterion() {
@@ -232,15 +245,10 @@
 
                     if (match !== null) {
                         $("#submitError").html(match[1]).removeClass("hidden");
-                        resetHeight();
-
                     } else if(xhr.responseText.indexOf( "**TooManyExpiry**" ) !== -1) {
                         $("#submitError").html("<spring:message code='form.expiry.tooMany' />").removeClass("hidden");
-                        resetHeight();
-
                     } else {
                         $("#submitError").html("<spring:message code='form.error.criteriaProcessingError' />").removeClass("hidden");
-                        resetHeight();
                     }
                 }
             });
@@ -303,12 +311,9 @@
                 }
 
                 $('#criteriaOptions').html(templateHtml);
-
-                resetHeight();
             },
             error: function (xhr, status, errorThrown) {
                 $("#submitError").html("<spring:message code='form.error.criteriaProcessingError' />").removeClass("hidden");
-                resetHeight();
             }
         });
     }

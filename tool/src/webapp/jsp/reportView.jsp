@@ -305,9 +305,6 @@
                 <c:if test="${expiryOffset != null}">
                     $("#filterDateType").val(filterDateType);
                 </c:if>
-                //$("#startDate").val(filterStartDate);
-                //$("#startDate").click().blur();
-                //$("#endDate").val(filterEndDate);
                 if (filterHistorical == "true") {
                     $("#historical").attr("checked", "checked");
                 }

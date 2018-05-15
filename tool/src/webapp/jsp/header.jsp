@@ -27,36 +27,6 @@
         sakai.locale.userLocale = '${locale}';
 
         includeLatestJQuery('sakai.certification');
-
-        function resetHeight() {
-            resizeFrame("grow");
-        }
-
-        function resizeFrame(updown) {
-            var frame;
-            if (top.location !== self.location) {
-                frame = parent.document.getElementById(window.name);
-            }
-            if (frame) {
-                var clientH;
-                if(updown === 'shrink') {
-                    clientH = document.body.clientHeight;
-                } else {
-                    clientH = document.body.clientHeight + 30;
-                }
-                $(frame).height(clientH);
-            } else {
-                // throw( "resizeFrame did not get the frame (using name=" + window.name + ")" );
-            }
-        }
-
-        function loaded() {
-            resetHeight();
-            parent.updCourier(doubleDeep, ignoreCourier);
-            if (parent.resetHeight) {
-                parent.resetHeight();
-            }
-        }
     </script>
 </head>
 

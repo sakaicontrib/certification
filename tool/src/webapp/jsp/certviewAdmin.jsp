@@ -173,7 +173,7 @@
 
         $("#pageSize").change( function() {
             SPNR.insertSpinnerInPreallocated( this, null, "spinner" );
-            location.href="list.form?pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
+            location.href = "list.form?pageSize=" + $("#pageSize option:selected").val() +" &pageNo=" + $("#pageNo").val();
             return false;
         });
 

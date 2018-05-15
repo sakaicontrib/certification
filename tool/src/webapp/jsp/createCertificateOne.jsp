@@ -73,18 +73,12 @@
         $("#name").attr("placeholder", "<spring:message code='form.label.name'/>");
         $("#description").attr("placeholder", "<spring:message code='form.label.description'/>");
 
-        loaded();
-
         $("#next").click(function() {
             next();
         });
 
         $("#cancel").click(function() {
             cancel();
-        });
-
-        $("textarea").resize(function() {
-            loaded();
         });
     });
 
@@ -103,43 +97,42 @@
     }
 
     function validateForm() {
-        debugger;
         $(".alertMessage").addClass("hidden");
         var error = false;
-        var errHtml = "";
+        var errors = [];
 
         if (!$("#name").val()) {
-            errHtml = errHtml + "<spring:message code="form.error.namefield"/>" + "<br/>" ;
+            var $errDiv = $("<p/>", {
+                text: '<spring:message code="form.error.namefield"/>',
+            });
+            errors.push($errDiv);
             error = true;
         }
 
-        if (!$("input:file").val() && !$("#currentTemplate").val()) {
-            errHtml = errHtml + "<spring:message code="form.error.templateField"/>" + "<br/>" ;
+        var currentTemplateVal = $("#currentTemplate").val();
+        var templateFileVal = $("#templateFile").val();
+
+        if ((currentTemplateVal !== undefined && !currentTemplateVal.endsWith(".pdf")) ||
+            (currentTemplateVal !== undefined && templateFileVal != "" && !templateFileVal.endsWith(".pdf")) ||
+            (currentTemplateVal === undefined && !templateFileVal.endsWith(".pdf"))) {
+            var $errDiv = $("<p/>", {
+                text: '<spring:message code="form.error.templateField"/>',
+            });
+            errors.push($errDiv);
             error = true;
         }
 
         if (error) {
-            $("#submitError").html(errHtml).removeClass("hidden");
-            resetHeight();
+            var $errorsDiv = $("#submitError");
+            $errorsDiv.empty();
+            $(errors).each(function(index, $errDiv) {
+                $errorsDiv.append($errDiv);
+            });
+            $errorsDiv.removeClass("hidden");
             return false;
-        } else {
-            return true;
         }
+
+        return true;
     }
-
-    String.prototype.endsWith = function(suffix) {
-        return this.indexOf(suffix, this.length - suffix.length) !== -1;
-    };
-
-    $("#templateFile").change(function() {
-        if (!$(this).val().toLowerCase().endsWith(".pdf")) {
-            if ($("#errorMessage").length === 0) {
-                var templateMessage = "<div id=\"submitError\" class=\"alertMessage\"> \n " +
-                                      "<spring:message code="form.error.templateField"/> \n" +
-                                      "</div>";
-                $("#submitError").replaceWith(templateMessage);
-            }
-        }
-    });
 </script>
 <%@ include file="/jsp/footer.jsp" %>

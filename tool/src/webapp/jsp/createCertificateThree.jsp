@@ -70,8 +70,6 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        loaded();
-
         $("#back").click(function() {
             back();
         });
