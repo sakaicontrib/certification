@@ -321,7 +321,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     });
 
                 } catch (Exception e) {
-                    log.error("isCriterionMet on GreatherThanScoreCriterion - An exception was thrown while retrieving {}'s score for itemId: {}.", userId, itemId, e);
+                    log.error("isCriterionMet on GreatherThanScoreCriterion - An exception was thrown while retrieving {}'s score for itemId: {}.", userId, itemId);
                     return false;
                 }
 
@@ -403,7 +403,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                 });
 
             } catch (Exception e) {
-                log.error("isCriterionMet - Exception thrown while retrieving the final course grade for {} in contextId: {}.", userId, contextId, e);
+                log.error("isCriterionMet - Exception thrown while retrieving the final course grade for {} in contextId: {}.", userId, contextId);
                 return false;
             }
 
@@ -423,7 +423,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             try {
                 assn = (Assignment) doSecureGradebookAction(() -> gbs.getAssignment(contextId, itemId));
             } catch (Exception e) {
-                log.error("isCriterionMet on DueDatePassedCriterion - An exception was thrown while retrieving a gradebook item; itemId: {}.", itemId, e);
+                log.error("isCriterionMet on DueDatePassedCriterion - An exception was thrown while retrieving a gradebook item; itemId: {}.", itemId);
                 return false;
             }
 
@@ -737,7 +737,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             return score;
 
         } catch (Exception e) {
-            log.error("getScore - an exception occurred while retrieving the score for {}; itemId: {}.", userId, itemId, e);
+            log.error("getScore - an exception occurred while retrieving the score for {}; itemId: {}.", userId, itemId);
             return null;
         }
     }
@@ -768,7 +768,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             });
 
         } catch (Exception e) {
-            log.error("getFinalScore - an exception occured while retrieving the final score for {} in {}.", userId, contextId, e);
+            log.error("getFinalScore - an exception occured while retrieving the final score for {} in {}.", userId, contextId);
             return null;
         }
     }

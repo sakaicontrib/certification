@@ -110,7 +110,7 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
                 assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
             }
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            log.error("{}", e.getMessage());
             return rl.getString("error.cannotEvaluate");
         }
 

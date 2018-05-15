@@ -150,9 +150,8 @@ public class ListScrollTag extends AbstractLocalizableTag {
             pageContext.setAttribute("list_scroll_end_index"  , listScroll.getLastItem ());
             pageContext.setAttribute("list_scroll_total_index", listScroll.getTotal    ());
             pageContext.setAttribute("list_scroll_page_size"  , listScroll.getPerPage  ());
-        }
-        catch (IOException e) {
-            log.error("{}", e);
+        } catch (IOException e) {
+            log.error("ListScrollTag.doStartTagInternal IOException");
             throw new JspException(e);
         }
 
@@ -171,7 +170,7 @@ public class ListScrollTag extends AbstractLocalizableTag {
                 }
             }
             catch(NumberFormatException nfe) {
-                log.warn("{}", nfe);
+                log.warn("getMinIntValue NumberFormatException: {}", vals[d]);
             }
         }
 

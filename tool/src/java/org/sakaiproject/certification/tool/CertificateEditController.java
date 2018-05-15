@@ -199,7 +199,7 @@ public class CertificateEditController extends BaseCertificateController {
                 return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, model);
 
             } catch (IdUsedException iue) {
-                log.warn("CertificateEditController.createCertHandlerFirst.save: {}", iue);
+                log.warn("IdUsedException: {}", iue.getId());
 
                 model.put(ERROR_MESSAGE, DUPLICATE_NAME_ERR);
                 model.put(MOD_ATTR, certificateToolState);
@@ -207,13 +207,13 @@ public class CertificateEditController extends BaseCertificateController {
                 return new ModelAndView(VIEW_CREATE_CERTIFICATE_ONE, model);
 
             } catch (Exception e) {
-                log.warn("CertificateEditController.createCertHandlerFirst.next: {}", e);
+                log.warn("CertificateEditController.createCertHandlerFirst.next");
                 CertificateDefinition certificateDefinition = certificateToolState.getCertificateDefinition();
                 if(certificateToolState.isNewDefinition() && certificateDefinition.getId() != null) {
                     try {
                       certificateService.deleteCertificateDefinition(certificateDefinition.getId());
                     } catch(IdUnusedException | DocumentTemplateException e2) {
-                        log.warn("{}", e);
+                        log.warn("IdUnusedException");
                     }
                 }
 
@@ -527,7 +527,7 @@ public class CertificateEditController extends BaseCertificateController {
                 }
 
             } catch(Exception e) {
-                log.warn("CertificateEditController.createCertHandlerThird.next: {}", e);
+                log.warn("CertificateEditController.createCertHandlerThird.next");
                 model.put(STATUS_MESSAGE_KEY, FORM_ERR);
                 model.put(MOD_ATTR, certificateToolState);
                 return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, model);
