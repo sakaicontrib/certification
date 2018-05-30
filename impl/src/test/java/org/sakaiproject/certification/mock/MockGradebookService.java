@@ -5,12 +5,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import org.sakaiproject.service.gradebook.shared.AssessmentNotFoundException;
 import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.service.gradebook.shared.AssignmentHasIllegalPointsException;
 import org.sakaiproject.service.gradebook.shared.CategoryDefinition;
+import org.sakaiproject.service.gradebook.shared.CategoryScoreData;
 import org.sakaiproject.service.gradebook.shared.CommentDefinition;
 import org.sakaiproject.service.gradebook.shared.ConflictingAssignmentNameException;
 import org.sakaiproject.service.gradebook.shared.ConflictingExternalIdException;
@@ -452,13 +454,13 @@ public class MockGradebookService implements GradebookService
     }
 
     @Override
-    public Double calculateCategoryScore(Long gradebookId, String studentUuid, Long categoryId)
+    public Optional<CategoryScoreData> calculateCategoryScore(Long gradebookId, String studentUuid, Long categoryId)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
-    public Double calculateCategoryScore(Object gradebook, String studentUuid, CategoryDefinition category, List<Assignment> categoryAssignments, Map<Long, String> gradeMap)
+    public Optional<CategoryScoreData> calculateCategoryScore(Object gradebook, String studentUuid, CategoryDefinition category, List<Assignment> categoryAssignments, Map<Long, String> gradeMap)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
@@ -534,4 +536,5 @@ public class MockGradebookService implements GradebookService
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
 }
