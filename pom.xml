@@ -5,7 +5,6 @@
         <groupId>org.sakaiproject</groupId>
         <artifactId>master</artifactId>
         <version>13-SNAPSHOT</version>
-        <relativePath>../master/pom.xml</relativePath>
     </parent>
 
     <name>Certification Base Project</name>
@@ -23,5 +22,30 @@
         <module>impl</module>
         <module>model</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>snapshots</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+                <property>
+                    <name>snapshots</name>
+                </property>
+            </activation>
+            <repositories>
+                <repository>
+                    <id>sonatype-nexus-snapshots</id>
+                    <name>Sonatype Nexus Snapshots</name>
+                    <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+                    <releases>
+                        <enabled>false</enabled>
+                    </releases>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
+            </repositories>
+        </profile>
+    </profiles>
 
 </project>
