@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<registration>
+
+    <tool id="sakai.certification"
+          title="Certification"
+          description="Provides certification for students who have met criteria established by an instructor">
+       <category name="course" />
+       <category name="project" />
+    </tool>
+
+    <function name="certificate.admin"/>
+    <function name="certificate.extraprops.view"/>
+    <function name="certificate.be.awarded"/>
+
+</registration>

@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping default-cascade="none" package="org.sakaiproject.certification.api.criteria.gradebook"
+	default-lazy="false">
+	<class name="org.sakaiproject.certification.api.criteria.gradebook.CertGradebookObject" table="GB_GRADABLE_OBJECT_T" discriminator-value="0">
+
+		<id name="id" column="ID" type="long">
+			<generator class="native">
+				<param name="sequence">GB_GRADABLE_OBJECT_S</param>
+			</generator>
+		</id>
+
+		<discriminator type="integer" column="OBJECT_TYPE_ID" />
+
+		<property name="name" column="NAME" type="string" not-null="true"/>
+		<property name="removed" column="REMOVED" type="boolean" />
+		<property name="released" column="RELEASED" type="boolean" />
+		<many-to-one name="gradebook" column="GRADEBOOK_ID" not-null="true"/>
+		<many-to-one name="category" column="CATEGORY_ID" class="org.sakaiproject.certification.api.criteria.gradebook.CertCategory" not-null="false"/>
+
+		<property name="ungraded" column="UNGRADED" type="boolean"/>
+
+		<subclass name="org.sakaiproject.certification.api.criteria.gradebook.CertAssignment"
+				extends="org.sakaiproject.certification.api.criteria.gradebook.CertGradebookObject"  discriminator-value="1">
+			<property name="pointsPossible" column="POINTS_POSSIBLE" type="double" />
+			<property name="notCounted" column="NOT_COUNTED" type="boolean" />
+			<property name="assignmentWeighting" column="ASSIGNMENT_WEIGHTING" type="double" not-null="false" />
+		</subclass>
+	</class>
+</hibernate-mapping>

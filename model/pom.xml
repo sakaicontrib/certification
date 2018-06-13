@@ -1,16 +1,16 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
+        <groupId>org.sakaiproject.certification</groupId>
         <artifactId>certification-base</artifactId>
-        <groupId>com.rsmart</groupId>
-        <version>13-SNAPSHOT</version>
+        <version>19-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
+    <name>Certification Hibernate Model</name>
+    <groupId>org.sakaiproject.certification</groupId>
     <artifactId>certification-model</artifactId>
-    <name>Certifcation Hibernate Model</name>
     <packaging>jar</packaging>
     <properties>
         <deploy.target>shared</deploy.target>
@@ -18,19 +18,13 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.sakaiproject.edu-services.gradebook</groupId>
-            <artifactId>gradebook-service-api</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>org.sakaiproject.kernel</groupId>
             <artifactId>sakai-kernel-api</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.rsmart</groupId>
+            <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-api</artifactId>
-            <version>${sakai.version}</version>
-            <scope>provided</scope>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>
@@ -39,10 +33,13 @@
     </dependencies>
 
     <build>
-        <sourceDirectory>${basedir}/src/main/java</sourceDirectory>
+        <sourceDirectory>${basedir}/src/java</sourceDirectory>
         <resources>
             <resource>
-                <directory>${basedir}/src/main/hibernate</directory>
+                <directory>${basedir}/src/java</directory>
+				<includes>
+					<include>**/*.hbm.xml</include>
+				</includes>
             </resource>
         </resources>
     </build>

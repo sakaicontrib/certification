@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <subclass name="org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriterion"
+              extends="org.sakaiproject.certification.api.criteria.AbstractCriterion"
+              discriminator-value="org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriterion"
+              lazy="false">
+    </subclass>
+
+</hibernate-mapping>

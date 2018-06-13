@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd"
+    default-lazy-init="false">
+
+    <bean id="certification.AdditionalHibernateMappings"
+          class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
+        <property name="mappingResources">
+            <list>
+                <value>org/sakaiproject/certification/impl/CertificateDefinition.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/DocumentTemplate.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/AbstractCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/GreaterThanScoreCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/DueDatePassedCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/FinalGradeScoreCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/WillExpireCriterion.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertAssignment.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertCategory.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertGradebook.hbm.xml</value>
+                <value>org/sakaiproject/certification/impl/criteria/gradebook/CertGradeRecord.hbm.xml</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="org.sakaiproject.certification.api.CertificateService"
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+
+        <!-- Transaction manager -->
+        <property name="transactionManager">
+            <ref bean="org.sakaiproject.springframework.orm.hibernate.GlobalTransactionManager"/>
+        </property>
+
+        <!-- Implementation target -->
+        <property name="target">
+            <ref bean="org.sakaiproject.certification.api.CertificateService.wrapped"/>
+        </property>
+
+        <!-- Transaction settings for methods in the service -->
+        <property name="transactionAttributes">
+            <props>
+                <prop key="addAwardCriterion">PROPAGATION_REQUIRES_NEW</prop>
+                <prop key="setDocumentTemplate">PROPAGATION_REQUIRES_NEW</prop>
+                <prop key="*">PROPAGATION_REQUIRED</prop>
+            </props>
+        </property>
+    </bean>
+
+    <bean id="org.sakaiproject.certification.api.CertificateService.wrapped"
+          class="org.sakaiproject.certification.impl.hibernate.CertificateServiceHibernateImpl"
+          init-method="init">
+
+         <!--S akai services -->
+        <property name="contentHostingService" ref="org.sakaiproject.content.api.ContentHostingService"/>
+        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+        <property name="authzGroupService" ref="org.sakaiproject.authz.api.AuthzGroupService" />
+        <property name="siteService" ref="org.sakaiproject.site.api.SiteService" />
+
+        <!-- Certification services -->
+        <property name="documentTemplateService" ref="org.sakaiproject.certification.api.DocumentTemplateService"/>
+        <property name="candidateDetailProvider">
+            <bean class="org.sakaiproject.certification.impl.OptionalFactoryBean"/>
+        </property>
+
+        <!-- Member variables -->
+        <property name="templateDirectory" value="${sakai.home}/templates"/>
+
+    <!-- Spring/Hibernate -->
+        <property name="sessionFactory" ref="org.sakaiproject.springframework.orm.hibernate.GlobalSessionFactory"/>
+    </bean>
+
+    <bean id="org.sakaiproject.certification.api.DocumentTemplateService"
+          class="org.sakaiproject.certification.impl.DocumentTemplateServiceImpl">
+        <property name="variableResolvers">
+            <set>
+                <bean class="org.sakaiproject.certification.impl.AwardVariableResolver"/>
+                <bean class="org.sakaiproject.certification.impl.RecipientVariableResolver">
+                    <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+                </bean>
+                <bean class="org.sakaiproject.certification.impl.GradebookVariableResolver">
+                    <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
+                    <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+                    <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
+                    <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+                    <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+                </bean>
+            </set>
+        </property>
+    </bean>
+
+    <bean id="org.sakaiproject.certification.impl.ITextDocumentTemplateRenderEngine"
+          class="org.sakaiproject.certification.impl.ITextDocumentTemplateRenderEngine"
+          init-method="init">
+        <property name="certificateService" ref="org.sakaiproject.certification.api.CertificateService"/>
+        <property name="documentTemplateService" ref="org.sakaiproject.certification.api.DocumentTemplateService"/>
+    </bean>
+
+    <bean id="org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
+          class="org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
+          init-method="init">
+        <property name="certificateService" ref="org.sakaiproject.certification.api.CertificateService"/>
+        <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
+        <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
+        <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
+        <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
+        <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
+        <property name="resourceLoader" ref="certification.ResourceLoader"/>
+    </bean>
+
+    <bean id="certification.ResourceLoader"
+          class="org.sakaiproject.util.ResourceLoader">
+        <property name="baseName" value="org.sakaiproject.certification.Messages"/>
+    </bean>
+
+    <bean id="org.sakaiproject.certification.api.util.PortalParamManager"
+          class="org.sakaiproject.certification.impl.util.PortalParamManagerImpl">
+        <property name="parameters">
+            <list>
+                <value>pid</value>
+                <value>panelId</value>
+            </list>
+        </property>
+    </bean>
+
+</beans>

@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC 
+	"-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+	"http://hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="org.sakaiproject.certification.api.criteria.AbstractCriterion" table="certificate_criterion"
+           abstract="true" lazy="false">
+        <id name="id" length="36" type="java.lang.String" column="id">
+            <generator class="uuid.hex" />
+        </id>
+        <discriminator column="type"/>
+        <map name="variableBindings" lazy="false" cascade="save-update,delete" table="certificate_criterion_binding">
+            <key column="criterion_id" not-null="true"/>
+            <map-key type="java.lang.String" column="variable_key"/>
+            <element type="java.lang.String" column="variable_value"/>
+        </map>
+    </class>
+
+</hibernate-mapping>
