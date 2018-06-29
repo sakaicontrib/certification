@@ -40,3 +40,8 @@ UPDATE certificate_criterion SET type = 'org.sakaiproject.certification.api.crit
 UPDATE certificate_criterion SET type = 'org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriterion' where type = 'com.rsmart.certification.impl.hibernate.criteria.gradebook.DueDatePassedCriterionHibernateImpl';
 ```
 
+The tool id has been changed for consistency:
+```
+UPDATE sakai_site_tool SET registration = 'sakai.certification' WHERE registration = 'com.rsmart.certification';
+```
+
