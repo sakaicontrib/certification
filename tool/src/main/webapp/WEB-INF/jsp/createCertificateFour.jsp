@@ -95,7 +95,7 @@
                         <tr>
                             <td>${tField.key}</td>
                             <td>${tField.value}</td>
-                            <c:if test = "${tField.value == '${unassigned}'}" >
+                            <c:if test = "${tField.value == 'unassigned'}" >
                                 <td><form:input path="templateFields['${tField.key}']" autocomplete="off"/></td>
                             </c:if>
                         </tr>
