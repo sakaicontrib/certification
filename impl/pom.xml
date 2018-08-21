@@ -36,12 +36,10 @@
         <dependency>
             <groupId>org.sakaiproject.kernel</groupId>
             <artifactId>sakai-kernel-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.kernel</groupId>
             <artifactId>sakai-component-manager</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.kernel</groupId>
@@ -50,7 +48,6 @@
         <dependency>
             <groupId>org.sakaiproject.edu-services.gradebook</groupId>
             <artifactId>gradebook-service-api</artifactId>
-            <scope>provided</scope>
         </dependency>
 
         <!-- Spring -->
@@ -99,15 +96,12 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-          <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <scope>provided</scope>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>${sakai.commons.lang3.version}</version>
-            <type>jar</type>
         </dependency>
     </dependencies>
 
