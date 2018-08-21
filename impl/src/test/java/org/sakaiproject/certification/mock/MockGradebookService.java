@@ -145,6 +145,11 @@ public class MockGradebookService implements GradebookService
     }
 
     @Override
+    public boolean getIsAssignmentExcused(String s, Long aLong, String s1) throws GradebookNotFoundException, AssessmentNotFoundException {
+        return false;
+    }
+
+    @Override
     public boolean isValidNumericGrade(String grade)
     {
         return false;
@@ -309,6 +314,11 @@ public class MockGradebookService implements GradebookService
     public void saveGradeAndCommentForStudent(String gradebookUid, Long gradableObjectId, String studentId, String grade, String comment) throws InvalidGradeException, GradebookNotFoundException, AssessmentNotFoundException {}
 
     public void saveGradesAndComments(String gradebookUid, Long gradableObjectId, List<GradeDefinition> gradeDefList) throws InvalidGradeException, GradebookNotFoundException, AssessmentNotFoundException {}
+
+    @Override
+    public void saveGradeAndExcuseForStudent(String s, Long aLong, String s1, String s2, boolean b) throws InvalidGradeException, GradebookNotFoundException, AssessmentNotFoundException {
+
+    }
 
     public Map getFixedGrade(String gradebookUid)
     {
