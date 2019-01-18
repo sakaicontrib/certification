@@ -1,7 +1,8 @@
 # certification
 
-The master branch is the Sakai 19 version.
+The master branch is the Sakai 20 version.
 
+19.x branch is for Sakai 19.
 12.x branch is for Sakai 12.
 11.x branch is for Sakai 11.
 

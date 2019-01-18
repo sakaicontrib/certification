@@ -29,6 +29,18 @@ public class MockGradebookService implements GradebookService
 {
 
     @Override
+    public Optional<CategoryScoreData> calculateCategoryScore( Long gradebookId, String studentUuid, Long categoryId, boolean includeNonReleasedItems )
+    {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<CategoryScoreData> calculateCategoryScore( Object gradebook, String studentUuid, CategoryDefinition category, List<Assignment> categoryAssignments, Map<Long, String> gradeMap, boolean includeNonReleasedItems )
+    {
+        return Optional.empty();
+    }
+
+    @Override
     public Map<String, CourseGrade> getCourseGradeForStudents(String gradebookUid, List<String> userUuids, Map<String, Double> schema)
     {
         return null;
@@ -167,6 +179,12 @@ public class MockGradebookService implements GradebookService
     public String getGradebookDefinitionXml(String gradebookUid)
     {
         return null;
+    }
+
+    @Override
+    public Map<String, String> transferGradebook( GradebookInformation gradebookInformation, List<Assignment> assignments, String toGradebookUid, String fromContext )
+    {
+        throw new UnsupportedOperationException( "Not supported yet." ); //To change body of generated methods, choose Tools | Templates.
     }
 
     public void transferGradebookDefinitionXml(String fromGradebookUid, String toGradebookUid, String fromGradebookXml) {}
@@ -392,12 +410,6 @@ public class MockGradebookService implements GradebookService
     }
 
     @Override
-    public void transferGradebook(GradebookInformation gradebookInformation, List<Assignment> assignments, String toGradebookUid)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public GradebookInformation getGradebookInformation(String gradebookUid)
     {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -459,18 +471,6 @@ public class MockGradebookService implements GradebookService
 
     @Override
     public List getGradingEvents(String studentId, long assignmentId)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Optional<CategoryScoreData> calculateCategoryScore(Long gradebookId, String studentUuid, Long categoryId)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Optional<CategoryScoreData> calculateCategoryScore(Object gradebook, String studentUuid, CategoryDefinition category, List<Assignment> categoryAssignments, Map<Long, String> gradeMap)
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
