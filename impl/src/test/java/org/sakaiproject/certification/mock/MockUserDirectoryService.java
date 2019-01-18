@@ -117,6 +117,18 @@ public class MockUserDirectoryService implements UserDirectoryService
                 return null;
             }
 
+            @Override
+            public String getDisplayId( String context )
+            {
+                return null;
+            }
+
+            @Override
+            public String getDisplayName( String context )
+            {
+                return null;
+            }
+
             public User getModifiedBy()
             {
                 return null;
