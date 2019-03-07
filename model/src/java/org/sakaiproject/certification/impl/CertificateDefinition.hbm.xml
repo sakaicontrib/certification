@@ -20,7 +20,7 @@
                   not-null="true"/>
         <property name="progressHidden" type="java.lang.Boolean" column="progress_hidden"/>
         <set name="awardCriteria" lazy="false" cascade="save-update,delete">
-            <key column="certificate_definition_id" not-null="true" />
+            <key column="certificate_definition_id" />
             <one-to-many class="org.sakaiproject.certification.api.criteria.AbstractCriterion"/>
         </set>
 
