@@ -205,8 +205,8 @@
         <tbody align="left">
             <c:forEach var="row" items="${reportList.pageList}">
                 <tr>
-                    <td>${row.name}</td>
-                    <td>${row.userId}</td>
+                    <td><c:out value="${row.name}" /></td>
+                    <td><c:out value="${row.userId}" /></td>
                     <td class="hidden-xs">${row.role}</td>
                     <c:if test="${canUserViewStudentNums != false}">
                         <td class="hidden-xs">${row.studentNumber}</td>
