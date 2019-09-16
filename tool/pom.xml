@@ -77,7 +77,7 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>${sakai.jackson.version}.1</version>
+            <version>${sakai.jackson.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
