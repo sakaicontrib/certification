@@ -27,7 +27,6 @@ import org.sakaiproject.service.gradebook.shared.StaleObjectModificationExceptio
 
 public class MockGradebookService implements GradebookService
 {
-
     @Override
     public Optional<CategoryScoreData> calculateCategoryScore( Long gradebookId, String studentUuid, Long categoryId, boolean includeNonReleasedItems )
     {
@@ -42,6 +41,12 @@ public class MockGradebookService implements GradebookService
 
     @Override
     public Map<String, CourseGrade> getCourseGradeForStudents(String gradebookUid, List<String> userUuids, Map<String, Double> schema)
+    {
+        return null;
+    }
+
+    @Override
+    public Assignment getExternalAssignment( String gradebookUid, String externalId ) throws GradebookNotFoundException
     {
         return null;
     }
@@ -546,5 +551,4 @@ public class MockGradebookService implements GradebookService
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }
