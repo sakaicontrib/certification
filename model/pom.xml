@@ -24,7 +24,6 @@
         <dependency>
             <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-api</artifactId>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.hibernate</groupId>

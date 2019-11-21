@@ -22,14 +22,10 @@
         <dependency>
             <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-api</artifactId>
-            <scope>provided</scope>
-            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.sakaiproject.certification</groupId>
             <artifactId>certification-model</artifactId>
-            <scope>provided</scope>
-            <version>${project.version}</version>
         </dependency>
 
         <!-- Sakai -->
