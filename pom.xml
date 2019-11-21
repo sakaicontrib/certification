@@ -23,6 +23,28 @@
         <module>model</module>
     </modules>
 
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.sakaiproject.certification</groupId>
+                <artifactId>certification-api</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.sakaiproject.certification</groupId>
+                <artifactId>certification-model</artifactId>
+                <version>${project.version}</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
+                <groupId>javax.servlet</groupId>
+                <artifactId>jstl</artifactId>
+                <version>1.1.2</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
     <profiles>
         <profile>
             <id>snapshots</id>
@@ -47,5 +69,4 @@
             </repositories>
         </profile>
     </profiles>
-
 </project>
