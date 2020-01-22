@@ -433,18 +433,6 @@ public class MockGradebookService implements GradebookService
     }
 
     @Override
-    public Map<String, String> getImportCourseGrade(String gradebookUid, boolean useDefault)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
-    public Map<String, String> getImportCourseGrade(String gradebookUid, boolean useDefault, boolean mapTheGrades)
-    {
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    @Override
     public Map<Long, List<GradeDefinition>> getGradesWithoutCommentsForStudentsForItems(String gradebookUid, List<Long> gradableOjbectIds, List<String> studentIds)
     {
         throw new UnsupportedOperationException("Not supported yet.");
