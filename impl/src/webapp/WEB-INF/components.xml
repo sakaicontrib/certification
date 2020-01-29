@@ -67,7 +67,7 @@
         <!-- Certification services -->
         <property name="documentTemplateService" ref="org.sakaiproject.certification.api.DocumentTemplateService"/>
         <property name="candidateDetailProvider">
-            <bean class="org.sakaiproject.certification.impl.OptionalFactoryBean"/>
+            <bean name="org.sakaiproject.user.api.CandidateDetailProvider" class="org.sakaiproject.certification.impl.OptionalFactoryBean"/>
         </property>
 
         <!-- Member variables -->
