@@ -78,7 +78,7 @@ public class CertificateListController extends BaseCertificateController {
     public static final String PAGINATION_PAGE = "page";
     public static final String PAGE_SIZE = "pageSize";
     public static final String PAGE_NO = "pageNo";
-    public static final List<Integer> PAGE_SIZE_LIST = Arrays.asList(10,25,50,100,200,Integer.MAX_VALUE);
+    public static final List<Integer> PAGE_SIZE_LIST = Arrays.asList(200,400,800,1600,Integer.MAX_VALUE);
 
     //Other request params
     public static final String PARAM_CERT_ID = "certId";

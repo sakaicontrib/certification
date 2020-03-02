@@ -30,7 +30,7 @@ public class ListScrollTag extends AbstractLocalizableTag {
     private ListScroll listScroll;
     private String className;
     private boolean showDropdown  = true;
-    private String dropdownOptions = "10;25;50;100;" + Integer.MAX_VALUE;
+    private String dropdownOptions = "200;400;800;1600;" + Integer.MAX_VALUE;
 
     public static String SCROLL_SIZE = "sroll_size";
     public static final String ALL_KEY = "listscroll_all";
