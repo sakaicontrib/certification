@@ -2,10 +2,12 @@ package org.sakaiproject.certification.mock;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.sakaiproject.site.api.Site;
+import org.sakaiproject.site.api.SitePage;
 import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.tool.api.Placement;
 import org.sakaiproject.tool.api.Tool;
@@ -86,6 +88,16 @@ public class MockToolManager implements ToolManager
     }
 
     public void setResourceBundle(String toolId, String filename) {}
+
+    @Override
+    public List<Set<String>> getRequiredPermissions(ToolConfiguration config) {
+        return null;
+    }
+
+    @Override
+    public boolean isFirstToolVisibleToAnyNonMaintainerRole(SitePage page) {
+        return false;
+    }
 
     public boolean isVisible(Site site, ToolConfiguration config)
     {
