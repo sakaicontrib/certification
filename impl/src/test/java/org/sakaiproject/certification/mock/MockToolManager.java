@@ -2,10 +2,13 @@ package org.sakaiproject.certification.mock;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.Collections;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
 
 import org.sakaiproject.site.api.Site;
+import org.sakaiproject.site.api.SitePage;
 import org.sakaiproject.site.api.ToolConfiguration;
 import org.sakaiproject.tool.api.Placement;
 import org.sakaiproject.tool.api.Tool;
@@ -15,6 +18,19 @@ import org.w3c.dom.Document;
 
 public class MockToolManager implements ToolManager
 {
+
+    @Override
+    public List<Set<String>> getRequiredPermissions( ToolConfiguration config )
+    {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public boolean isFirstToolVisibleToAnyNonMaintainerRole( SitePage page )
+    {
+        return false;
+    }
+
     public void register(Tool tool) {}
 
     public void register(Document toolXml) {}
