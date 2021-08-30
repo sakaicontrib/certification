@@ -17,6 +17,13 @@ import org.w3c.dom.Document;
 
 public class MockToolManager implements ToolManager
 {
+
+    @Override
+    public boolean isStealthed( String toolID )
+    {
+        return false;
+    }
+
     public void register(Tool tool) {}
 
     public void register(Document toolXml) {}
