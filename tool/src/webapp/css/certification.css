@@ -48,3 +48,7 @@
 .not-met-criterion {
     color: red;
 }
+
+input#score, input#expiry\.offset {
+    max-width: 3em;
+}
