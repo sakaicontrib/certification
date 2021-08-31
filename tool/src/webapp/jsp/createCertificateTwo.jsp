@@ -239,14 +239,14 @@
                     appendCriterionToDiv(data);
                 },
                 error: function (xhr, status, errorThrown) {
-                    var patt = new RegExp("ERROR_MESSAGE(.*?)/ERROR_MESSAGE");
+                    var patt = new RegExp("ERROR_MESSAGE(.*?)&#47;ERROR_MESSAGE");
 
                     var match = patt.exec(xhr.responseText);
 
                     if (match !== null) {
                         $("#submitError").html(match[1]).removeClass("hidden");
                     } else if(xhr.responseText.indexOf( "**TooManyExpiry**" ) !== -1) {
-                        $("#submitError").html("<spring:message code='form.expiry.tooMany' />").removeClass("hidden");
+                        $("#submitError").html("<spring:message code='form.error.tooManyExpiry' />").removeClass("hidden");
                     } else {
                         $("#submitError").html("<spring:message code='form.error.criteriaProcessingError' />").removeClass("hidden");
                     }
