@@ -64,7 +64,7 @@ public class BaseCertificateController {
     protected CertificateDefinitionValidator certificateDefinitionValidator = new CertificateDefinitionValidator();
     protected ResourceLoader messages = new ResourceLoader("org.sakaiproject.certification.tool.Messages");
 
-    protected static final String EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY = "form.expiry.onlyCriterionError";
+    protected static final String EXPIRY_ONLY_CRITERION_ERROR_MSG_KEY = "form.error.expiry.onlyCriterionError";
 
     protected ToolManager                 toolManager;
     protected UserDirectoryService        userDirectoryService;
