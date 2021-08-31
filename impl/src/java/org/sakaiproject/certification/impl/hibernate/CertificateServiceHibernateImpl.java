@@ -45,7 +45,6 @@ import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.hibernate4.HibernateCallback;
 import org.springframework.orm.hibernate4.HibernateObjectRetrievalFailureException;
 import org.springframework.orm.hibernate4.HibernateTemplate;
@@ -54,7 +53,7 @@ import org.springframework.orm.hibernate4.support.HibernateDaoSupport;
 import org.sakaiproject.antivirus.api.VirusFoundException;
 import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.Role;
-import org.sakaiproject.authz.api.SecurityAdvisor.SecurityAdvice;
+import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
@@ -374,13 +373,16 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         ContentResourceEdit resourceEdit = null;
         boolean resourceExist = false;
 
+        AllowMapSecurityAdvisor contentRead = new AllowMapSecurityAdvisor(ContentHostingService.EVENT_RESOURCE_READ, contentHostingService.getReference(resourceId));
+        AllowMapSecurityAdvisor contentAdd = new AllowMapSecurityAdvisor(ContentHostingService.EVENT_RESOURCE_ADD, contentHostingService.getReference(resourceId));
+        boolean advisorNeeded = false;
+
         try {
             try {
                 if(authzGroupService.getAuthzGroup(siteService.siteReference(siteId)).isAllowed(sessionManager.getCurrentSessionUserId(), "certificate.admin")) {
-                    getSecurityService().pushAdvisor(new AllowMapSecurityAdvisor(ContentHostingService.EVENT_RESOURCE_READ,
-                        contentHostingService.getReference(resourceId)));
-                    getSecurityService().pushAdvisor(new AllowMapSecurityAdvisor(ContentHostingService.EVENT_RESOURCE_ADD,
-                        contentHostingService.getReference(resourceId)));
+                    advisorNeeded = true;
+                    getSecurityService().pushAdvisor(contentRead);
+                    getSecurityService().pushAdvisor(contentAdd);
                 }
             } catch(Exception e) { }
 
@@ -395,9 +397,18 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
         } catch (TypeException e) {
             throw new DocumentTemplateException ("(TypeException) Error storing template", e);
+        } finally {
+            if (advisorNeeded) {
+                getSecurityService().popAdvisor(contentAdd);
+                getSecurityService().popAdvisor(contentRead);
+            }
         }
 
         try {
+            if (advisorNeeded) {
+                getSecurityService().pushAdvisor(contentRead);
+                getSecurityService().pushAdvisor(contentAdd);
+            }
             if(resourceExist) {
                 resourceEdit = contentHostingService.editResource(resourceId);
                 ResourcePropertiesEdit props = resourceEdit.getPropertiesEdit();
@@ -448,8 +459,10 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             throw new DocumentTemplateException ("(InUseException) Error storing template", e);
 
         } finally {
-            getSecurityService().popAdvisor();
-            getSecurityService().popAdvisor();
+            if (advisorNeeded) {
+                getSecurityService().popAdvisor(contentAdd);
+                getSecurityService().popAdvisor(contentRead);
+            }
         }
 
         return resourceEdit;
@@ -572,12 +585,13 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     }
 
     private Object doSecureCertificateService(SecureCertificateServiceCallback callback) throws Exception {
+        SecurityAdvisor yesMan = (String userId, String function, String reference) -> SecurityAdvisor.SecurityAdvice.ALLOWED;
         try {
-            securityService.pushAdvisor((String userId, String function, String reference) -> SecurityAdvice.ALLOWED);
+            securityService.pushAdvisor(yesMan);
             return callback.doSecureAction();
         }
         finally {
-           securityService.popAdvisor();
+           securityService.popAdvisor(yesMan);
         }
     }
 
