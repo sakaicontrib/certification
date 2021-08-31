@@ -247,6 +247,12 @@
                         $("#submitError").html(match[1]).removeClass("hidden");
                     } else if(xhr.responseText.indexOf( "**TooManyExpiry**" ) !== -1) {
                         $("#submitError").html("<spring:message code='form.error.tooManyExpiry' />").removeClass("hidden");
+                    } else if(xhr.responseText.indexOf( "**TooManyFinalGradeCriteria**" ) !== -1) {
+                        $("#submitError").html("<spring:message code='form.error.tooManyCourseGrade' />").removeClass("hidden");
+                    } else if(xhr.responseText.indexOf( "**TooManyDueDateCriterionOnSameGradebookItem**" ) !== -1) {
+                        $("#submitError").html("<spring:message code='form.error.tooManyDueDateOnSameItem' />").removeClass("hidden");
+                    } else if(xhr.responseText.indexOf( "**TooManyGreaterThanCriterionOnSameGradebookItem**" ) !== -1) {
+                        $("#submitError").html("<spring:message code='form.error.tooManyGreaterThanOnSameItem' />").removeClass("hidden");
                     } else {
                         $("#submitError").html("<spring:message code='form.error.criteriaProcessingError' />").removeClass("hidden");
                     }
