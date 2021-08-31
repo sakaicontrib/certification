@@ -57,6 +57,9 @@ import org.sakaiproject.certification.api.criteria.CriteriaTemplate;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.InvalidBindingException;
+import org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriterion;
+import org.sakaiproject.certification.api.criteria.gradebook.FinalGradeScoreCriterion;
+import org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion;
 import org.sakaiproject.certification.api.criteria.gradebook.WillExpireCriterion;
 import org.sakaiproject.certification.tool.util.CertificateToolState;
 import org.sakaiproject.exception.IdUnusedException;
@@ -102,6 +105,9 @@ public class CertificateEditController extends BaseCertificateController {
     private static final String INVALID_DESCRIPTION_LENGTH = "form.submit.error.description.too.long";
 
     private static final String TOO_MANY_EXPIRATION_CRITERIA = "**TooManyExpiry**";
+    private static final String TOO_MANY_FINAL_GRADE_CRITERIA = "**TooManyFinalGradeCriteria**";
+    private static final String TOO_MANY_DUE_DATE_CRITERIA_ON_SAME_GRADEBOOK_ITEM = "**TooManyDueDateCriterionOnSameGradebookItem**";
+    private static final String TOO_MANY_GREATER_THAN_CRITERIA_ON_SAME_GRADEBOOK_ITEM = "**TooManyGreaterThanCriterionOnSameGradebookItem**";
 
     private final Pattern varValuePattern = Pattern.compile ("variableValues\\[(.*)\\]");
 
@@ -722,6 +728,64 @@ public class CertificateEditController extends BaseCertificateController {
             // If more than one expiry was found, return the flag to produce the proper UI error message
             if( alreadyHasExpiry ) {
                 response.sendError( ERROR_BAD_REQUEST, TOO_MANY_EXPIRATION_CRITERIA );
+                return;
+            }
+        }
+
+        // Multiple course grade criterion check
+        if( newCriterion != null && newCriterion instanceof FinalGradeScoreCriterion ) {
+            boolean alreadyHasFinalGradeCriterion = false;
+            if( !cert.getAwardCriteria().isEmpty() ) {
+                for( Criterion criterion : cert.getAwardCriteria() ) {
+                    if( criterion != null && criterion instanceof FinalGradeScoreCriterion ) {
+                        alreadyHasFinalGradeCriterion = true;
+                        break;
+                    }
+                }
+            }
+
+            if( alreadyHasFinalGradeCriterion ) {
+                response.sendError( ERROR_BAD_REQUEST, TOO_MANY_FINAL_GRADE_CRITERIA );
+                return;
+            }
+        }
+
+        // Multiple due date passed criterion on the same gradebook item check
+        if( newCriterion != null && newCriterion instanceof DueDatePassedCriterion ) {
+            String gradebookItem = ((DueDatePassedCriterion) newCriterion).getItemName();
+            boolean alreadyHasDueDateCriterionForGradebookItem = false;
+            if( !cert.getAwardCriteria().isEmpty() ) {
+                for( Criterion criterion : cert.getAwardCriteria() ) {
+                    if( criterion != null && criterion instanceof DueDatePassedCriterion ) {
+                        if( gradebookItem.equals( ((DueDatePassedCriterion) criterion).getItemName()) ) {
+                            alreadyHasDueDateCriterionForGradebookItem = true;
+                        }
+                    }
+                }
+            }
+
+            if( alreadyHasDueDateCriterionForGradebookItem ) {
+                response.sendError( ERROR_BAD_REQUEST, TOO_MANY_DUE_DATE_CRITERIA_ON_SAME_GRADEBOOK_ITEM );
+                return;
+            }
+        }
+
+        // Multiple gradebook item score criterion on the same gradebook item check
+        if( newCriterion != null && newCriterion instanceof GreaterThanScoreCriterion ) {
+            String gradebookItem = ((GreaterThanScoreCriterion) newCriterion).getItemName();
+            boolean alreadyHasGreaterThanCriterionForGradebookItem = false;
+            if( !cert.getAwardCriteria().isEmpty() ) {
+                for( Criterion criterion : cert.getAwardCriteria() ) {
+                    if( criterion != null && criterion instanceof GreaterThanScoreCriterion ) {
+                        if( gradebookItem.equals( ((GreaterThanScoreCriterion) criterion).getItemName()) ) {
+                            alreadyHasGreaterThanCriterionForGradebookItem = true;
+                        }
+                    }
+                }
+            }
+
+            if( alreadyHasGreaterThanCriterionForGradebookItem ) {
+                response.sendError( ERROR_BAD_REQUEST, TOO_MANY_GREATER_THAN_CRITERIA_ON_SAME_GRADEBOOK_ITEM );
                 return;
             }
         }
