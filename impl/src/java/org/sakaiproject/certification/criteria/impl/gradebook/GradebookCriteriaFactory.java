@@ -97,6 +97,10 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
     private static final String ERROR_WHOLE_NUMBER_REQUIRED = "value.wholeNumberRequired";
     private static final String ERROR_NEGATIVE_NUMBER = "value.negativenumber";
     private static final String ERROR_TOO_HIGH = "value.toohigh";
+    private static final String ERROR_TOO_HIGH_COURSE_GRADE = "value.tooHighCourseGrade";
+    private static final String EXPIRY_REQUIREMENTS = "expiry.requirements";
+    private static final String SCORE_REQUIREMENTS = "gradebookItem.requirements";
+    private static final String COURSE_GRADE_REQUIREMENTS = "courseGrade.requirements";
 
     public void init() {
         gbItemScoreTemplate = new GreaterThanScoreCriteriaTemplate(this);
@@ -107,9 +111,6 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
         gbDueDatePassedTemplate = new DueDatePassedCriteriaTemplate(this);
         gbDueDatePassedTemplate.setResourceLoader(resourceLoader);
-
-        gbFinalGradeScoreTemplate = new FinalGradeScoreCriteriaTemplate(this);
-        gbFinalGradeScoreTemplate.setResourceLoader(resourceLoader);
 
         gbWillExpireTemplate = new WillExpireCriteriaTemplate(this);
         gbWillExpireTemplate.setResourceLoader(resourceLoader);
@@ -481,7 +482,9 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                             InvalidBindingException ibe = new InvalidBindingException();
                             ibe.setBindingKey(KEY_SCORE);
                             ibe.setBindingValue(value);
-                            ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_NAN, new Object[] {value}));
+                            String errorMessage = rl.getFormattedMessage(ERROR_NAN, new Object[] {value}) + " " +
+                                                  (template instanceof FinalGradeScoreCriteriaTemplate ? rl.getString(COURSE_GRADE_REQUIREMENTS) : rl.getString(SCORE_REQUIREMENTS));
+                            ibe.setLocalizedMessage(errorMessage);
                             throw ibe;
                         }
                     }
@@ -489,7 +492,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     InvalidBindingException ibe = new InvalidBindingException ();
                     ibe.setBindingKey(variable.getVariableKey());
                     ibe.setBindingValue(value);
-                    ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_MIN_REQUIRED, new Object[] {value}));
+                    ibe.setLocalizedMessage(rl.getString(ERROR_MIN_REQUIRED));
                     throw ibe;
 
                 } else if (variable.getVariableKey().equals(KEY_EXPIRY_OFFSET)) {
@@ -500,7 +503,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                             InvalidBindingException ibe = new InvalidBindingException();
                             ibe.setBindingKey(KEY_EXPIRY_OFFSET);
                             ibe.setBindingValue(value);
-                            ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_NAN, new Object[] {value}));
+                            ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_NAN, new Object[] {value}) + " " + rl.getString(EXPIRY_REQUIREMENTS));
                             throw ibe;
                         }
 
@@ -510,7 +513,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                             InvalidBindingException ibe = new InvalidBindingException();
                             ibe.setBindingKey(KEY_EXPIRY_OFFSET);
                             ibe.setBindingValue(value);
-                            ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_WHOLE_NUMBER_REQUIRED, new Object[] {value}));
+                            ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_WHOLE_NUMBER_REQUIRED, new Object[] {value})+ " " + rl.getString(EXPIRY_REQUIREMENTS));
                             throw ibe;
                         }
                     }
@@ -556,7 +559,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                 InvalidBindingException ibe = new InvalidBindingException();
                 ibe.setBindingKey(KEY_SCORE);
                 ibe.setBindingValue(scoreStr);
-                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {scoreStr} ));
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {scoreStr}) + " " + rl.getString(SCORE_REQUIREMENTS));
                 throw ibe;
             }
 
@@ -564,7 +567,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                 InvalidBindingException ibe = new InvalidBindingException();
                 ibe.setBindingKey(KEY_SCORE);
                 ibe.setBindingValue(scoreStr);
-                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {scoreStr}));
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {scoreStr}) + " " + rl.getString(SCORE_REQUIREMENTS));
                 throw ibe;
             }
 
@@ -576,7 +579,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                 if (assn.getPoints()==0) {
                     ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EMPTY_GRADEBOOK, new Object[] {scoreStr} ));
                 } else {
-                    ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_TOO_HIGH, new Object[] {scoreStr}));
+                    ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_TOO_HIGH, new Object[] {scoreStr, assn.getPoints()}));
                 }
 
                 throw ibe;
@@ -636,17 +639,17 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             try {
                 score = Double.parseDouble(scoreStr);
             } catch (NumberFormatException nfe) {
-                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {scoreStr}));
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {scoreStr}) + " " + rl.getString(COURSE_GRADE_REQUIREMENTS));
                 throw ibe;
             }
 
             if (score < 0) {
-                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {scoreStr}));
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {scoreStr}) + " " + rl.getString(COURSE_GRADE_REQUIREMENTS));
                 throw ibe;
             }
 
             if (score > totalAvailable) {
-                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_TOO_HIGH, new Object[] {scoreStr}));
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_TOO_HIGH_COURSE_GRADE, new Object[] {scoreStr, totalAvailable}));
                 throw ibe;
             }
 
@@ -677,12 +680,12 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             try {
                 expiryOffset = Integer.parseInt(strExpiryOffset);
             } catch (NumberFormatException e) {
-                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {strExpiryOffset} ));
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NAN, new Object[] {strExpiryOffset}) + " " + rl.getString(EXPIRY_REQUIREMENTS));
                 throw ibe;
             }
 
             if (expiryOffset < 0) {
-                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {strExpiryOffset} ));
+                ibe.setLocalizedMessage (rl.getFormattedMessage(ERROR_NEGATIVE_NUMBER, new Object[] {strExpiryOffset}) + " " + rl.getString(EXPIRY_REQUIREMENTS));
                 throw ibe;
             }
 
