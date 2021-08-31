@@ -90,7 +90,7 @@
                     <c:forEach var="cert" items="${certList.pageList}">
                         <tr class="certificate">
                             <td class="colCertificate">
-                                <a href="first.form?certId=${cert.id}" title="${form.actions.edit.title} ${cert.name}">
+                                <a href="first.form?certId=${cert.id}" title="<spring:message code='form.actions.edit.title' /> ${fn:escapeXml(cert.name)}">
                                     <c:out value="${cert.name}"></c:out>
                                 </a>
                             </td>
