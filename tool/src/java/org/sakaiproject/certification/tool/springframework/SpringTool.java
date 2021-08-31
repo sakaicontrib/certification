@@ -113,7 +113,7 @@ public class SpringTool extends HttpServlet {
             jspPath = jspPath.substring(0, jspPath.length() - 1);
         }
 
-        log.info("init: default: {} path: {}", defaultResource, jspPath);
+        log.debug("init: default: {} path: {}", defaultResource, jspPath);
     }
 
     /**
@@ -146,7 +146,7 @@ public class SpringTool extends HttpServlet {
      * Shutdown the servlet.
      */
     public void destroy() {
-        log.info("destroy");
+        log.debug("destroy");
 
         super.destroy();
     }

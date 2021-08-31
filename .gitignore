@@ -7,3 +7,4 @@
 *.orig
 *.rej
 target
+impl/completed.pdf

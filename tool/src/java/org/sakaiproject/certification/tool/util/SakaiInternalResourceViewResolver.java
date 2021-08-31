@@ -30,12 +30,12 @@ import org.sakaiproject.certification.tool.control.RedirectView;
 public class SakaiInternalResourceViewResolver extends InternalResourceViewResolver {
 
     protected AbstractUrlBasedView buildView(String viewName) throws Exception {
-        log.info("inside buildView");
+        log.debug("inside buildView");
         return super.buildView(viewName);
     }
 
     protected View createView(String viewName, Locale locale) throws Exception {
-        log.info("inside createView");
+        log.debug("inside createView");
 
         // Check for special "redirect:" prefix.
         if (viewName.startsWith(REDIRECT_URL_PREFIX)) {
