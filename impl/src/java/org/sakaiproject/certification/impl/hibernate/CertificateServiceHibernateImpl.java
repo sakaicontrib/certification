@@ -224,7 +224,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     }
 
     public void init() {
-        log.info("init");
+        log.debug("init");
 
         if (templateDirectory == null) {
             throw new IllegalStateException ("templateDirectory for CertificateService is not configured");

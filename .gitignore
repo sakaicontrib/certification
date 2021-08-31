@@ -6,4 +6,13 @@ impl/target/
 model/target/
 mock-impl/target/
 /mock-pack/target/
-.idea/
+.idea
+.project
+.classpath
+.settings
+*.iml
+*.swp
+*.orig
+*.rej
+target
+impl/completed.pdf
