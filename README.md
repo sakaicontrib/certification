@@ -1,4 +1,4 @@
-# certification
+# Certification
 
 The master branch is the Sakai 21 version.
 
