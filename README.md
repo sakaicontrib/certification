@@ -1,13 +1,11 @@
 # certification
 
-The master branch is the Sakai 21 version.
-
-20.x branch is for Sakai 20.
-19.x branch is for Sakai 19.
-12.x branch is for Sakai 12.
-11.x branch is for Sakai 11.
-
-Sakai10 Branch is the one needed for Sakai 10.
+- 22.x branch is for Sakai 22.
+- 21.x branch is for Sakai 21.
+- 20.x branch is for Sakai 20.
+- 19.x branch is for Sakai 19.
+- 12.x branch is for Sakai 12.
+- 11.x branch is for Sakai 11.
 
 ## Student Numbers
 
