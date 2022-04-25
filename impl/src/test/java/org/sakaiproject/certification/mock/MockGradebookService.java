@@ -538,4 +538,10 @@ public class MockGradebookService implements GradebookService
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public Assignment getAssignmentByID(Long gradeableObjectID)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

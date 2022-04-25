@@ -309,6 +309,11 @@ public class MockUserDirectoryService implements UserDirectoryService
         return null;
     }
 
+    public String idFromReference(String reference)
+    {
+        return null;
+    }
+
     public String getLabel()
     {
         return null;
