@@ -1,6 +1,6 @@
 package org.sakaiproject.certification.impl.hibernate;
 
-import com.itextpdf.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfReader;
 
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
