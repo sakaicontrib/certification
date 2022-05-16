@@ -30,15 +30,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicException;
-import net.sf.jmimemagic.MagicMatch;
-import net.sf.jmimemagic.MagicMatchNotFoundException;
-import net.sf.jmimemagic.MagicParseException;
-
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.tika.*;
 
 import org.hibernate.HibernateException;
 import org.hibernate.ObjectNotFoundException;
@@ -469,12 +464,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     }
 
     public String getMimeType (byte[] toCheck) throws DocumentTemplateException {
-        try {
-            MagicMatch mimeTypeMatch = Magic.getMagicMatch(toCheck, true);
-            return mimeTypeMatch.getMimeType();
-        } catch (MagicParseException | MagicMatchNotFoundException | MagicException e) {
-            throw new DocumentTemplateException (e);
-        }
+        Tika tika = new Tika();
+        return tika.detect(toCheck);
     }
 
     private DocumentTemplate processFile (DocumentTemplate docTemp, final String fileName,
