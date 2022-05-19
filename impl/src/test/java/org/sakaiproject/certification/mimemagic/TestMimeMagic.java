@@ -1,7 +1,6 @@
 package org.sakaiproject.certification.mimemagic;
 
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicMatch;
+import org.apache.tika.Tika;
 import org.junit.Test;
 
 import java.io.File;
@@ -17,8 +16,9 @@ public class TestMimeMagic
     {
         URL testFileURL = getClass().getResource("/afghanistan.pdf");
         File testFile = new File (new URI(testFileURL.toString()));
-        MagicMatch mimeTypeMatch = Magic.getMagicMatch(testFile, true);
+        Tika tika = new Tika();
+        String mimeTypeMatch = tika.detect(testFile);
 
-        assertEquals("application/pdf", mimeTypeMatch.getMimeType());
+        assertEquals("application/pdf", mimeTypeMatch);
     }
 }
