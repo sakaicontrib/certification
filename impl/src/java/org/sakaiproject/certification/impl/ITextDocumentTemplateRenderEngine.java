@@ -16,10 +16,10 @@
 
 package org.sakaiproject.certification.impl;
 
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.pdf.AcroFields;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
+import com.lowagie.text.DocumentException;
+import com.lowagie.text.pdf.AcroFields;
+import com.lowagie.text.pdf.PdfReader;
+import com.lowagie.text.pdf.PdfStamper;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -113,7 +113,7 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
 
             AcroFields form = stamper.getAcroFields();
 
-            for (String key : form.getFields().keySet()) {
+            for (String key : form.getAllFields().keySet()) {
                 String binding = bindings.get(key);
                 form.setField(key, binding);
             }

@@ -72,9 +72,8 @@
             <artifactId>tika-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.itextpdf</groupId>
-            <artifactId>itextpdf</artifactId>
-            <version>5.5.13</version>
+            <groupId>com.github.librepdf</groupId>
+            <artifactId>openpdf</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-logging</groupId>
