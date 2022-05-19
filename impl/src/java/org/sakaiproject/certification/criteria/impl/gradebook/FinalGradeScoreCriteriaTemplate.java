@@ -117,14 +117,11 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
         double total = 0;
         switch(categoryType) {
             case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
+            case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
             case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY: {
                 for (Double points : assnPoints.values()) {
                     total += points;
                 }
-                break;
-            }
-            case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY: {
-                total = 100;
                 break;
             }
         }
