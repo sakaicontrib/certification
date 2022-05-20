@@ -343,20 +343,17 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     public Object doSecureAction() {
                         //get gradebook for the site
                         //check category type
-                        // if category type is CATEGORY_TYPE_WEIGHTED_CATEGORY than it is weighted category
-                        //loop through category definitions
-                        //get assignments for each category and multiply weight of category to weight of assignment to possible points
 
                         //if category type is CATEGORY_TYPE_NO_CATEGORY it does not have category
                         //get all assignments and add possible points
 
                         //if category type is CATEGORY_TYPE_ONLY_CATEGORY than loop through category definitions
                         //get assignments for each category and add assignments possible points
+                        //ignore category weights
+                        // TODO: drop all of this custom processing and use the GradingService!
 
                         Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
-                        Map<Long,Double> assgnWeights = certService.getAssignmentWeights(contextId);
                         Map<Long,Double> assgnScores = certService.getAssignmentScores(contextId, userId);
-                        Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
 
                         double studentTotalScore = 0;
                         int categoryType = certService.getCategoryType(contextId);
@@ -370,28 +367,12 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
                                 break;
                             }
+                            case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
                             case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY: {
                                 for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet()) {
                                     if(catWeights.containsKey(assgnScore.getKey())) {
                                         Double score = assgnScore.getValue();
                                         studentTotalScore += score == null ? 0:score;
-                                    }
-                                }
-
-                                break;
-                            }
-                            case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY: {
-                                for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet()) {
-                                    if(catWeights.containsKey(assgnScore.getKey())) {
-                                        Double score = assgnScore.getValue(),
-                                               points = assgnPoints.get(assgnScore.getKey()),
-                                               catWeight = catWeights.get(assgnScore.getKey()),
-                                               assgnWeight = assgnWeights.get(assgnScore.getKey());
-
-                                        studentTotalScore += 100 * (((score == null) ? 0 : score) /
-                                                             ((points == null) ? 1 : points)) *
-                                                             ((catWeight == null ? 1 : catWeight)) *
-                                                             ((assgnWeight == null ? 1 : assgnWeight));
                                     }
                                 }
 
@@ -616,6 +597,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     }
                     break;
                 }
+                case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
                 case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY: {
                     for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet()) {
                         if(catWeights.containsKey(assgnPoint.getKey())) {
@@ -623,10 +605,6 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                             totalAvailable += point == null ? 0:point;
                         }
                     }
-                    break;
-                }
-                case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY: {
-                    totalAvailable = 100;
                     break;
                 }
             }
@@ -837,25 +815,11 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
                             break;
                         }
-                        case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY: {
-                            for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet()) {
-                                if(catWeights.containsKey(assgnDate.getKey())) {
-                                    if (lastDate==null) {
-                                        lastDate = assgnDate.getValue();
-                                    } else if (assgnDate.getValue() != null) {
-                                        if (assgnDate.getValue().after(lastDate)) {
-                                            lastDate = assgnDate.getValue();
-                                        }
-                                    }
-                                }
-                            }
-
-                            break;
-                        }
+                        case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY:
                         case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY: {
                             for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet()) {
                                 if(catWeights.containsKey(assgnDate.getKey())) {
-                                    if (lastDate == null) {
+                                    if (lastDate==null) {
                                         lastDate = assgnDate.getValue();
                                     } else if (assgnDate.getValue() != null) {
                                         if (assgnDate.getValue().after(lastDate)) {
