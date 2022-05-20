@@ -121,4 +121,10 @@ public class MockToolManager implements ToolManager
     {
         throw new UnsupportedOperationException("Not supported yet.");
     }
+
+    @Override
+    public boolean isStealthed(String toolID)
+    {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
 }

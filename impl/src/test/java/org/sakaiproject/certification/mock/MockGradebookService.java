@@ -28,7 +28,7 @@ import org.sakaiproject.service.gradebook.shared.StaleObjectModificationExceptio
 public class MockGradebookService implements GradebookService
 {
     @Override
-    public Optional<CategoryScoreData> calculateCategoryScore( Long gradebookId, String studentUuid, Long categoryId, boolean includeNonReleasedItems )
+    public Optional<CategoryScoreData> calculateCategoryScore( Long gradebookId, String studentUuid, Long categoryId, boolean includeNonReleasedItems, int categoryType, Boolean equalWeightAssignments )
     {
         return Optional.empty();
     }
@@ -245,7 +245,7 @@ public class MockGradebookService implements GradebookService
     public void addExternalAssessment(String gradebookUid, String externalId, String externalUrl, String title, double points, Date dueDate, String externalServiceDescription) throws GradebookNotFoundException, ConflictingAssignmentNameException, ConflictingExternalIdException, AssignmentHasIllegalPointsException {}
 
     @Override
-    public void updateCourseGradeForStudent( String gradebookUid, String studentUuid, String grade, String gradeScale ) {}
+    public void updateCourseGradeForStudent( String gradebookUid, String studentUuid, String grade ) {}
 
     public void updateExternalAssessment(String gradebookUid, String externalId, String externalUrl, String title, double points, Date dueDate) throws GradebookNotFoundException, AssessmentNotFoundException, ConflictingAssignmentNameException, AssignmentHasIllegalPointsException {}
 
