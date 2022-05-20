@@ -15,6 +15,11 @@
 <p class="instruction">
     <spring:message code="form.text.criteria.description" />
 </p>
+<ul class="instruction">
+  <li><spring:message code="form.text.criteria.description.note.a" />
+  <li><spring:message code="form.text.criteria.description.note.b" />
+  <li><spring:message code="form.text.criteria.description.note.c" />
+</ul>
 <div id="submitError" class="alertMessage hidden"></div>
 <c:if test="${statusMessageKey != null}" >
     <div id="statusMessageKey" class="alertMessage">
