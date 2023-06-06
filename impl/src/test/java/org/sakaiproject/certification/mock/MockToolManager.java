@@ -42,6 +42,11 @@ public class MockToolManager implements ToolManager
         return null;
     }
 
+    public Set<Tool> findTools(Set<String> categories, Set<String> keywords, boolean includeStealthed)
+    {
+        return null;
+    }
+
     public Tool getCurrentTool()
     {
         return null;
