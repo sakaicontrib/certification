@@ -18,15 +18,13 @@ package org.sakaiproject.certification.api.criteria.gradebook;
 
 import org.sakaiproject.certification.api.criteria.CriterionProgress;
 import org.sakaiproject.certification.api.criteria.AbstractCriterion;
+import org.sakaiproject.grading.api.Assignment;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import org.sakaiproject.service.gradebook.shared.Assignment;
-
 
 public class GradebookItemCriterion extends AbstractCriterion
 {

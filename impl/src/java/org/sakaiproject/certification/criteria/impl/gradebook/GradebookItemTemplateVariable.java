@@ -21,14 +21,15 @@ import java.util.List;
 import java.util.Map;
 
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
-import org.sakaiproject.service.gradebook.shared.Assignment;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
+import org.sakaiproject.grading.api.Assignment;
+import org.sakaiproject.grading.api.GradingService;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.util.ResourceLoader;
 
 public class GradebookItemTemplateVariable implements CriteriaTemplateVariable {
 
     private GradebookCriteriaFactory criteriaFactory = null;
+    private GradingService gradingService;
 
     private AssignmentFilter filter = null;
     private final AssignmentFilter dftFilter = (Assignment assignment) -> true;
@@ -40,16 +41,13 @@ public class GradebookItemTemplateVariable implements CriteriaTemplateVariable {
 
     public GradebookItemTemplateVariable(GradebookCriteriaFactory fact, AssignmentFilter filter, AssignmentLabeler adapter) {
         criteriaFactory = fact;
+        gradingService = fact.getGradingService();
         this.filter = (filter != null) ? filter : dftFilter;
         labeler = (adapter != null) ? adapter : dftLabeler;
     }
 
     public ResourceLoader getResourceLoader() {
         return criteriaFactory.getResourceLoader();
-    }
-
-    public GradebookService getGradebookService() {
-        return criteriaFactory.getGradebookService();
     }
 
     public ToolManager getToolManager() {
@@ -69,16 +67,11 @@ public class GradebookItemTemplateVariable implements CriteriaTemplateVariable {
     }
 
     public Map<String, String> getValues() {
-        GradebookService gbs = getGradebookService();
         ToolManager tm = getToolManager();
         HashMap<String, String> items = new HashMap<>();
         String contextId = tm.getCurrentPlacement().getContext();
 
-        if (!gbs.isGradebookDefined(contextId)) {
-            return items;
-        }
-
-        List<Assignment> assignments = gbs.getAssignments(contextId);
+        List<Assignment> assignments = gradingService.getAssignments(contextId);
         for (Assignment asn : assignments) {
             if (filter.include(asn)) {
                 items.put(Long.toString(asn.getId()), labeler.getLabel(asn));

@@ -29,7 +29,7 @@ import org.sakaiproject.certification.api.criteria.CriteriaTemplate;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.gradebook.FinalGradeScoreCriterion;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
+import org.sakaiproject.grading.api.GradingService;
 import org.sakaiproject.util.ResourceLoader;
 
 @Slf4j
@@ -39,7 +39,7 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
     ArrayList<CriteriaTemplateVariable> variables = new ArrayList<>(1);
     GradebookCriteriaFactory factory = null;
     CertificateService certificateService = null;
-    GradebookService gbService = null;
+    GradingService gradingService = null;
     ResourceLoader rl = null;
 
     private final String EXPRESSION_KEY = "final.grade.score.criteria.expression";
@@ -47,7 +47,7 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
 
     public FinalGradeScoreCriteriaTemplate(final GradebookCriteriaFactory factory) {
         this.factory = factory;
-        gbService = factory.getGradebookService();
+        gradingService = factory.getGradingService();
         certificateService = factory.getCertificateService();
 
         scoreVariable = new ScoreTemplateVariable(VARIABLE_SCORE, factory);
@@ -104,7 +104,7 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
 
         try {
             categoryType = (Integer) factory.doSecureGradebookAction(typeCallback);
-            if(categoryType == GradebookService.CATEGORY_TYPE_ONLY_CATEGORY) {
+            if(categoryType == GradingService.CATEGORY_TYPE_ONLY_CATEGORY) {
                 assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(catOnlyAssnPointsCallback);
             } else {
                 assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
@@ -116,9 +116,9 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
 
         double total = 0;
         switch(categoryType) {
-            case GradebookService.CATEGORY_TYPE_NO_CATEGORY:
-            case GradebookService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
-            case GradebookService.CATEGORY_TYPE_ONLY_CATEGORY: {
+            case GradingService.CATEGORY_TYPE_NO_CATEGORY:
+            case GradingService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
+            case GradingService.CATEGORY_TYPE_ONLY_CATEGORY: {
                 for (Double points : assnPoints.values()) {
                     total += points;
                 }

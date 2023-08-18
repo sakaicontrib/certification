@@ -28,7 +28,7 @@ import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.gradebook.WillExpireCriterion;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
-import org.sakaiproject.service.gradebook.shared.GradebookService;
+import org.sakaiproject.grading.api.GradingService;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
@@ -36,7 +36,7 @@ import org.sakaiproject.util.ResourceLoader;
 
 public class GradebookVariableResolver extends AbstractVariableResolver {
 
-    private GradebookService gradebookService = null;
+    private GradingService gradingService = null;
     private UserDirectoryService userDirectoryService = null;
     private ToolManager toolManager = null;
     private SecurityService securityService = null;
@@ -100,12 +100,8 @@ public class GradebookVariableResolver extends AbstractVariableResolver {
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");
     }
 
-    public GradebookService getGradebookService() {
-        return gradebookService;
-    }
-
-    public void setGradebookService(GradebookService gradebookService) {
-        this.gradebookService = gradebookService;
+    public void setGradingService(GradingService gradingService) {
+        this.gradingService = gradingService;
     }
 
     public UserDirectoryService getUserDirectoryService() {

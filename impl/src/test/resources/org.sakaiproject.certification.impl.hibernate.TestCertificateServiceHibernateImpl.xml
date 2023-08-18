@@ -65,7 +65,7 @@
           class="org.sakaiproject.certification.mock.MockUserDirectoryService"/>
 
     <bean id="org.sakaiproject.certification.mock.MockGradebookService"
-          class="org.sakaiproject.certification.mock.MockGradebookService"/>
+          class="org.sakaiproject.certification.mock.MockGradingService"/>
 
     <bean id="org.sakaiproject.certification.api.DocumentTemplateService"
           class="org.sakaiproject.certification.impl.DocumentTemplateServiceImpl">
@@ -103,7 +103,7 @@
           class="org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
           init-method="init">
         <property name="certificateService" ref="org.sakaiproject.certification.api.CertificateService"/>
-        <property name="gradebookService" ref="org.sakaiproject.certification.mock.MockGradebookService"/>
+        <property name="gradingService" ref="org.sakaiproject.certification.mock.MockGradebookService"/>
         <property name="toolManager" ref="org.sakaiproject.certification.mock.MockToolManager"/>
         <property name="userDirectoryService" ref="org.sakaiproject.certification.mock.MockUserDirectoryService"/>
     </bean>

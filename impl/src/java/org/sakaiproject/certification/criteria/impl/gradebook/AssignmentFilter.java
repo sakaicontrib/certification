@@ -16,7 +16,7 @@
 
 package org.sakaiproject.certification.criteria.impl.gradebook;
 
-import org.sakaiproject.service.gradebook.shared.Assignment;
+import org.sakaiproject.grading.api.Assignment;
 
 public interface AssignmentFilter {
     public boolean include(Assignment assignment);

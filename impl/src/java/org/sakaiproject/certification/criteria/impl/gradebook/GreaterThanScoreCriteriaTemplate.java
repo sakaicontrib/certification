@@ -20,7 +20,7 @@ import org.sakaiproject.certification.api.criteria.CriteriaFactory;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.gradebook.GreaterThanScoreCriterion;
 import org.sakaiproject.certification.impl.util.FormatHelper;
-import org.sakaiproject.service.gradebook.shared.Assignment;
+import org.sakaiproject.grading.api.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
 public class GreaterThanScoreCriteriaTemplate extends GradebookItemCriteriaTemplate {

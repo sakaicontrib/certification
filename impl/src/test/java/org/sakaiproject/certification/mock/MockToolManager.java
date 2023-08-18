@@ -129,6 +129,11 @@ public class MockToolManager implements ToolManager
     }
 
     @Override
+    public boolean isToolHidden(String s, String s1) {
+        return false;
+    }
+
+    @Override
     public boolean allowTool(Site site, Placement placement)
     {
         throw new UnsupportedOperationException("Not supported yet.");

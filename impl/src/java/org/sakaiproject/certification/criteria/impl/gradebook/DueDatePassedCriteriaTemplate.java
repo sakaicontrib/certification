@@ -22,7 +22,6 @@ import java.util.Date;
 
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriterion;
-import org.sakaiproject.service.gradebook.shared.Assignment;
 import org.sakaiproject.util.ResourceLoader;
 
 public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate {
@@ -35,13 +34,8 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
 
     public DueDatePassedCriteriaTemplate(final GradebookCriteriaFactory factory) {
         super(factory,
-            new AssignmentFilter() {
-                public boolean include(Assignment assignment) {
-                    return assignment.getDueDate() != null;
-                }
-            },
-            new AssignmentLabeler() {
-                public String getLabel(Assignment assignment) {
+                assignment -> assignment.getDueDate() != null,
+                assignment -> {
                     StringBuilder assnLabel = new StringBuilder();
                     ResourceLoader rl = factory.getResourceLoader();
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -60,7 +54,6 @@ public class DueDatePassedCriteriaTemplate extends GradebookItemCriteriaTemplate
                     assnLabel.append(assignment.getName()).append(" (").append(dateStr).append(')');
                     return assnLabel.toString();
                 }
-            }
         );
     }
 

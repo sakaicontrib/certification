@@ -86,7 +86,7 @@
                     <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
                 </bean>
                 <bean class="org.sakaiproject.certification.impl.GradebookVariableResolver">
-                    <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
+                    <property name="gradingService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
                     <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
                     <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
                     <property name="securityService" ref="org.sakaiproject.authz.api.SecurityService"/>
@@ -107,7 +107,7 @@
           class="org.sakaiproject.certification.criteria.impl.gradebook.GradebookCriteriaFactory"
           init-method="init">
         <property name="certificateService" ref="org.sakaiproject.certification.api.CertificateService"/>
-        <property name="gradebookService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
+        <property name="gradingService" ref="org_sakaiproject_service_gradebook_GradebookService"/>
         <property name="toolManager" ref="org.sakaiproject.tool.api.ToolManager"/>
         <property name="userDirectoryService" ref="org.sakaiproject.user.api.UserDirectoryService"/>
         <property name="sessionManager" ref="org.sakaiproject.tool.api.SessionManager"/>
