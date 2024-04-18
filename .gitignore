@@ -2,7 +2,10 @@
 .project
 .classpath
 .settings
+.java-version
 *.iml
+*.ipr
+*.iws
 *.swp
 *.orig
 *.rej
