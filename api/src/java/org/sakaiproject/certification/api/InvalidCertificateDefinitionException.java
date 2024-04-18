@@ -17,11 +17,13 @@
 package org.sakaiproject.certification.api;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 /**
  * Thrown when creating a certificate definition, but some constraint isn't met
  */
 @Data
+@EqualsAndHashCode(callSuper = true)
 public class InvalidCertificateDefinitionException extends CertificationException {
 
     public static final int REASON_TOO_LONG = 1;

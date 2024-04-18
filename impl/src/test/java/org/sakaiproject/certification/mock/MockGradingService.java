@@ -19,9 +19,7 @@ import org.sakaiproject.grading.api.ConflictingExternalIdException;
 import org.sakaiproject.grading.api.CourseGradeTransferBean;
 import org.sakaiproject.grading.api.ExternalAssignmentProvider;
 import org.sakaiproject.grading.api.GradeDefinition;
-import org.sakaiproject.grading.api.GradeType;
 import org.sakaiproject.grading.api.GradebookInformation;
-import org.sakaiproject.grading.api.GradingCategoryType;
 import org.sakaiproject.grading.api.GradingScaleDefinition;
 import org.sakaiproject.grading.api.GradingService;
 import org.sakaiproject.grading.api.InvalidCategoryException;
@@ -57,6 +55,11 @@ public class MockGradingService implements GradingService
     public boolean isGradebookDefined(String gradebookUid)
     {
         return true;
+    }
+
+    @Override
+    public boolean isUserAbleToViewAssignments(String gradebookUid) {
+        return false;
     }
 
     public boolean isUserAbleToGradeItemForStudent(String gradebookUid, Long itemId, String studentUid)
@@ -420,13 +423,13 @@ public class MockGradingService implements GradingService
 
     @Override
     public void saveGradeAndExcuseForStudent(String s, Long aLong, String s1, String s2, boolean b) throws InvalidGradeException, AssessmentNotFoundException {
-
     }
 
     @Override
-    public GradeType getGradeEntryType(String gradebookUid) {
-        return null;
+    public Integer getGradeEntryType(String gradebookUid) {
+        return 0;
     }
+
 
     public Map getFixedGrade(String gradebookUid)
     {
@@ -558,7 +561,7 @@ public class MockGradingService implements GradingService
     }
 
     @Override
-    public Optional<CategoryScoreData> calculateCategoryScore(Long gradebookId, String studentUuid, Long categoryId, boolean includeNonReleasedItems, GradingCategoryType categoryType, Boolean equalWeightAssignments) {
+    public Optional<CategoryScoreData> calculateCategoryScore(Long gradebookId, String studentUuid, Long categoryId, boolean includeNonReleasedItems, Integer categoryType, Boolean equalWeightAssignments) {
         return Optional.empty();
     }
 
