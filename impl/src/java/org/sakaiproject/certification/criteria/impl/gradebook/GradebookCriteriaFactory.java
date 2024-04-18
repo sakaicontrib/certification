@@ -193,21 +193,14 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
     protected Object doSecureGradebookAction(SecureGradebookActionCallback callback) throws Exception {
         final String contextId = contextId();
 
-        SecurityAdvisor yesMan = new SecurityAdvisor() {
-            public SecurityAdvice isAllowed(String userId, String function, String reference) {
-                String compTo;
-                if (contextId.startsWith("/site/")) {
-                    compTo = contextId;
-                } else {
-                    compTo = "/site/" + contextId;
-                }
+        SecurityAdvisor yesMan = (userId, function, reference) -> {
+            String compTo = contextId.startsWith("/site/") ? contextId : "/site/" + contextId;
 
-                if (reference.equals(compTo) && (PERM_VIEW_OWN_GRADES.equals(function) ||
-                                                 PERM_EDIT_ASSIGNMENTS.equals(function))) {
-                    return SecurityAdvice.ALLOWED;
-                } else {
-                    return SecurityAdvice.PASS;
-                }
+            if (reference.equals(compTo) && (PERM_VIEW_OWN_GRADES.equals(function) ||
+                                             PERM_EDIT_ASSIGNMENTS.equals(function))) {
+                return SecurityAdvisor.SecurityAdvice.ALLOWED;
+            } else {
+                return SecurityAdvisor.SecurityAdvice.PASS;
             }
         };
 
