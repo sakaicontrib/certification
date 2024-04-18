@@ -21,11 +21,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -60,11 +61,23 @@ import org.sakaiproject.util.ResourceLoader;
 @Slf4j
 public class GradebookCriteriaFactory implements CriteriaFactory {
 
-    private CertificateService certService = null;
+    @Getter
+    @Setter
+    private CertificateService certificateService = null;
+    @Getter
+    @Setter
     private GradingService gradingService = null;
+    @Getter
+    @Setter
     private ToolManager toolManager = null;
+    @Getter
+    @Setter
     private UserDirectoryService userDirectoryService = null;
+    @Getter
+    @Setter
     private SecurityService securityService = null;
+    @Getter
+    @Setter
     private SessionManager sessionManager = null;
 
     private final HashMap<String, CriteriaTemplate> criteriaTemplates = new HashMap<>();
@@ -82,6 +95,8 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
     private final Map<Long, Map<String, Double>> itemToUserToGradeMap = new HashMap<>();
     private final Map<Long, Map<String, Date>> itemToUserToDateRecordedMap = new HashMap<>();
 
+    @Setter
+    @Getter
     private ResourceLoader resourceLoader = null;
 
     private static final String PERM_VIEW_OWN_GRADES = "gradebook.viewOwnGrades";
@@ -100,6 +115,11 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
     private static final String EXPIRY_REQUIREMENTS = "expiry.requirements";
     private static final String SCORE_REQUIREMENTS = "gradebookItem.requirements";
     private static final String COURSE_GRADE_REQUIREMENTS = "courseGrade.requirements";
+
+    // TODO: Once these are correct in GradingConstants, delete these
+    public static final int CATEGORY_TYPE_NO_CATEGORY = 1;;
+    public static final int CATEGORY_TYPE_ONLY_CATEGORY = 2;
+    public static final int CATEGORY_TYPE_WEIGHTED_CATEGORY = 3;
 
     public void init() {
         gbItemScoreTemplate = new GreaterThanScoreCriteriaTemplate(this);
@@ -124,65 +144,9 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
         criterionClasses.add(FinalGradeScoreCriterion.class);
         criterionClasses.add(WillExpireCriterion.class);
 
-        if (certService != null) {
-            certService.registerCriteriaFactory(this);
+        if (certificateService != null) {
+            certificateService.registerCriteriaFactory(this);
         }
-    }
-
-    public CertificateService getCertificateService() {
-        return certService;
-    }
-
-    public void setCertificateService(CertificateService certService) {
-        this.certService = certService;
-    }
-
-    public void setGradingService(GradingService gradingService) {
-        this.gradingService = gradingService;
-    }
-
-    public GradingService getGradingService() {
-        return gradingService;
-    }
-
-    public void setToolManager(ToolManager tm) {
-        toolManager = tm;
-    }
-
-    public ToolManager getToolManager() {
-        return toolManager;
-    }
-
-    public void setUserDirectoryService(UserDirectoryService uds) {
-        userDirectoryService = uds;
-    }
-
-    public UserDirectoryService getUserDirectoryService() {
-        return userDirectoryService;
-    }
-
-    public ResourceLoader getResourceLoader() {
-        return resourceLoader;
-    }
-
-    public void setResourceLoader(ResourceLoader resourceLoader) {
-        this.resourceLoader = resourceLoader;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public SessionManager getSessionManager() {
-        return sessionManager;
-    }
-
-    public void setSessionManager(SessionManager sessionManager) {
-        this.sessionManager = sessionManager;
     }
 
     protected final String contextId() {
@@ -194,9 +158,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
     }
 
     public Set<CriteriaTemplate> getCriteriaTemplates() {
-        HashSet<CriteriaTemplate> values = new HashSet<>();
-        values.addAll(criteriaTemplates.values());
-        return values;
+        return new HashSet<>(criteriaTemplates.values());
     }
 
     public CriteriaTemplate getCriteriaTemplate(Criterion criterion) throws UnknownCriterionTypeException {
@@ -253,7 +215,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             securityService.pushAdvisor(yesMan);
             return callback.doSecureAction();
         } finally {
-            securityService.popAdvisor();
+            securityService.popAdvisor(yesMan);
         }
     }
 
@@ -350,14 +312,14 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                         //ignore category weights
                         // TODO: drop all of this custom processing and use the GradingService!
 
-                        Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
-                        Map<Long,Double> assgnScores = certService.getAssignmentScores(contextId, userId);
+                        Map<Long,Double> catWeights = certificateService.getCategoryWeights(contextId);
+                        Map<Long,Double> assgnScores = certificateService.getAssignmentScores(contextId, userId);
 
                         double studentTotalScore = 0;
-                        int categoryType = certService.getCategoryType(contextId);
+                        int categoryType = certificateService.getCategoryType(contextId);
 
                         switch(categoryType) {
-                            case GradingService.CATEGORY_TYPE_NO_CATEGORY: {
+                            case CATEGORY_TYPE_NO_CATEGORY: {
                                 for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet()) {
                                     Double score = assgnScore.getValue();
                                     studentTotalScore += score == null ? 0:score;
@@ -365,8 +327,8 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
                                 break;
                             }
-                            case GradingService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
-                            case GradingService.CATEGORY_TYPE_ONLY_CATEGORY: {
+                            case CATEGORY_TYPE_WEIGHTED_CATEGORY:
+                            case CATEGORY_TYPE_ONLY_CATEGORY: {
                                 for(Map.Entry<Long, Double> assgnScore : assgnScores.entrySet()) {
                                     if(catWeights.containsKey(assgnScore.getKey())) {
                                         Double score = assgnScore.getValue();
@@ -578,23 +540,23 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             criterion.setCriteriaFactory(this);
             String scoreStr = FormatHelper.inputStringToFormatString(bindings.get(KEY_SCORE));
 
-            Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
-            Map<Long,Double> assgnPoints = certService.getAssignmentPoints(contextId);
+            Map<Long,Double> catWeights = certificateService.getCategoryWeights(contextId);
+            Map<Long,Double> assgnPoints = certificateService.getAssignmentPoints(contextId);
 
             double totalAvailable = 0;
 
-            int categoryType = certService.getCategoryType(contextId);
+            int categoryType = certificateService.getCategoryType(contextId);
 
             switch(categoryType) {
-                case GradingService.CATEGORY_TYPE_NO_CATEGORY: {
+                case CATEGORY_TYPE_NO_CATEGORY: {
                     for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet()) {
                         Double point = assgnPoint.getValue();
                         totalAvailable += point == null ? 0:point;
                     }
                     break;
                 }
-                case GradingService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
-                case GradingService.CATEGORY_TYPE_ONLY_CATEGORY: {
+                case CATEGORY_TYPE_WEIGHTED_CATEGORY:
+                case CATEGORY_TYPE_ONLY_CATEGORY: {
                     for(Map.Entry<Long, Double> assgnPoint : assgnPoints.entrySet()) {
                         if(catWeights.containsKey(assgnPoint.getKey())) {
                             Double point = assgnPoint.getValue();
@@ -788,13 +750,13 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             return (Date) doSecureGradebookAction(new SecureGradebookActionCallback() {
                 public Object doSecureAction() {
                     //Just following the getFinalScore code, but ignoring grades and looking at dates
-                    Map<Long,Double> catWeights = certService.getCategoryWeights(contextId);
-                    Map<Long,Date> assgnDates = certService.getAssignmentDatesRecorded(contextId, userId);
+                    Map<Long,Double> catWeights = certificateService.getCategoryWeights(contextId);
+                    Map<Long,Date> assgnDates = certificateService.getAssignmentDatesRecorded(contextId, userId);
                     Date lastDate = null;
-                    int categoryType = certService.getCategoryType(contextId);
+                    int categoryType = certificateService.getCategoryType(contextId);
 
                     switch(categoryType) {
-                        case GradingService.CATEGORY_TYPE_NO_CATEGORY: {
+                        case CATEGORY_TYPE_NO_CATEGORY: {
                             for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet()) {
                                 if (lastDate==null) {
                                     lastDate = assgnDate.getValue();
@@ -807,8 +769,8 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
                             break;
                         }
-                        case GradingService.CATEGORY_TYPE_ONLY_CATEGORY:
-                        case GradingService.CATEGORY_TYPE_WEIGHTED_CATEGORY: {
+                        case CATEGORY_TYPE_ONLY_CATEGORY:
+                        case CATEGORY_TYPE_WEIGHTED_CATEGORY: {
                             for(Map.Entry<Long, Date> assgnDate : assgnDates.entrySet()) {
                                 if(catWeights.containsKey(assgnDate.getKey())) {
                                     if (lastDate==null) {
@@ -840,9 +802,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
         //The last date in chronological order will be selected
         Date lastDate = null;
 
-        Iterator<Criterion> itCriteria = criteria.iterator();
-        while (itCriteria.hasNext()) {
-            Criterion crit = itCriteria.next();
+        for (Criterion crit : criteria) {
             try {
                 if (!isCriterionMet(crit, userId, contextId, useCaching)) {
                     return null;
@@ -981,7 +941,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                 UserProgress progress = new UserProgress(userId, criterion, strScore, score >= reqScore, dateRecorded);
 
                 // add progress to the user's map of criteria to UserProgress (creates an empty map for the user if it doesn't exist)
-                Map critProgressMap = getCritProgressMapForUser(userCritProgress, userId);
+                Map<Criterion, UserProgress> critProgressMap = getCritProgressMapForUser(userCritProgress, userId);
                 critProgressMap.put(criterion, progress);
             }
         }

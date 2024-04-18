@@ -30,6 +30,8 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 
 import org.apache.commons.lang3.StringUtils;
@@ -98,16 +100,33 @@ import org.sakaiproject.util.ResourceLoader;
 public class CertificateServiceHibernateImpl extends HibernateDaoSupport implements CertificateService {
 
     //managers and services
+    @Getter
+    @Setter
     private DocumentTemplateService documentTemplateService = null;
+    @Getter
+    @Setter
     private UserDirectoryService userDirectoryService = null;
+    @Setter
+    @Getter
     private ToolManager toolManager = null;
+    @Getter
+    @Setter
     private SessionManager sessionManager = null;
+    @Setter
+    @Getter
     private SecurityService securityService = null;
+    @Setter
     private SiteService siteService = null;
+    @Setter
     private AuthzGroupService authzGroupService= null;
+    @Setter
+    @Getter
     private ContentHostingService contentHostingService = null;
+    @Setter
     private CandidateDetailProvider candidateDetailProvider = null;
 
+    @Getter
+    @Setter
     private String templateDirectory = null;
     private final HashMap<String, CriteriaFactory> criteriaTemplateMap = new HashMap<>();
     private final HashMap<Class, CriteriaFactory> criteriaFactoryMap = new HashMap<>();
@@ -138,30 +157,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     private static final String PERMISSION_VIEW_STUDENT_NUMS = "certificate.extraprops.view";
 
-    public void setAuthzGroupService(AuthzGroupService authzGroupService) {
-        this.authzGroupService = authzGroupService;
-    }
-
-    public void setSiteService(SiteService siteService) {
-        this.siteService = siteService;
-    }
-
-    public String getTemplateDirectory() {
-        return templateDirectory;
-    }
-
-    public void setTemplateDirectory(String templateDirectory) {
-        this.templateDirectory = templateDirectory;
-    }
-
-    public ContentHostingService getContentHostingService() {
-        return contentHostingService;
-    }
-
-    public void setContentHostingService(ContentHostingService contentHostingService) {
-        this.contentHostingService = contentHostingService;
-    }
-
     public String getString(String key) {
         return messages.getString(key);
     }
@@ -172,50 +167,6 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     public Locale getLocale(){
         return messages.getLocale();
-    }
-
-    public void setDocumentTemplateService(DocumentTemplateService dts) {
-        documentTemplateService = dts;
-    }
-
-    public DocumentTemplateService getDocumentTemplateService() {
-        return documentTemplateService;
-    }
-
-    public ToolManager getToolManager() {
-        return toolManager;
-    }
-
-    public void setToolManager(ToolManager toolManager) {
-        this.toolManager = toolManager;
-    }
-
-    public UserDirectoryService getUserDirectoryService() {
-        return userDirectoryService;
-    }
-
-    public void setUserDirectoryService(UserDirectoryService userDirectoryService) {
-        this.userDirectoryService = userDirectoryService;
-    }
-
-    public SessionManager getSessionManager() {
-        return sessionManager;
-    }
-
-    public void setSessionManager(SessionManager sessionManager) {
-        this.sessionManager = sessionManager;
-    }
-
-    public SecurityService getSecurityService() {
-        return securityService;
-    }
-
-    public void setSecurityService(SecurityService securityService) {
-        this.securityService = securityService;
-    }
-
-    public void setCandidateDetailProvider(CandidateDetailProvider candidateDetailProvider) {
-        this.candidateDetailProvider = candidateDetailProvider;
     }
 
     public void init() {

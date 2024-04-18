@@ -19,9 +19,11 @@ package org.sakaiproject.certification.api.criteria.gradebook;
 import java.util.Date;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class CertAssignmentScore extends CertGradeRecordObject
 {

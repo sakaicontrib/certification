@@ -314,6 +314,11 @@ public class MockUserDirectoryService implements UserDirectoryService
         return null;
     }
 
+    @Override
+    public boolean isRoleViewType(String id) {
+        return false;
+    }
+
     public String getLabel()
     {
         return null;

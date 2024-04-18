@@ -4,13 +4,13 @@
     <parent>
         <groupId>org.sakaiproject</groupId>
         <artifactId>master</artifactId>
-        <version>23-SNAPSHOT</version>
+        <version>25-SNAPSHOT</version>
     </parent>
 
     <name>Certification Base Project</name>
     <groupId>org.sakaiproject.certification</groupId>
     <artifactId>certification-base</artifactId>
-    <version>23-SNAPSHOT</version>
+    <version>25-SNAPSHOT</version>
     <packaging>pom</packaging>
     <organization>
         <name>Apereo Foundation - Sakai project</name>

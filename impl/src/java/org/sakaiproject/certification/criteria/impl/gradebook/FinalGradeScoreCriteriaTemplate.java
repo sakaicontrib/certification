@@ -29,6 +29,7 @@ import org.sakaiproject.certification.api.criteria.CriteriaTemplate;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.gradebook.FinalGradeScoreCriterion;
+import org.sakaiproject.grading.api.GradingConstants;
 import org.sakaiproject.grading.api.GradingService;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -44,6 +45,11 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
 
     private final String EXPRESSION_KEY = "final.grade.score.criteria.expression";
     private final String VARIABLE_SCORE = "score";
+
+    // TODO: Once these are correct in GradingConstants, delete these
+    public static final int CATEGORY_TYPE_NO_CATEGORY = 1;
+    public static final int CATEGORY_TYPE_ONLY_CATEGORY = 2;
+    public static final int CATEGORY_TYPE_WEIGHTED_CATEGORY = 3;
 
     public FinalGradeScoreCriteriaTemplate(final GradebookCriteriaFactory factory) {
         this.factory = factory;
@@ -104,7 +110,7 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
 
         try {
             categoryType = (Integer) factory.doSecureGradebookAction(typeCallback);
-            if(categoryType == GradingService.CATEGORY_TYPE_ONLY_CATEGORY) {
+            if(categoryType == CATEGORY_TYPE_ONLY_CATEGORY) {
                 assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(catOnlyAssnPointsCallback);
             } else {
                 assnPoints = (Map<Long, Double>)factory.doSecureGradebookAction(assnPointsCallback);
@@ -116,9 +122,9 @@ public class FinalGradeScoreCriteriaTemplate implements CriteriaTemplate {
 
         double total = 0;
         switch(categoryType) {
-            case GradingService.CATEGORY_TYPE_NO_CATEGORY:
-            case GradingService.CATEGORY_TYPE_WEIGHTED_CATEGORY:
-            case GradingService.CATEGORY_TYPE_ONLY_CATEGORY: {
+            case CATEGORY_TYPE_NO_CATEGORY:
+            case CATEGORY_TYPE_WEIGHTED_CATEGORY:
+            case CATEGORY_TYPE_ONLY_CATEGORY: {
                 for (Double points : assnPoints.values()) {
                     total += points;
                 }
