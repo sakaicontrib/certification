@@ -1,7 +1,7 @@
 <%@ include file="/jsp/include.jsp" %>
 <jsp:include page="/jsp/header.jsp" />
-<script type="text/javascript" src="/library/js/jquery/cookie/jquery.cookie.js"></script>
-<script type="text/javascript" src="/library/js/lang-datepicker/lang-datepicker.js"></script>
+<script src="/library/js/jquery/cookie/jquery.cookie.js"></script>
+<script src="/library/js/lang-datepicker/lang-datepicker.js"></script>
 
 <form:form id="reportView" method="POST">
     <ul class="navIntraTool actionToolBar">
@@ -351,7 +351,7 @@
             return false;
         });
 
-        var id = $("#certificateId").val();
+        const id = $("#certificateId").val();
 
         $("#first").click(function() {
             SPNR.disableControlsAndSpin( this, null );
@@ -386,18 +386,18 @@
         $("#filterApply").click(function() {
             SPNR.disableControlsAndSpin( this, null );
             $("#filterReset").attr('disabled', 'disabled');
-            var filterType = $("input[name='show']:checked").val();
+            const filterType = $("input[name='show']:checked").val();
             <c:choose>
                 <c:when test="${expiryOffset != null}">
-                    var filterDateType = $("#filterDateType option:selected").val();
+                    const filterDateType = $("#filterDateType option:selected").val();
                 </c:when>
                 <c:otherwise>
-                    var filterDateType = "issueDate";
+                    const filterDateType = "issueDate";
                 </c:otherwise>
             </c:choose>
-            var filterStartDate = $("#startDateYear").val() + "-" + $("#startDateMonth").val() + "-" + $("#startDateDay").val();
-            var filterEndDate = $("#endDateYear").val() + "-" + $("#endDateMonth").val() + "-" + $("#endDateDay").val();
-            var filterHistorical = $("#historical").prop('checked');
+            const filterStartDate = $("#startDateYear").val() + "-" + $("#startDateMonth").val() + "-" + $("#startDateDay").val();
+            const filterEndDate = $("#endDateYear").val() + "-" + $("#endDateMonth").val() + "-" + $("#endDateDay").val();
+            const filterHistorical = $("#historical").prop('checked');
             $.cookie("filterType", filterType);
             $.cookie("filterDateType", filterDateType);
             $.cookie("filterStartDate", filterStartDate);

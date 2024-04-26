@@ -85,10 +85,10 @@
             <spring:message code="form.label.showRequirements"/>
         </label>
     </div>
-    <div>
-        <input id="continue" type="button" value="<spring:message code='form.submit.continue' />" />
-        <input id="back" type="button" value="<spring:message code='form.submit.back' />" />
-        <input id="cancel" type="button" value="<spring:message code='form.submit.cancel' />" />
+    <div class="my-2">
+        <input id="continue" class="btn btn-primary" type="button" value="<spring:message code='form.submit.continue' />" />
+        <input id="back" type="button" class="btn" value="<spring:message code='form.submit.back' />" />
+        <input id="cancel" type="button" class="btn" value="<spring:message code='form.submit.cancel' />" />
         <form:hidden path="submitValue" />
     </div>
 </form:form>
