@@ -75,7 +75,7 @@
                     </nav>
                 </div>
             </div>
-            <table id="cList" class="table table-hover table-striped table-bordered" summary="Certificates">
+            <table id="cList" class="table table-hover table-striped table-bordered mt-2" summary="Certificates">
                 <thead>
                     <tr>
                         <th class="colCertificate"><spring:message code="form.label.certificate"/></th>
@@ -96,22 +96,25 @@
                             </td>
                             <td class="colActions colMin">
                                 <div class="btn-group pull-right">
-                                    <button id="" type="button" class="btn btn-xs dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                        <span class="sr-only"><spring:message code="form.actions" /></span>
+                                    <button type="button" class="btn btn-xs btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                         <span><spring:message code="form.actions" /></span>
                                         <span class="caret"></span>
                                     </button>
-                                    <ul class="dropdown-menu row" role="menu">
-                                        <li class="dropdown-button">
-                                            <a href="first.form?certId=${cert.id}">
+                                    <ul class="dropdown-menu">
+                                        <li>
+                                            <a class="dropdown-item" href="first.form?certId=${cert.id}">
                                                 <spring:message code="form.actions.edit" />
                                             </a>
-                                            <c:if test="${cert.status == 'ACTIVE'}" >
-                                                <a id="report${cert.id}" href="reportView.form?certId=${cert.id}" onclick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner_${cert.id}' );">
+                                        </li>
+                                        <c:if test="${cert.status == 'ACTIVE'}" >
+                                            <li>
+                                                <a class="dropdown-item" id="report${cert.id}" href="reportView.form?certId=${cert.id}" onclick="SPNR.insertSpinnerInPreallocated( this, null, 'spinner_${cert.id}' );">
                                                     <spring:message code="form.label.report.cell" />
                                                 </a>
-                                            </c:if>
-                                            <a href="#" onClick="deleteCert('${cert.id}')">
+                                            </li>
+                                        </c:if>
+                                        <li>
+                                            <a class="dropdown-item" href="#" onClick="deleteCert('${cert.id}')">
                                                 <spring:message code="form.actions.remove" />
                                             </a>
                                         </li>
