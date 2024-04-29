@@ -21,17 +21,15 @@
         </c:forEach>
     </div>
 
-    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h4 class="panel-title">
-                    <a data-toggle="collapse" href="#panel-requeriments" aria-controls="panel-requeriments">
+    <div class="accordion" id="accordion">
+        <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panel-requeriments" aria-expanded="false" aria-controls="panel-requeriments">
                         <spring:message code="report.requirements" />
-                    </a>
-                </h4>
-            </div>
-            <div id="panel-requeriments" class="panel-collapse collapse">
-                <div class="panel-body">
+                    </button>
+                </h2>
+            <div id="panel-requeriments" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordion">
+                <div class="accordion-body">
                     <ul>
                         <c:forEach items="${requirements}" var="requirement">
                             <li>${requirement}</li>
@@ -46,16 +44,14 @@
                 </div>
             </div>
         </div>
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                <h4 class="panel-title">
-                    <a data-toggle="collapse" href="#panel-display-options" aria-controls="panel-display-options">
+        <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#panel-display-options" aria-expanded="false" aria-controls="panel-display-options">
                         <spring:message code="report.filter.head" />
-                    </a>
-                </h4>
-            </div>
-            <div id="panel-display-options" class="panel-collapse collapse">
-                <div class="panel-body">
+                    </button>
+                </h2>
+            <div id="panel-display-options" class="accordion-collapse collapse">
+                <div class="accordion-body">
                     <p>
                         <b><spring:message code="report.filter.show"/></b>
                     </p>
@@ -115,15 +111,17 @@
             </div>
         </div>
     </div>
-    <p class="viewNav"><spring:message code="report.blurb" /></p>
+    <div class="alert alert-info my-2" role="alert">
+        <spring:message code="report.blurb" />
+    </div>
     <div class="navPanel row">
         <div class="col-sm-7 col-xs-12">
-            <nav class="certPager panel panel-default">
+            <nav class="certPager accordion-item">
                 <div class="panel-heading">
                     <spring:message code="form.pager.showing"/> <c:out value="${firstElement}" /> - <c:out value="${lastElement}" /> of ${reportList.nrOfElements}
                     <div id="spinner" class="allocatedSpinPlaceholder"></div>
                 </div>
-                <div class="panel-body">
+                <div class="accordion-body">
                     <c:choose>
                         <c:when test="${!reportList.firstPage}">
                             <input type="button" id="first" value="<spring:message code='pagination.first' />" />
@@ -395,9 +393,9 @@
                     const filterDateType = "issueDate";
                 </c:otherwise>
             </c:choose>
-            const filterStartDate = $("#startDateYear").val() + "-" + $("#startDateMonth").val() + "-" + $("#startDateDay").val();
-            const filterEndDate = $("#endDateYear").val() + "-" + $("#endDateMonth").val() + "-" + $("#endDateDay").val();
-            const filterHistorical = $("#historical").prop('checked');
+            let filterStartDate = $("#startDateYear").val() + "-" + $("#startDateMonth").val() + "-" + $("#startDateDay").val();
+            let filterEndDate = $("#endDateYear").val() + "-" + $("#endDateMonth").val() + "-" + $("#endDateDay").val();
+            let filterHistorical = $("#historical").prop('checked');
             $.cookie("filterType", filterType);
             $.cookie("filterDateType", filterDateType);
             $.cookie("filterStartDate", filterStartDate);
