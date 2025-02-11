@@ -161,9 +161,9 @@
 
     function appendCriterionToDiv (criterion) {
         mergeCriteriaItemCriteriaTemplate = checkCriterion();
-        var message = '<spring:message code="form.text.criteria.remove"/>';
+        let message = '<spring:message code="form.text.criteria.remove"/>';
 
-        var $removeLink = $("<a/>", {
+        let $removeLink = $("<a/>", {
             href: "#",
             title: message,
             click: function() {
@@ -173,14 +173,15 @@
                   "<span class='fa fa-lg fa-fw fa-trash' aria-hidden='true'></span>",
         });
 
-        var $li = $("<li/>", {
+        let $li = $("<li/>", {
             id: "crit_" + criterion.id,
             mergeItemCriteriaTemplate: mergeCriteriaItemCriteriaTemplate,
             html: criterion.expression,
+            class: "ms-5"
         });
         $li.append($removeLink);
 
-        $("#criteriaList").append($li);
+        $("#criteriaList").append($li).addClass("alert alert-info");
         $("#removeInstructions").removeClass("hidden");
         $("#noCriteria").addClass("hidden");
     }
@@ -200,21 +201,17 @@
     function addCriterion () {
         mergeCriteriaItemCriteriaTemplate = checkCriterion();
 
-        var allCurrentCriterias = jQuery("#currentCriteria  div");
-        var i = 1;
-        var flag = true;
-        jQuery.each(allCurrentCriterias, function() {
-            var iterateEachDivInCriteriaList = jQuery(this).attr('mergeItemCriteriaTemplate');
-
-            if(iterateEachDivInCriteriaList === mergeCriteriaItemCriteriaTemplate) {
+        const allCurrentCriterias = document.querySelectorAll("#currentCriteria div");
+        let flag = true;
+        
+        for (const criteria of allCurrentCriterias) {
+            const iterateEachDivInCriteriaList = criteria.getAttribute('mergeItemCriteriaTemplate');
+            
+            if (iterateEachDivInCriteriaList === mergeCriteriaItemCriteriaTemplate) {
                 flag = false;
+                break;
             }
-
-            if(!flag) {
-                return false;
-            }
-            i++;
-        });
+        }
 
         var values = {};
         $(".alertMessage").addClass("hidden");

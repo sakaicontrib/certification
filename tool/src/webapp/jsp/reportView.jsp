@@ -136,7 +136,7 @@
                     <select id="pageSize">
                         <c:forEach items="${pageSizeList}" var="list">
                             <c:choose>
-                                <c:when test="${list > 200}">
+                                <c:when test="${list > 1600}">
                                     <option value="${list}" <c:if test="${pageSize eq list}">selected="selected"</c:if>><spring:message code="form.label.showall" /></option>
                                 </c:when>
                                 <c:otherwise>
@@ -160,7 +160,7 @@
         </div>
     </div>
     <input id="certificateId" type="button" class="hidden" value="${cert.id}"></input>
-    <table id="reporttable" class="table table-hover table-striped table-bordered" summary="Report">
+    <table id="reporttable" class="table table-hover table-striped table-bordered mt-2">
         <thead align="center">
             <tr>
                 <th>
