@@ -11,11 +11,11 @@
             <generator class="uuid.hex" />
         </id>
 
-        <property name="name" type="java.lang.String" column="defn_name" length="255" not-null="true"/>
+        <property name="name" type="java.lang.String" column="defn_name" length="99" not-null="true"/>
         <property name="description" type="java.lang.String" column="defn_descr" length="500"/>
         <property name="createDate" type="timestamp" column="create_date" not-null="true"/>
-        <property name="creatorUserId" type="java.lang.String" column="creator_id" not-null="true"/>
-        <property name="siteId" type="java.lang.String" column="site_id" not-null="true"/>
+        <property name="creatorUserId" type="java.lang.String" column="creator_id" length="99" not-null="true"/>
+        <property name="siteId" type="java.lang.String" column="site_id" length="99" not-null="true" index="cert_site_idx"/>
         <property name="status" type="org.sakaiproject.certification.impl.CertificateDefinitionStatusEnumUserType"
                   not-null="true"/>
         <property name="progressHidden" type="java.lang.Boolean" column="progress_hidden"/>
