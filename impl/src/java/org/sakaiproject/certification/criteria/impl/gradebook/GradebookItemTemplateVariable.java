@@ -23,6 +23,7 @@ import java.util.Map;
 import org.sakaiproject.certification.api.criteria.CriteriaTemplateVariable;
 import org.sakaiproject.grading.api.Assignment;
 import org.sakaiproject.grading.api.GradingService;
+import org.sakaiproject.grading.api.SortType;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.util.ResourceLoader;
 
@@ -71,7 +72,7 @@ public class GradebookItemTemplateVariable implements CriteriaTemplateVariable {
         HashMap<String, String> items = new HashMap<>();
         String contextId = tm.getCurrentPlacement().getContext();
 
-        List<Assignment> assignments = gradingService.getAssignments(contextId);
+        List<Assignment> assignments = gradingService.getAssignments(contextId, contextId, SortType.SORT_BY_NONE);
         for (Assignment asn : assignments) {
             if (filter.include(asn)) {
                 items.put(Long.toString(asn.getId()), labeler.getLabel(asn));
