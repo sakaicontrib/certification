@@ -25,10 +25,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
+import com.lowagie.text.pdf.PdfWriter;
 import org.sakaiproject.certification.api.CertificateService;
 import org.sakaiproject.certification.api.DocumentTemplate;
 import org.sakaiproject.certification.api.DocumentTemplateRenderEngine;
@@ -82,7 +84,7 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
         try {
             PdfReader reader = new PdfReader(inputStream);
             AcroFields acroFields = reader.getAcroFields();
-            Map<String, AcroFields.Item> fields = acroFields.getFields();
+            Map<String, AcroFields.Item> fields = acroFields.getAllFields();
 
             Set<String> fieldKeys = fields.keySet();
             Set<String> textFieldKeys = new HashSet<>();
@@ -110,6 +112,14 @@ public class ITextDocumentTemplateRenderEngine implements DocumentTemplateRender
 
             stamper.setFormFlattening(true);
             stamper.setFreeTextFlattening(true);
+
+            //byte[] ownerPwd = serverConfigurationService.getString("certification.pdf.ownerPassword", serverConfigurationService.getServerName()).getBytes();
+            stamper.setEncryption(
+                    /* userPwd */      null,
+                    /* ownerPwd */     "d95E6dM5jL7Ud95E6dM5jL7U".getBytes(StandardCharsets.UTF_8),
+                    /* permissions */  PdfWriter.ALLOW_PRINTING,
+                    /* encryption */   PdfWriter.DO_NOT_ENCRYPT_METADATA
+            );
 
             AcroFields form = stamper.getAcroFields();
 
