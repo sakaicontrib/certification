@@ -53,6 +53,7 @@ import org.sakaiproject.grading.api.Assignment;
 import org.sakaiproject.grading.api.CourseGradeTransferBean;
 import org.sakaiproject.grading.api.GradeDefinition;
 import org.sakaiproject.grading.api.GradingService;
+import org.sakaiproject.grading.api.SortType;
 import org.sakaiproject.tool.api.SessionManager;
 import org.sakaiproject.tool.api.ToolManager;
 import org.sakaiproject.user.api.UserDirectoryService;
@@ -249,7 +250,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                             // pull the assignment from the gradebook to check the score
                             Assignment assn = cachedAssignments.get(itemId);
                             if (assn == null) {
-                                assn = gradingService.getAssignment(contextId, itemId);
+                                assn = gradingService.getAssignment(contextId, contextId, itemId);
                                 if (useCaching) {
                                     cachedAssignments.put(itemId, assn);
                                 }
@@ -265,7 +266,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                                 return null;
                             }
 
-                            String assignmentScoreString = gradingService.getAssignmentScoreString (contextId, itemId, userId);
+                            String assignmentScoreString = gradingService.getAssignmentScoreString (contextId, contextId, itemId, userId);
                             if (assignmentScoreString == null) {
                                 return null;
                             }
@@ -355,7 +356,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
 
             Assignment assn;
             try {
-                assn = (Assignment) doSecureGradebookAction(() -> gradingService.getAssignment(contextId, itemId));
+                assn = (Assignment) doSecureGradebookAction(() -> gradingService.getAssignment(contextId, contextId, itemId));
             } catch (Exception e) {
                 log.error("isCriterionMet on DueDatePassedCriterion - An exception was thrown while retrieving a gradebook item; itemId: {}.", itemId);
                 return false;
@@ -390,12 +391,12 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     ibe.setBindingKey(variable.getVariableKey());
                     ibe.setBindingValue(value);
 
-                    if (gradingService.getGradebook(contextId) == null) {
+                    if (gradingService.getGradebook(contextId, contextId) == null) {
                         //This site does not have a gradebook
                         ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_NO_GRADEBOOK, new Object[] {value}));
                         throw ibe;
 
-                    } else if (gradingService.getAssignments(contextId).isEmpty()) {
+                    } else if (gradingService.getAssignments(contextId, contextId, SortType.SORT_BY_NONE).isEmpty()) {
                         //This is an empty gradebook
                         ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EMPTY_GRADEBOOK, new Object[] {value}));
                         throw ibe;
@@ -456,7 +457,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
                     ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EXPIRY_OFFSET_REQUIRED, new Object[] {value}));
                     throw ibe;
 
-                } else if (gradingService.getGradebook(contextId) == null) {
+                } else if (gradingService.getGradebook(contextId, contextId) == null) {
                     //This site does not have a gradebook
                     InvalidBindingException ibe = new InvalidBindingException ();
                     ibe.setBindingKey(variable.getVariableKey());
@@ -478,7 +479,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             GreaterThanScoreCriterion criterion = new GreaterThanScoreCriterion();
             criterion.setCriteriaFactory(this);
             Long itemId = new Long(bindings.get(KEY_GRADEBOOK_ITEM));
-            Assignment assn = gradingService.getAssignment(contextId, itemId);
+            Assignment assn = gradingService.getAssignment(contextId, contextId, itemId);
             String scoreStr = FormatHelper.inputStringToFormatString(bindings.get(KEY_SCORE));
 
             criterion.setAssignment(assn);
@@ -522,7 +523,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             return criterion;
 
         } else if (FinalGradeScoreCriteriaTemplate.class.isAssignableFrom(template.getClass())) {
-            if (gradingService.getGradebook(contextId) == null) {
+            if (gradingService.getGradebook(contextId, contextId) == null) {
                 //This site does not have a gradebook
                 InvalidBindingException ibe = new InvalidBindingException ();
                 ibe.setLocalizedMessage(rl.getFormattedMessage(ERROR_EMPTY_GRADEBOOK, new Object[] {} ));
@@ -590,7 +591,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             DueDatePassedCriterion criterion = new DueDatePassedCriterion();
             criterion.setCriteriaFactory(this);
             Long itemId = new Long(bindings.get(KEY_GRADEBOOK_ITEM));
-            Assignment assn = gradingService.getAssignment(contextId, itemId);
+            Assignment assn = gradingService.getAssignment(contextId, contextId, itemId);
             criterion.setId(Long.toString(System.currentTimeMillis()));
             criterion.setAssignment(assn);
             return criterion;
@@ -650,13 +651,13 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             Double score = (Double) doSecureGradebookAction (new SecureGradebookActionCallback() {
                 public Object doSecureAction() {
                     // pull the assignment from the gradebook to check the score
-                    Assignment assn = gradingService.getAssignment(contextId, itemId);
+                    Assignment assn = gradingService.getAssignment(contextId, contextId, itemId);
                     if (assn == null || !assn.getReleased()) {
                         log.error("getScore - could not retrieve assignment for {}; itemId: {}", userId, itemId);
                         return null;
                     }
 
-                    return Double.parseDouble(FormatHelper.inputStringToFormatString(gradingService.getAssignmentScoreString(contextId, itemId, userId)));
+                    return Double.parseDouble(FormatHelper.inputStringToFormatString(gradingService.getAssignmentScoreString(contextId, contextId, itemId, userId)));
                 }
             });
 
@@ -676,7 +677,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
         try {
             return (Double)doSecureGradebookAction(new SecureGradebookActionCallback() {
                 public Object doSecureAction() {
-                    CourseGradeTransferBean courseGrade = gradingService.getCourseGradeForStudent(contextId, userId);
+                    CourseGradeTransferBean courseGrade = gradingService.getCourseGradeForStudent(contextId, contextId, userId);
 
                     /* The certification tool works with points and not with percentages */
                     /*
@@ -724,7 +725,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
         if (!useCaching || !cached) {
 
             try {
-                GradeDefinition gradeDefn = gradingService.getGradeDefinitionForStudentForItem(contextId, itemId, userId);
+                GradeDefinition gradeDefn = gradingService.getGradeDefinitionForStudentForItem(contextId, contextId, itemId, userId);
                 dateRecorded = gradeDefn.getDateRecorded();
             } catch(AssessmentNotFoundException e) {
                 dateRecorded = null;
@@ -866,7 +867,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
             Long itemId = castedCriterion.getItemId();
 
             // get the due date from the assignment in gradebook service
-            Assignment assn = gradingService.getAssignment(contextId, itemId);
+            Assignment assn = gradingService.getAssignment(contextId, contextId, itemId);
             Date dueDate = assn.getDueDate();
 
             // Due date passed - all students pass if the assignment's due date is in the past
@@ -963,7 +964,7 @@ public class GradebookCriteriaFactory implements CriteriaFactory {
         }
 
         // Get a mapping of gradableObjectIds to lists grade definitions on their respective gradable objects.
-        Map<Long, List<GradeDefinition>> gradesMap = gradingService.getGradesWithoutCommentsForStudentsForItems(contextId, gradableObjectIds, userIds);
+        Map<Long, List<GradeDefinition>> gradesMap = gradingService.getGradesWithoutCommentsForStudentsForItems(contextId, contextId, gradableObjectIds, userIds);
 
         // Iterate over the results to get the users' progress
         for (Map.Entry<Long, List<GradeDefinition>> gboGradeDef : gradesMap.entrySet()) {
