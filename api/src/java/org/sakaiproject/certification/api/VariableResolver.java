@@ -27,6 +27,7 @@ public interface VariableResolver {
     public static final String LAST_NAME = "recipient.lastname";
     public static final String CERT_EXPIREDATE = "cert.expiredate";
     public static final String CERT_AWARDDATE = "cert.date";
+    public static final String CERT_ENDDATE = "cert.enddate";
 
     public Set<String> getVariableLabels();
 

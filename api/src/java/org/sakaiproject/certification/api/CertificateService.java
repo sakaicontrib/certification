@@ -17,6 +17,7 @@
 package org.sakaiproject.certification.api;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -109,6 +110,27 @@ public interface CertificateService {
     public CertificateDefinition createCertificateDefinition(String name, String description, String siteId,
                                                               Boolean progressHidden, String fileName,
                                                               String mimeType, InputStream template)
+        throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException;
+
+    /**
+     * Creates a new certificate definition with an optional date-only course end date.
+     *
+     * @param name the name of the certificate
+     * @param description a description of the certificate
+     * @param siteId the containing site
+     * @param progressHidden specifies whether site members can view their progress towards earning this certificate
+     * @param courseEndDate the course convening end date, or null if it is not configured
+     * @param fileName the filename associated with the template file
+     * @param mimeType the mimetype for the template file
+     * @param template an input stream containing the contents of the template file
+     * @return the new certificate definition
+     * @throws IdUsedException if the certificate name is already used in the site
+     * @throws UnsupportedTemplateTypeException if the template type is unsupported
+     * @throws DocumentTemplateException if the template cannot be stored
+     */
+    public CertificateDefinition createCertificateDefinition(String name, String description, String siteId,
+                                                              Boolean progressHidden, LocalDate courseEndDate,
+                                                              String fileName, String mimeType, InputStream template)
         throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException;
 
     /**

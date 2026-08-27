@@ -18,8 +18,11 @@ package org.sakaiproject.certification.tool;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.beans.PropertyEditorSupport;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -36,6 +39,8 @@ import org.apache.commons.lang3.StringUtils;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.InitBinder;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -113,10 +118,28 @@ public class CertificateEditController extends BaseCertificateController {
 
     private final ObjectMapper mapper = new ObjectMapper();
 
+    private static final DateTimeFormatter ISO_LOCAL_DATE = DateTimeFormatter.ISO_LOCAL_DATE;
+
     private final int CONSTRAINT_DESCRIPTION_LENGTH = 500;
     private final int CONSTRAINT_NAME_LENGTH = 255;
 
     public final int ERROR_BAD_REQUEST = 400;
+
+    @InitBinder
+    public void bindLocalDates(WebDataBinder binder) {
+        binder.registerCustomEditor(LocalDate.class, new PropertyEditorSupport() {
+            @Override
+            public void setAsText(String text) {
+                setValue(StringUtils.isBlank(text) ? null : LocalDate.parse(text, ISO_LOCAL_DATE));
+            }
+
+            @Override
+            public String getAsText() {
+                LocalDate value = (LocalDate) getValue();
+                return value == null ? "" : ISO_LOCAL_DATE.format(value);
+            }
+        });
+    }
 
      /**
      * This allows other methods to use @ModelAttribute(MOD_ATTR).
@@ -581,7 +604,8 @@ public class CertificateEditController extends BaseCertificateController {
                 if (StringUtils.isEmpty(certDef.getId())) {
                     //create a hibernate impl
                     certificateService.createCertificateDefinition(certDef.getName(), certDef.getDescription(),
-                            siteId(), certDef.getProgressHidden(), certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(),
+                            siteId(), certDef.getProgressHidden(), certDef.getCourseEndDate(),
+                            certificateToolState.getTemplateFilename(), certificateToolState.getTemplateMimeType(),
                             certificateToolState.getTemplateInputStream());
 
                     //gets the hibernateImpl

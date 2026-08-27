@@ -19,6 +19,7 @@ package org.sakaiproject.certification.impl.hibernate;
 import java.io.File;
 import java.io.InputStream;
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -234,6 +235,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     CertificateDefinition cdhi = (CertificateDefinition) q.list().get(0);
                     cdhi.setName(cd.getName());
                     cdhi.setDescription(cd.getDescription());
+                    cdhi.setCourseEndDate(cd.getCourseEndDate());
                     cdhi.setProgressHidden(cd.getProgressHidden());
                     session.update(cdhi);
                     return cdhi;
@@ -250,6 +252,14 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                                                               final String siteId, final Boolean progressHidden, final String fileName,
                                                               final String mimeType, final InputStream template)
         throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException {
+        return createCertificateDefinition(name, description, siteId, progressHidden, null, fileName, mimeType, template);
+    }
+
+    public CertificateDefinition createCertificateDefinition (final String name, final String description,
+                                                              final String siteId, final Boolean progressHidden,
+                                                              final LocalDate courseEndDate, final String fileName,
+                                                              final String mimeType, final InputStream template)
+        throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException {
         CertificateDefinition cd = null;
         try {
             cd = (CertificateDefinition) getHibernateTemplate().execute(new HibernateCallback() {
@@ -261,6 +271,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     certificateDefinition.setDescription(description);
                     certificateDefinition.setName(name);
                     certificateDefinition.setSiteId(siteId);
+                    certificateDefinition.setCourseEndDate(courseEndDate);
                     certificateDefinition.setProgressHidden(progressHidden);
                     certificateDefinition.setStatus(CertificateDefinitionStatus.UNPUBLISHED);
                     session.save(certificateDefinition);

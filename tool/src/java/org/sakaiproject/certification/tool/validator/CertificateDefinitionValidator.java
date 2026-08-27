@@ -28,6 +28,7 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import org.sakaiproject.certification.api.CertificateService;
 import org.sakaiproject.certification.api.DocumentTemplateException;
+import org.sakaiproject.certification.api.VariableResolver;
 import org.sakaiproject.certification.tool.util.CertificateToolState;
 
 public class CertificateDefinitionValidator {
@@ -35,6 +36,14 @@ public class CertificateDefinitionValidator {
     private final Pattern variablePattern = Pattern.compile ("\\$\\{(.+)\\}");
 
     public void validateFirst(CertificateToolState certificateToolState, Errors errors, CertificateService service) {
+        String courseEndDateVariable = "${" + VariableResolver.CERT_ENDDATE + "}";
+        Map<String, String> fieldValues = certificateToolState.getCertificateDefinition().getFieldValues();
+        if (certificateToolState.getCertificateDefinition().getCourseEndDate() == null
+                && (containsVariable(fieldValues, courseEndDateVariable)
+                        || containsVariable(certificateToolState.getTemplateFields(), courseEndDateVariable))) {
+            errors.rejectValue("certificateDefinition.courseEndDate", "form.error.courseEndDate.required");
+        }
+
         CommonsMultipartFile newTemplate = certificateToolState.getNewTemplate();
         if (newTemplate != null && newTemplate.getSize() > 0) {
             if(!certificateToolState.getMimeTypes().contains( newTemplate.getContentType() )) {
@@ -49,6 +58,11 @@ public class CertificateDefinitionValidator {
                 }
             }
         }
+    }
+
+    private boolean containsVariable(Map<String, String> fields, String variable) {
+        return fields != null
+                && (fields.containsValue(variable) || fields.containsValue(variable.substring(1)));
     }
 
     public void validateSecond(CertificateToolState certificateToolState, Errors errors) {

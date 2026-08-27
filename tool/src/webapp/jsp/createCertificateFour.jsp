@@ -43,6 +43,16 @@
             <c:out value="${certificateToolState.certificateDefinition.description}"></c:out>
         </span>
     </div>
+    <c:if test="${not empty certificateToolState.formattedCourseEndDate}">
+        <div class="form-group row">
+            <label class="col-sm-12 form-control-label block">
+                <spring:message code="form.label.courseEndDate" />:
+            </label>
+            <span class="col-sm-12">
+                <c:out value="${certificateToolState.formattedCourseEndDate}" />
+            </span>
+        </div>
+    </c:if>
     <c:if test="${not empty certificateToolState.certificateDefinition.expiryOffset}">
         <div class="form-group row">
             <label class="col-sm-12 form-control-label block">

@@ -18,6 +18,9 @@ package org.sakaiproject.certification.tool.util;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -37,6 +40,7 @@ import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.gradebook.WillExpireCriterion;
 import org.sakaiproject.tool.api.ToolSession;
 import org.sakaiproject.tool.cover.SessionManager;
+import org.sakaiproject.util.ResourceLoader;
 
 @Slf4j
 public class CertificateToolState {
@@ -183,6 +187,18 @@ public class CertificateToolState {
         return fieldToDesc;
     }
 
+    public String getFormattedCourseEndDate() {
+        LocalDate courseEndDate = certificateDefinition.getCourseEndDate();
+        if (courseEndDate == null) {
+            return null;
+        }
+
+        ResourceLoader resourceLoader = new ResourceLoader();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+                .withLocale(resourceLoader.getLocale());
+        return dateFormatter.format(courseEndDate);
+    }
+
     /**
      *
      * @return a map of ${} format to description
@@ -255,6 +271,9 @@ public class CertificateToolState {
         //hate to hard code this. I'd grab it from GradebookVariableResolver, but we can't access impl
         String expireDate = "${cert.expiredate}";
         boolean fieldValuesContainWechi = certDef.getFieldValues().values().contains(expireDate);
+        String courseEndDate = "${" + VariableResolver.CERT_ENDDATE + "}";
+        boolean fieldValuesContainCourseEndDate = containsVariable(certDef.getFieldValues(), courseEndDate)
+                || containsVariable(getTemplateFields(), courseEndDate);
 
         Map<String, String> temp = null;
         if(predifinedFields != null) {
@@ -272,13 +291,25 @@ public class CertificateToolState {
                  * or if the field values contain wechi (for whatever reason).
                  * So we add it if
                  * key != expiry date OR criteriacontainswechi OR fieldvaluescontainwechi*/
-                if (!expireDate.equals(newKey) || criteriaContainWechi || fieldValuesContainWechi) {
+                boolean includeField = !expireDate.equals(newKey) || criteriaContainWechi || fieldValuesContainWechi;
+                if (courseEndDate.equals(newKey)
+                        && certDef.getCourseEndDate() == null
+                        && !fieldValuesContainCourseEndDate) {
+                    includeField = false;
+                }
+
+                if (includeField) {
                     temp.put(newKey, predifinedFields.get(key));
                 }
             }
         }
 
         this.predifinedFields = temp;
+    }
+
+    private boolean containsVariable(Map<String, String> fields, String variable) {
+        return fields != null
+                && (fields.containsValue(variable) || fields.containsValue(variable.substring(1)));
     }
 
     /**
