@@ -19,6 +19,7 @@ package org.sakaiproject.certification.impl.hibernate;
 import java.io.File;
 import java.io.InputStream;
 import java.text.DateFormat;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -53,6 +54,7 @@ import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
 import org.sakaiproject.certification.api.CertificateDefinition;
+import org.sakaiproject.certification.api.CertificateDefinitionConstraints;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
 import org.sakaiproject.certification.api.CertificateService;
 import org.sakaiproject.certification.api.DocumentTemplate;
@@ -220,7 +222,10 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         deleteTemplateFile(cd.getDocumentTemplate().getResourceId());
     }
 
-    public CertificateDefinition updateCertificateDefinition(final CertificateDefinition cd) throws IdUnusedException {
+    public CertificateDefinition updateCertificateDefinition(final CertificateDefinition cd)
+            throws IdUnusedException, IncompleteCertificateDefinitionException {
+        validateCourseEndDateConfiguration(cd.getCourseEndDate(), cd.getFieldValues());
+
         CertificateDefinition retVal = null;
         if (cd instanceof CertificateDefinition) {
             retVal = (CertificateDefinition) cd;
@@ -234,6 +239,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     CertificateDefinition cdhi = (CertificateDefinition) q.list().get(0);
                     cdhi.setName(cd.getName());
                     cdhi.setDescription(cd.getDescription());
+                    cdhi.setCourseEndDate(cd.getCourseEndDate());
+                    cdhi.setFieldValues(copyFieldValues(cd.getFieldValues()));
                     cdhi.setProgressHidden(cd.getProgressHidden());
                     session.update(cdhi);
                     return cdhi;
@@ -250,6 +257,14 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                                                               final String siteId, final Boolean progressHidden, final String fileName,
                                                               final String mimeType, final InputStream template)
         throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException {
+        return createCertificateDefinition(name, description, siteId, progressHidden, null, fileName, mimeType, template);
+    }
+
+    public CertificateDefinition createCertificateDefinition (final String name, final String description,
+                                                              final String siteId, final Boolean progressHidden,
+                                                              final LocalDate courseEndDate, final String fileName,
+                                                              final String mimeType, final InputStream template)
+        throws IdUsedException, UnsupportedTemplateTypeException, DocumentTemplateException {
         CertificateDefinition cd = null;
         try {
             cd = (CertificateDefinition) getHibernateTemplate().execute(new HibernateCallback() {
@@ -261,6 +276,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
                     certificateDefinition.setDescription(description);
                     certificateDefinition.setName(name);
                     certificateDefinition.setSiteId(siteId);
+                    certificateDefinition.setCourseEndDate(courseEndDate);
                     certificateDefinition.setProgressHidden(progressHidden);
                     certificateDefinition.setStatus(CertificateDefinitionStatus.UNPUBLISHED);
                     session.save(certificateDefinition);
@@ -537,14 +553,17 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
     }
 
-    public void setFieldValues(String certificateDefinitionId, Map<String, String> fieldValues) throws IdUnusedException {
+    public void setFieldValues(String certificateDefinitionId, Map<String, String> fieldValues)
+            throws IdUnusedException, IncompleteCertificateDefinitionException {
         CertificateDefinition cd = (CertificateDefinition)getCertificateDefinition(certificateDefinitionId);
-        cd.setFieldValues(fieldValues);
+        validateCourseEndDateConfiguration(cd.getCourseEndDate(), fieldValues);
+        cd.setFieldValues(copyFieldValues(fieldValues));
         getHibernateTemplate().update(cd);
     }
 
     public void activateCertificateDefinition(String certificateDefinitionId, boolean active) throws IncompleteCertificateDefinitionException, IdUnusedException {
         CertificateDefinition cd = (CertificateDefinition)getCertificateDefinition(certificateDefinitionId);
+        validateCourseEndDateConfiguration(cd.getCourseEndDate(), cd.getFieldValues());
         if (cd.getDocumentTemplate() == null || cd.getName() == null || cd.getAwardCriteria() == null || cd.getFieldValues() == null)
         {
             throw new IncompleteCertificateDefinitionException ("incomplete certificate definition");
@@ -552,6 +571,18 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
         cd.setStatus (active ? CertificateDefinitionStatus.ACTIVE : CertificateDefinitionStatus.INACTIVE);
         getHibernateTemplate().update(cd);
+    }
+
+    private void validateCourseEndDateConfiguration(LocalDate courseEndDate, Map<String, String> fieldValues)
+            throws IncompleteCertificateDefinitionException {
+        if (!CertificateDefinitionConstraints.isCourseEndDateConfigurationValid(courseEndDate, fieldValues)) {
+            throw new IncompleteCertificateDefinitionException(
+                    "course end date is required when the course end date variable is mapped");
+        }
+    }
+
+    private Map<String, String> copyFieldValues(Map<String, String> fieldValues) {
+        return fieldValues == null ? null : new HashMap<>(fieldValues);
     }
 
     private void setCriteriaFactoryOnCriteria(CertificateDefinition certDef) {
