@@ -492,25 +492,6 @@ public class CertificateEditController extends BaseCertificateController {
             return new ModelAndView(strRedirect);
 
         } else if(ACTION_BACK.equals(certificateToolState.getSubmitValue())) {
-            //jsp strips the $'s out
-            CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
-            Map<String, String> templateFields = certDef.getFieldValues();
-            Map<String, String> newTemplateFields = new HashMap<>();
-            Set<String> keys = templateFields.keySet();
-            for (String key : keys) {
-                String originalValue = templateFields.get(key);
-                if (originalValue.charAt(0) == '{' && originalValue.endsWith("}")) {
-                    StringBuilder value = new StringBuilder("$");
-                    value.append(templateFields.get(key));
-                    newTemplateFields.put(key, value.toString());
-                } else {
-                    newTemplateFields.put(key, originalValue);
-                }
-            }
-
-            certDef.setFieldValues(newTemplateFields);
-
-            //added this for consistency
             certificateToolState.setSubmitValue(null);
             return createCertHandlerSecond(certificateToolState, result, request, status);
         }
@@ -544,6 +525,7 @@ public class CertificateEditController extends BaseCertificateController {
 
         } else {
             certificateToolState.setPredifinedFields(certificateService.getPredefinedTemplateVariables());
+            certificateToolState.setTemplateFields(certificateToolState.getEscapedFieldValues());
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, MOD_ATTR, certificateToolState);
         }
     }

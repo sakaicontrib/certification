@@ -110,11 +110,13 @@
                     <tbody>
                         <c:forEach items="${certificateToolState.fieldToDescription}" var="tField" >
                             <tr>
-                                <td>${tField.key}</td>
-                                <td>${tField.value}</td>
-                                <c:if test="${tField.value == 'unassigned'}">
-                                    <td><form:input path="templateFields['${tField.key}']" autocomplete="off"/></td>
-                                </c:if>
+                                <td><c:out value="${tField.key}" /></td>
+                                <td><c:out value="${tField.value}" /></td>
+                                <td>
+                                    <c:if test="${tField.value == 'unassigned'}">
+                                        <form:input path="templateFields['${tField.key}']" autocomplete="off"/>
+                                    </c:if>
+                                </td>
                             </tr>
                         </c:forEach>
                     </tbody>

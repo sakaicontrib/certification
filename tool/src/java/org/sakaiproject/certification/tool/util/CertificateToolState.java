@@ -177,7 +177,7 @@ public class CertificateToolState {
         {
             String expression = getTemplateFields().get(key);
             String description = getPredifinedFields().get(expression);
-            fieldToDesc.put(key, description);
+            fieldToDesc.put(key, description == null ? expression : description);
         }
 
         return fieldToDesc;
@@ -282,41 +282,7 @@ public class CertificateToolState {
     }
 
     /**
-     * @return a map from the PDF's fields to their selected values' descriptions
-     */
-    public Map <String, String> getTemplateFieldsToDescriptions() {
-        Map<String, String> retVal = new HashMap<>();
-        Map<String, String> preDefFields = getPredifinedFields();
-
-        if (preDefFields == null || preDefFields.isEmpty()) {
-            log.error("preDefFields is null or empty!");
-            return null;
-        }
-
-        CertificateDefinition certDef = getCertificateDefinition();
-        if (certDef == null) {
-            log.error("certDef is null!");
-            return null;
-        }
-
-        Set<String> keys = certDef.getFieldValues().keySet();
-        if (keys == null || keys.isEmpty()) {
-            //this is fine - just means it's a new cert def
-            return null;
-        }
-
-        Iterator<String> itKeys = keys.iterator();
-        while (itKeys.hasNext()) {
-            String key = itKeys.next();
-            retVal.put(key, preDefFields.get(certDef.getFieldValues().get(key)));
-        }
-
-        return retVal;
-    }
-
-    /**
-     *
-     * @return a map of PDF field names to ${} format
+     * @return a map of PDF field names to values suitable for the template-fields form
      */
     public Map<String, String> getEscapedFieldValues() {
         Map<String, String> retVal = null;
@@ -337,9 +303,12 @@ public class CertificateToolState {
         while (itKeys.hasNext()) {
             String key = itKeys.next();
 
-            //passing something of the form ${} makes jsp treat it like a variable
-            //soln: remove the $ here and append it back in the jsp code
-            String value = fieldValues.get(key).substring(1);
+            String value = fieldValues.get(key);
+            // A leading $ is removed from predefined variables because JSP treats ${}
+            // as an expression. Literal values must remain unchanged.
+            if (getPredifinedFields() != null && getPredifinedFields().containsKey(value)) {
+                value = value.substring(1);
+            }
             retVal.put(key, value);
         }
 
@@ -375,7 +344,7 @@ public class CertificateToolState {
        if(templateFields != null) {
            newTemplateField = new HashMap<>();
            for(String val : templateFields) {
-               newTemplateField.put(val, val);
+               newTemplateField.put(val, "");
            }
        }
 

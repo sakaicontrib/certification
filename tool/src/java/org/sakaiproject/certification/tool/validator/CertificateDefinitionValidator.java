@@ -16,12 +16,8 @@
 
 package org.sakaiproject.certification.tool.validator;
 
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.springframework.validation.Errors;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
@@ -31,8 +27,6 @@ import org.sakaiproject.certification.api.DocumentTemplateException;
 import org.sakaiproject.certification.tool.util.CertificateToolState;
 
 public class CertificateDefinitionValidator {
-
-    private final Pattern variablePattern = Pattern.compile ("\\$\\{(.+)\\}");
 
     public void validateFirst(CertificateToolState certificateToolState, Errors errors, CertificateService service) {
         CommonsMultipartFile newTemplate = certificateToolState.getNewTemplate();
@@ -58,33 +52,19 @@ public class CertificateDefinitionValidator {
 
     public void validateThird(CertificateToolState certificateToolState, Errors errors) {
         Map<String, String> currentFields = certificateToolState.getTemplateFields();
-
-        // Validate mappings; throw away any invalid mappings
         Set<String> predefinedFields = certificateToolState.getEscapedPredifinedFields().keySet();
-        for( Iterator<Map.Entry<String, String>> itr = currentFields.entrySet().iterator(); itr.hasNext(); ) {
-            Map.Entry<String, String> entry = itr.next();
-            if( !predefinedFields.contains( entry.getValue() ) ) {
-                itr.remove();
-            }
-        }
 
-        //Add the $'s back in (they were removed in CertificateToolState.getEscapedPredifinedFields())
-        Set<String> keys = new HashSet<>();
-        keys.addAll(currentFields.keySet());
-        for (String key : keys) {
-            String value = "$" + currentFields.get(key);
-            currentFields.remove(key);
-            currentFields.put(key, value);
+        for (Map.Entry<String, String> entry : currentFields.entrySet()) {
+            String value = entry.getValue();
+            if (value == null || value.trim().isEmpty()) {
+                entry.setValue("$" + certificateToolState.getUnassignedValue());
+            } else if (predefinedFields.contains(value)) {
+                // The JSP removes the leading $ from predefined variables so it
+                // does not interpret them as expressions. Restore it for storage.
+                entry.setValue("$" + value);
+            }
         }
 
         certificateToolState.setTemplateFields(currentFields);
-        Map<String, String> preDefFields = certificateToolState.getPredifinedFields();
-        Set<String> keySet = preDefFields.keySet();
-        for(String val : currentFields.values()) {
-            Matcher variableMatcher = variablePattern.matcher(val);
-            if (variableMatcher.matches() && !keySet.contains(val)) {
-                errors.rejectValue("templateFields","not valid","not valid");
-            }
-        }
     }
 }

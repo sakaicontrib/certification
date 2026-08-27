@@ -13,7 +13,7 @@
             </c:otherwise>
         </c:choose>
     </div>
-    <p class="instruction">
+    <p id="fieldValueHelp" class="instruction">
         <spring:message code="form.text.fields.description" />
     </p>
     <div id="submitError" class="alertMessage hidden"></div>
@@ -38,27 +38,29 @@
             <tbody>
                 <c:forEach items="${certificateToolState.escapedFieldValues}" var="tField" varStatus="index">
                     <tr>
-                        <td>${tField.key}</td>
                         <td>
-                            <form:select path="templateFields['${tField.key}']">
-                                <c:if test="${not empty tField.value}">
-                                    <c:forEach items="${certificateToolState.templateFieldsToDescriptions}" var="predefDefault" varStatus="index">
-                                        <c:if test="${tField.key eq predefDefault.key}">
-                                            <form:option value="${tField.value}" label="${predefDefault.value}" />
-                                        </c:if>
-                                    </c:forEach>
-                                </c:if>
-                                <c:forEach items="${certificateToolState.orderedEscapedPredifinedFields}" var="escapedPredefField" varStatus="index">
-                                    <c:if test="${tField.value ne escapedPredefField[0]}">
-                                        <form:option value="${escapedPredefField[0]}" label="${escapedPredefField[1]}" />
-                                    </c:if>
-                                </c:forEach>
-                            </form:select>
+                            <form:label path="templateFields['${tField.key}']" for="templateFieldValue${index.index}">
+                                <c:out value="${tField.key}" />
+                            </form:label>
+                        </td>
+                        <td>
+                            <form:input path="templateFields['${tField.key}']"
+                                        id="templateFieldValue${index.index}"
+                                        class="form-control"
+                                        list="predefinedFieldValues"
+                                        aria-describedby="fieldValueHelp"
+                                        autocomplete="off" />
                         </td>
                     </tr>
                 </c:forEach>
             </tbody>
         </table>
+        <datalist id="predefinedFieldValues">
+            <c:forEach items="${certificateToolState.orderedEscapedPredifinedFields}" var="escapedPredefField">
+                <option value="${fn:escapeXml(escapedPredefField[0])}"
+                        label="${fn:escapeXml(escapedPredefField[1])}"></option>
+            </c:forEach>
+        </datalist>
     </div>
     <div class="my-2">
         <input id="continue" class="btn btn-primary" type="button" value="<spring:message code='form.submit.continue' />" />
@@ -105,10 +107,10 @@
 
     function checkUnassigned() {
         var unassignedVals = false;
-        var elements = $('select[name^="templateFields"]');
+        var elements = $('input[name^="templateFields"]');
 
         for (var i = 0; i < elements.length; i++) {
-            if (elements[i].value === "${certificateToolState.unassignedValue}") {
+            if (!elements[i].value.trim() || elements[i].value === "${certificateToolState.unassignedValue}") {
                 unassignedVals = true;
             }
         }
