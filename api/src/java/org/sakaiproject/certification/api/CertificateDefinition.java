@@ -44,6 +44,7 @@ public class CertificateDefinition {
      */
     public static final int FIELD_NAME = 1;
     public static final int FIELD_DESCRIPTION = 2;
+    public static final int FIELD_VALUE_MAX_LENGTH = 255;
 
     protected String id;
     protected String creatorUserId;

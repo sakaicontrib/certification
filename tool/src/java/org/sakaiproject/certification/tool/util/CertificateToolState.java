@@ -42,6 +42,7 @@ import org.sakaiproject.tool.cover.SessionManager;
 public class CertificateToolState {
 
     public static final String CERTIFICATE_TOOL_STATE = CertificateToolState.class.getName();
+    private static final String CUSTOM_FIELD_VALUE = "__custom__";
     private CertificateDefinition certificateDefinition = null;
     private String newDocumentTemplateName;
     private String submitValue;
@@ -55,6 +56,7 @@ public class CertificateToolState {
     private Set<Criterion> awardCriteria;
     private CriteriaTemplate selectedCriteriaTemplate;
     private Map<String, String> templateFields = null;
+    private Map<String, String> customTemplateFields = null;
     private Map<String, String> predifinedFields = null;
     private boolean newDefinition;
 
@@ -170,6 +172,22 @@ public class CertificateToolState {
         this.templateFields = templateFields;
     }
 
+    public Map<String, String> getCustomTemplateFields() {
+        return customTemplateFields;
+    }
+
+    public void setCustomTemplateFields(Map<String, String> customTemplateFields) {
+        this.customTemplateFields = customTemplateFields;
+    }
+
+    public String getCustomFieldValue() {
+        return CUSTOM_FIELD_VALUE;
+    }
+
+    public int getMaxFieldValueLength() {
+        return CertificateDefinition.FIELD_VALUE_MAX_LENGTH;
+    }
+
     public Map<String, String> getFieldToDescription()
     {
         HashMap<String, String> fieldToDesc = new HashMap<>();
@@ -282,37 +300,36 @@ public class CertificateToolState {
     }
 
     /**
-     * @return a map of PDF field names to values suitable for the template-fields form
+     * Prepares persisted field values for the template-fields form. Predefined
+     * variables remain in the select while literal values use the custom option.
      */
-    public Map<String, String> getEscapedFieldValues() {
-        Map<String, String> retVal = null;
-        CertificateDefinition certDef = getCertificateDefinition();
-        if (certDef == null) {
-            log.error("certDef is null");
-            return retVal;
+    public void prepareTemplateFieldsForEditing() {
+        Map<String, String> editableFields = new HashMap<>();
+        Map<String, String> editableCustomFields = new HashMap<>();
+        Map<String, String> fieldValues = getCertificateDefinition().getFieldValues();
+
+        if (templateFields == null) {
+            setTemplateFields(editableFields);
+            setCustomTemplateFields(editableCustomFields);
+            return;
         }
 
-        Map<String, String> fieldValues = certDef.getFieldValues();
-        if (fieldValues == null || fieldValues.isEmpty()) {
-            //this is fine, just means it's a new cert def
-            return getTemplateFields();
-        }
-
-        retVal = new HashMap<>();
-        Iterator<String> itKeys = fieldValues.keySet().iterator();
-        while (itKeys.hasNext()) {
-            String key = itKeys.next();
-
-            String value = fieldValues.get(key);
-            // A leading $ is removed from predefined variables because JSP treats ${}
-            // as an expression. Literal values must remain unchanged.
-            if (getPredifinedFields() != null && getPredifinedFields().containsKey(value)) {
-                value = value.substring(1);
+        for (String key : templateFields.keySet()) {
+            String value = fieldValues == null ? null : fieldValues.get(key);
+            if (value == null || value.trim().isEmpty()) {
+                editableFields.put(key, getUnassignedValue());
+                editableCustomFields.put(key, "");
+            } else if (predifinedFields != null && predifinedFields.containsKey(value)) {
+                editableFields.put(key, value.substring(1));
+                editableCustomFields.put(key, "");
+            } else {
+                editableFields.put(key, CUSTOM_FIELD_VALUE);
+                editableCustomFields.put(key, value);
             }
-            retVal.put(key, value);
         }
 
-        return retVal;
+        setTemplateFields(editableFields);
+        setCustomTemplateFields(editableCustomFields);
     }
 
     public String getUnassignedValue() {
@@ -329,6 +346,7 @@ public class CertificateToolState {
         submitValue = null;
         selectedCert = null;
         templateFields = null;
+        customTemplateFields = null;
         predifinedFields = null;
         criteriaTemplates = null;
         awardCriteria = new HashSet<>();
@@ -343,9 +361,14 @@ public class CertificateToolState {
        Map<String, String> newTemplateField = null;
        if(templateFields != null) {
            newTemplateField = new HashMap<>();
+           Map<String, String> newCustomTemplateField = new HashMap<>();
            for(String val : templateFields) {
-               newTemplateField.put(val, "");
+               newTemplateField.put(val, getUnassignedValue());
+               newCustomTemplateField.put(val, "");
            }
+           setCustomTemplateFields(newCustomTemplateField);
+       } else {
+           setCustomTemplateFields(null);
        }
 
        setTemplateFields(newTemplateField);

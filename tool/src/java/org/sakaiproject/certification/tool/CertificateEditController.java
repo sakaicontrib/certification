@@ -525,7 +525,7 @@ public class CertificateEditController extends BaseCertificateController {
 
         } else {
             certificateToolState.setPredifinedFields(certificateService.getPredefinedTemplateVariables());
-            certificateToolState.setTemplateFields(certificateToolState.getEscapedFieldValues());
+            certificateToolState.prepareTemplateFieldsForEditing();
             return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, MOD_ATTR, certificateToolState);
         }
     }
@@ -553,6 +553,13 @@ public class CertificateEditController extends BaseCertificateController {
             return createCertHandlerThird(certificateToolState, result, request, status);
 
         } else if(ACTION_SAVE.equals(certificateToolState.getSubmitValue())) {
+            certificateDefinitionValidator.validateFourth(certificateToolState, result);
+            if (result.hasErrors()) {
+                model.put(STATUS_MESSAGE_KEY, FORM_ERR);
+                model.put(MOD_ATTR, certificateToolState);
+                return new ModelAndView(VIEW_CREATE_CERTIFICATE_FOUR, model);
+            }
+
             try {
                 CertificateDefinition certDef = certificateToolState.getCertificateDefinition();
 

@@ -27,6 +27,7 @@
             <spring:message code="${errorMessage}" />
         </div>
     </c:if>
+    <form:errors path="customTemplateFields" cssClass="alertMessage" element="div" />
     <div class="form-group row">
         <label class="col-sm-12 form-control-label block">
             <spring:message code="form.label.name" />:
@@ -108,13 +109,21 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <c:forEach items="${certificateToolState.fieldToDescription}" var="tField" >
+                        <c:forEach items="${certificateToolState.fieldToDescription}" var="tField" varStatus="reviewIndex">
                             <tr>
                                 <td><c:out value="${tField.key}" /></td>
                                 <td><c:out value="${tField.value}" /></td>
                                 <td>
                                     <c:if test="${tField.value == 'unassigned'}">
-                                        <form:input path="templateFields['${tField.key}']" autocomplete="off"/>
+                                        <form:label path="customTemplateFields['${tField.key}']"
+                                                    for="reviewCustomTemplateFieldValue${reviewIndex.index}"
+                                                    cssClass="sr-only">
+                                            <spring:message code="form.label.customTextFor" arguments="${tField.key}" htmlEscape="true" />
+                                        </form:label>
+                                        <form:input path="customTemplateFields['${tField.key}']"
+                                                    id="reviewCustomTemplateFieldValue${reviewIndex.index}"
+                                                    maxlength="${certificateToolState.maxFieldValueLength}"
+                                                    autocomplete="off"/>
                                     </c:if>
                                 </td>
                             </tr>

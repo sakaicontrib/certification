@@ -31,7 +31,7 @@
         <map name="fieldValues" table="certificate_field_mapping" lazy="false" cascade="save-update,delete">
             <key column="defn_id" not-null="true"/>
             <map-key column="variable" type="string"/>
-            <element column="value" type="string" not-null="true"/>
+            <element column="value" type="string" length="255" not-null="true"/>
         </map>
 
         <properties name="certdefunique" unique="true">
