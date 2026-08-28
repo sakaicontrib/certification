@@ -54,6 +54,7 @@ import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
+import org.sakaiproject.certification.api.AwardDateUnavailableException;
 import org.sakaiproject.certification.api.CertificateAward;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
@@ -166,6 +167,7 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private static final String PARAM_USER_IDS = "userIds";
 
     private static final String PERMISSION_VIEW_STUDENT_NUMS = "certificate.extraprops.view";
+    private static final String PERMISSION_BE_AWARDED = "certificate.be.awarded";
     private static final int MAX_AWARD_QUERY_USER_IDS = 500;
 
     public String getString(String key) {
@@ -759,12 +761,21 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     public Set<Criterion> getUnmetAwardConditionsForUser(String certificateDefinitionId, String userId, boolean useCaching)
             throws IdUnusedException, UnknownCriterionTypeException {
         String contextId = contextId();
-        CertificateDefinition cd = (CertificateDefinition)getCertificateDefinition(certificateDefinitionId);
-        Set<Criterion> criteria = cd.getAwardCriteria();
+        CertificateDefinition definition = getCertificateDefinition(certificateDefinitionId);
+        return getUnmetAwardConditionsForUser(definition, userId, contextId, useCaching);
+    }
+
+    private Set<Criterion> getUnmetAwardConditionsForUser(CertificateDefinition definition, String userId,
+                                                           String contextId, boolean useCaching)
+            throws UnknownCriterionTypeException {
+        Set<Criterion> criteria = definition.getAwardCriteria();
         Set<Criterion> unmetCriteria = new HashSet<>();
 
         for (Criterion criterion : criteria) {
             CriteriaFactory cFact = criteriaFactoryMap.get(criterion.getClass());
+            if (cFact == null) {
+                throw new UnknownCriterionTypeException(criterion.getClass().getName());
+            }
 
             if (!cFact.isCriterionMet(criterion, userId, contextId, useCaching)) {
                 unmetCriteria.add(criterion);
@@ -792,7 +803,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
 
     @Override
     public CertificateAward awardCertificate(final String certificateDefinitionId, final String userId)
-            throws IdUnusedException, UnmetCriteriaException {
+            throws IdUnusedException, UnmetCriteriaException, AwardDateUnavailableException,
+                UnknownCriterionTypeException, PermissionException {
         if (StringUtils.isBlank(certificateDefinitionId)) {
             throw new IdUnusedException(String.valueOf(certificateDefinitionId));
         }
@@ -801,14 +813,28 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         }
 
         CertificateAward existingAward = getCertificateAwardForUser(certificateDefinitionId, userId);
+        final CertificateDefinition definition = existingAward == null
+            ? getCertificateDefinition(certificateDefinitionId)
+            : existingAward.getCertificateDefinition();
+        requireAwardPermission(definition, userId);
+
         if (existingAward != null) {
             return existingAward;
         }
 
-        final CertificateDefinition definition = getCertificateDefinition(certificateDefinitionId);
+        if (definition.getStatus() != CertificateDefinitionStatus.ACTIVE) {
+            throw unmetCriteriaException("Certificate definition is not active", new HashSet<>());
+        }
+
+        Set<Criterion> unmetCriteria = getUnmetAwardConditionsForUser(
+            definition, userId, definition.getSiteId(), false);
+        if (!unmetCriteria.isEmpty()) {
+            throw unmetCriteriaException("Certificate criteria have not been met", unmetCriteria);
+        }
+
         final Date awardedAt = definition.getIssueDate(userId, false);
         if (awardedAt == null) {
-            throw new UnmetCriteriaException("Certificate criteria have not been met or an award date could not be calculated");
+            throw new AwardDateUnavailableException("Certificate criteria were met, but an award date could not be calculated");
         }
 
         return (CertificateAward) getHibernateTemplate().execute(session -> {
@@ -823,6 +849,20 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             }
             return award;
         });
+    }
+
+    private void requireAwardPermission(CertificateDefinition definition, String userId) throws PermissionException {
+        String siteReference = siteService.siteReference(definition.getSiteId());
+        if (securityService.isSuperUser(userId)
+                || !securityService.unlock(userId, PERMISSION_BE_AWARDED, siteReference)) {
+            throw new PermissionException(userId, PERMISSION_BE_AWARDED, siteReference);
+        }
+    }
+
+    private UnmetCriteriaException unmetCriteriaException(String message, Set<Criterion> unmetCriteria) {
+        UnmetCriteriaException exception = new UnmetCriteriaException(message);
+        exception.setUnmetCriteria(unmetCriteria);
+        return exception;
     }
 
     private CertificateAward findCertificateAward(Session session, String certificateDefinitionId, String userId) {

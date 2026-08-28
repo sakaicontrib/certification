@@ -35,9 +35,15 @@ import org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriter
 class MutableIssueDateCriteriaFactory implements CriteriaFactory {
 
     private Date issueDate;
+    private boolean criterionMet;
 
     void setIssueDate(Date issueDate) {
         this.issueDate = issueDate == null ? null : new Date(issueDate.getTime());
+        this.criterionMet = issueDate != null;
+    }
+
+    void setCriterionMet(boolean criterionMet) {
+        this.criterionMet = criterionMet;
     }
 
     @Override
@@ -62,12 +68,12 @@ class MutableIssueDateCriteriaFactory implements CriteriaFactory {
 
     @Override
     public boolean isCriterionMet(Criterion criterion) {
-        return issueDate != null;
+        return criterionMet;
     }
 
     @Override
     public boolean isCriterionMet(Criterion criterion, String userId, String contextId, boolean useCaching) {
-        return issueDate != null;
+        return criterionMet;
     }
 
     @Override

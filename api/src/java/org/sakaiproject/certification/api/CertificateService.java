@@ -31,6 +31,7 @@ import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException
 import org.sakaiproject.content.api.ContentHostingService;
 import org.sakaiproject.exception.IdUnusedException;
 import org.sakaiproject.exception.IdUsedException;
+import org.sakaiproject.exception.PermissionException;
 
 /**
  * This service manages the creation, update, and retrieval of CertificateDefinitions as well as the award of
@@ -263,10 +264,14 @@ public interface CertificateService {
      * @param userId Sakai user identifier
      * @return the existing or newly persisted award
      * @throws IdUnusedException when the certificate definition does not exist
-     * @throws UnmetCriteriaException when the user is not currently eligible or an issue date cannot be calculated
+     * @throws UnmetCriteriaException when the certificate is not active or the user has unmet award criteria
+     * @throws AwardDateUnavailableException when the user meets the criteria but an issue date cannot be calculated
+     * @throws UnknownCriterionTypeException when an award criterion cannot be evaluated
+     * @throws PermissionException when the user cannot be awarded certificates in the definition's site
      */
     public CertificateAward awardCertificate(String certificateDefinitionId, String userId)
-        throws IdUnusedException, UnmetCriteriaException;
+        throws IdUnusedException, UnmetCriteriaException, AwardDateUnavailableException,
+            UnknownCriterionTypeException, PermissionException;
 
     /**
      * Returns a Map whose key values are variable names that can be used to fill in template fields. The values in the

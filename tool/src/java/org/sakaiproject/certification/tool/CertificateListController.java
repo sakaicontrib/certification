@@ -49,6 +49,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import org.sakaiproject.certification.api.AwardDateUnavailableException;
 import org.sakaiproject.certification.api.CertificateAward;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
@@ -60,9 +61,11 @@ import org.sakaiproject.certification.api.UnmetCriteriaException;
 import org.sakaiproject.certification.api.VariableResolutionException;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.CriterionProgress;
+import org.sakaiproject.certification.api.criteria.UnknownCriterionTypeException;
 import org.sakaiproject.certification.api.criteria.gradebook.WillExpireCriterion;
 import org.sakaiproject.component.cover.ServerConfigurationService;
 import org.sakaiproject.exception.IdUnusedException;
+import org.sakaiproject.exception.PermissionException;
 import org.sakaiproject.site.api.Site;
 import org.sakaiproject.util.api.FormattedText;
 
@@ -467,8 +470,9 @@ public class CertificateListController extends BaseCertificateController {
         if (isAwardable()) {
             try {
                 award = certificateService.awardCertificate(certId, userId());
-            } catch (IdUnusedException | UnmetCriteriaException e) {
-                log.debug("Certificate {} is not awardable to user {}", certId, userId());
+            } catch (IdUnusedException | UnmetCriteriaException | AwardDateUnavailableException
+                    | UnknownCriterionTypeException | PermissionException e) {
+                log.debug("Certificate {} is not awardable to user {}: {}", certId, userId(), e.toString());
             }
         }
 

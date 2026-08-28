@@ -24,6 +24,8 @@ import static org.junit.Assert.fail;
 
 import java.lang.reflect.Proxy;
 import java.util.Date;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -49,6 +51,8 @@ import org.springframework.orm.hibernate5.HibernateTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import org.sakaiproject.authz.api.SecurityService;
+import org.sakaiproject.certification.api.AwardDateUnavailableException;
 import org.sakaiproject.certification.api.CertificateAward;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
@@ -56,6 +60,8 @@ import org.sakaiproject.certification.api.DocumentTemplate;
 import org.sakaiproject.certification.api.UnmetCriteriaException;
 import org.sakaiproject.certification.api.criteria.gradebook.DueDatePassedCriterion;
 import org.sakaiproject.content.api.ContentHostingService;
+import org.sakaiproject.exception.PermissionException;
+import org.sakaiproject.site.api.SiteService;
 
 public class CertificateAwardPersistenceTest {
 
@@ -80,6 +86,7 @@ public class CertificateAwardPersistenceTest {
     private HibernateTransactionManager transactionManager;
     private CertificateServiceHibernateImpl certificateService;
     private MutableIssueDateCriteriaFactory criteriaFactory;
+    private Set<String> awardableSiteReferences;
 
     @Before
     public void setUp() {
@@ -107,6 +114,10 @@ public class CertificateAwardPersistenceTest {
         certificateService = new CertificateServiceHibernateImpl();
         certificateService.setSessionFactory(sessionFactory);
         certificateService.setContentHostingService(createContentHostingService());
+        awardableSiteReferences = new HashSet<>();
+        awardableSiteReferences.add("/site/site");
+        certificateService.setSiteService(createSiteService());
+        certificateService.setSecurityService(createSecurityService());
         criteriaFactory = new MutableIssueDateCriteriaFactory();
         certificateService.registerCriteriaFactory(criteriaFactory);
     }
@@ -157,6 +168,29 @@ public class CertificateAwardPersistenceTest {
     }
 
     @Test
+    public void existingAwardIsReturnedAfterDefinitionBecomesInactive() throws Exception {
+        String certificateDefinitionId = saveCertificateDefinition();
+        Date awardedAt = new Date(1_777_776_400_000L);
+        criteriaFactory.setIssueDate(awardedAt);
+        CertificateAward issued = inTransaction(() ->
+            certificateService.awardCertificate(certificateDefinitionId, "student"));
+
+        inTransaction(() -> {
+            CertificateDefinition definition = sessionFactory.getCurrentSession()
+                .get(CertificateDefinition.class, certificateDefinitionId);
+            definition.setStatus(CertificateDefinitionStatus.INACTIVE);
+            return null;
+        });
+
+        CertificateAward persisted = inTransaction(() ->
+            certificateService.awardCertificate(certificateDefinitionId, "student"));
+
+        assertEquals(issued.getId(), persisted.getId());
+        assertEquals(awardedAt, persisted.getAwardedAt());
+        assertEquals(1L, countAwards());
+    }
+
+    @Test
     public void awardDateCannotBeMutatedThroughTheApi() throws Exception {
         String certificateDefinitionId = saveCertificateDefinition();
         Date awardedAt = new Date(1_777_776_400_000L);
@@ -174,7 +208,7 @@ public class CertificateAwardPersistenceTest {
     }
 
     @Test
-    public void awardIsNotCreatedWithoutACalculableIssueDate() throws Exception {
+    public void unmetCriteriaAreReportedAndAwardIsNotCreated() throws Exception {
         String certificateDefinitionId = saveCertificateDefinition();
         criteriaFactory.setIssueDate(null);
 
@@ -182,11 +216,62 @@ public class CertificateAwardPersistenceTest {
             inTransaction(() -> certificateService.awardCertificate(certificateDefinitionId, "student"));
             fail("Expected UnmetCriteriaException");
         } catch (UnmetCriteriaException expected) {
-            // Expected.
+            assertNotNull(expected.getUnmetConditions());
+            assertEquals(1, expected.getUnmetConditions().size());
         }
 
         assertNull(inTransaction(() ->
             certificateService.getCertificateAwardForUser(certificateDefinitionId, "student")));
+        assertEquals(0L, countAwards());
+    }
+
+    @Test
+    public void awardDateFailureIsDistinctFromUnmetCriteria() throws Exception {
+        String certificateDefinitionId = saveCertificateDefinition();
+        criteriaFactory.setIssueDate(null);
+        criteriaFactory.setCriterionMet(true);
+
+        try {
+            inTransaction(() -> certificateService.awardCertificate(certificateDefinitionId, "student"));
+            fail("Expected AwardDateUnavailableException");
+        } catch (AwardDateUnavailableException expected) {
+            assertTrue(expected.getMessage().contains("award date"));
+        }
+
+        assertEquals(0L, countAwards());
+    }
+
+    @Test
+    public void inactiveAndUnpublishedDefinitionsCannotCreateAwards() throws Exception {
+        criteriaFactory.setIssueDate(new Date(1_777_776_400_000L));
+
+        for (CertificateDefinitionStatus status : new CertificateDefinitionStatus[] {
+                CertificateDefinitionStatus.INACTIVE, CertificateDefinitionStatus.UNPUBLISHED }) {
+            String certificateDefinitionId = saveCertificateDefinition(status, "site");
+            try {
+                inTransaction(() -> certificateService.awardCertificate(certificateDefinitionId, "student"));
+                fail("Expected UnmetCriteriaException for " + status);
+            } catch (UnmetCriteriaException expected) {
+                assertNotNull(expected.getUnmetConditions());
+                assertTrue(expected.getUnmetConditions().isEmpty());
+            }
+        }
+
+        assertEquals(0L, countAwards());
+    }
+
+    @Test
+    public void awardPermissionIsCheckedAgainstTheDefinitionSite() throws Exception {
+        String certificateDefinitionId = saveCertificateDefinition(CertificateDefinitionStatus.ACTIVE, "other-site");
+        criteriaFactory.setIssueDate(new Date(1_777_776_400_000L));
+
+        try {
+            inTransaction(() -> certificateService.awardCertificate(certificateDefinitionId, "student"));
+            fail("Expected PermissionException");
+        } catch (PermissionException expected) {
+            assertEquals("/site/other-site", expected.getResource());
+        }
+
         assertEquals(0L, countAwards());
     }
 
@@ -257,14 +342,18 @@ public class CertificateAwardPersistenceTest {
     }
 
     private String saveCertificateDefinition() {
+        return saveCertificateDefinition(CertificateDefinitionStatus.ACTIVE, "site");
+    }
+
+    private String saveCertificateDefinition(CertificateDefinitionStatus status, String siteId) {
         CertificateDefinition definition = new CertificateDefinition();
         definition.setName("Certificate " + UUID.randomUUID());
         definition.setDescription("description");
         definition.setCreateDate(new Date());
         definition.setCreatorUserId("creator");
-        definition.setSiteId("site");
+        definition.setSiteId(siteId);
         definition.setProgressHidden(false);
-        definition.setStatus(CertificateDefinitionStatus.ACTIVE);
+        definition.setStatus(status);
         definition.addAwardCriterion(new DueDatePassedCriterion());
         DocumentTemplate template = new DocumentTemplate();
         template.setName("certificate.pdf");
@@ -281,6 +370,33 @@ public class CertificateAwardPersistenceTest {
         return definition.getId();
     }
 
+    private SiteService createSiteService() {
+        return (SiteService) Proxy.newProxyInstance(
+            SiteService.class.getClassLoader(),
+            new Class<?>[] {SiteService.class},
+            (proxy, method, args) -> {
+                if ("siteReference".equals(method.getName())) {
+                    return "/site/" + args[0];
+                }
+                return defaultValue(method.getReturnType());
+            });
+    }
+
+    private SecurityService createSecurityService() {
+        return (SecurityService) Proxy.newProxyInstance(
+            SecurityService.class.getClassLoader(),
+            new Class<?>[] {SecurityService.class},
+            (proxy, method, args) -> {
+                if ("isSuperUser".equals(method.getName())) {
+                    return false;
+                }
+                if ("unlock".equals(method.getName())) {
+                    return awardableSiteReferences.contains(args[2]);
+                }
+                return defaultValue(method.getReturnType());
+            });
+    }
+
     private ContentHostingService createContentHostingService() {
         return (ContentHostingService) Proxy.newProxyInstance(
             ContentHostingService.class.getClassLoader(),
@@ -289,33 +405,36 @@ public class CertificateAwardPersistenceTest {
                 if ("getContainingCollectionId".equals(method.getName())) {
                     return "/";
                 }
-                Class<?> returnType = method.getReturnType();
-                if (returnType.equals(boolean.class)) {
-                    return false;
-                }
-                if (returnType.equals(int.class)) {
-                    return 0;
-                }
-                if (returnType.equals(long.class)) {
-                    return 0L;
-                }
-                if (returnType.equals(short.class)) {
-                    return (short) 0;
-                }
-                if (returnType.equals(byte.class)) {
-                    return (byte) 0;
-                }
-                if (returnType.equals(float.class)) {
-                    return 0.0F;
-                }
-                if (returnType.equals(double.class)) {
-                    return 0.0;
-                }
-                if (returnType.equals(char.class)) {
-                    return '\0';
-                }
-                return null;
+                return defaultValue(method.getReturnType());
             });
+    }
+
+    private Object defaultValue(Class<?> returnType) {
+        if (returnType.equals(boolean.class)) {
+            return false;
+        }
+        if (returnType.equals(int.class)) {
+            return 0;
+        }
+        if (returnType.equals(long.class)) {
+            return 0L;
+        }
+        if (returnType.equals(short.class)) {
+            return (short) 0;
+        }
+        if (returnType.equals(byte.class)) {
+            return (byte) 0;
+        }
+        if (returnType.equals(float.class)) {
+            return 0.0F;
+        }
+        if (returnType.equals(double.class)) {
+            return 0.0;
+        }
+        if (returnType.equals(char.class)) {
+            return '\0';
+        }
+        return null;
     }
 
     private long countAwards() throws Exception {
