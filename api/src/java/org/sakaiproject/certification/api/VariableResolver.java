@@ -16,6 +16,7 @@
 
 package org.sakaiproject.certification.api;
 
+import java.util.Date;
 import java.util.Set;
 
 public interface VariableResolver {
@@ -33,4 +34,13 @@ public interface VariableResolver {
     public String getVariableDescription(String varLabel);
 
     public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException;
+
+    /**
+     * Resolves a variable while rendering an issued award. Implementations that do not use the immutable award date
+     * retain their existing behavior.
+     */
+    public default String getValue(CertificateDefinition certDef, String varLabel, String userId,
+                                   boolean useCaching, Date awardedAt) throws VariableResolutionException {
+        return getValue(certDef, varLabel, userId, useCaching);
+    }
 }

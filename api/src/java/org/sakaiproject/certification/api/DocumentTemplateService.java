@@ -84,6 +84,16 @@ public interface DocumentTemplateService {
      */
     public InputStream render(DocumentTemplate template, CertificateDefinition certDef, String userId) throws TemplateReadException, VariableResolutionException;
 
+    /**
+     * Renders a persisted certificate award so date variables use the immutable date captured when it was issued.
+     *
+     * @param template the template for the certificate
+     * @param award the persisted award being rendered
+     * @return rendered certificate data
+     */
+    public InputStream render(DocumentTemplate template, CertificateAward award)
+        throws TemplateReadException, VariableResolutionException;
+
     public Set<VariableResolver> getVariableResolvers();
 
     /**

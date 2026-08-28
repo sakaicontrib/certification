@@ -41,6 +41,7 @@ public class GradebookVariableResolver extends AbstractVariableResolver {
     private ToolManager toolManager = null;
     private SecurityService securityService = null;
     private SessionManager sessionManager = null;
+    private final ResourceLoader resourceLoader;
 
     private static final String MESSAGE_EXPIRATION = "variable.expiration";
     private static final String MESSAGE_ISSUEDATE = "variable.issuedate";
@@ -49,6 +50,12 @@ public class GradebookVariableResolver extends AbstractVariableResolver {
     private static final String PERM_EDITASSIGNMENT = "gradebook.editAssignments";
 
     public GradebookVariableResolver() {
+        this(new ResourceLoader("org.sakaiproject.certification.Messages"));
+    }
+
+    GradebookVariableResolver(ResourceLoader resourceLoader) {
+        super(resourceLoader);
+        this.resourceLoader = resourceLoader;
         String expirationDate = getMessages().getString(MESSAGE_EXPIRATION);
         String awardDate = getMessages().getString(MESSAGE_ISSUEDATE);
         addVariable(CERT_EXPIREDATE, expirationDate);
@@ -56,11 +63,16 @@ public class GradebookVariableResolver extends AbstractVariableResolver {
     }
 
     public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException {
-        ResourceLoader resourceLoader = new ResourceLoader();
+        return getValue(certDef, varLabel, userId, useCaching, null);
+    }
+
+    @Override
+    public String getValue(CertificateDefinition certDef, String varLabel, String userId,
+                           boolean useCaching, Date awardedAt) throws VariableResolutionException {
         DateFormat dateFormat = DateFormat.getDateInstance(DateFormat.LONG, resourceLoader.getLocale());
 
         if (CERT_EXPIREDATE.equals(varLabel)) {
-            Date issueDate = certDef.getIssueDate(userId, useCaching);
+            Date issueDate = resolveIssueDate(certDef, userId, useCaching, awardedAt);
             if (issueDate == null) {
                 //shouldn't happen unless new criteria are added where issue date is incalculable
                 return "";
@@ -89,7 +101,7 @@ public class GradebookVariableResolver extends AbstractVariableResolver {
             return "";
 
         } else if (CERT_AWARDDATE.equals(varLabel)) {
-            Date issueDate = certDef.getIssueDate(userId, useCaching);
+            Date issueDate = resolveIssueDate(certDef, userId, useCaching, awardedAt);
             if (issueDate == null) {
                 return "";
             }
@@ -98,6 +110,10 @@ public class GradebookVariableResolver extends AbstractVariableResolver {
         }
 
         throw new VariableResolutionException("could not resolve variable: \"" + varLabel + "\"");
+    }
+
+    private Date resolveIssueDate(CertificateDefinition certDef, String userId, boolean useCaching, Date awardedAt) {
+        return awardedAt == null ? certDef.getIssueDate(userId, useCaching) : new Date(awardedAt.getTime());
     }
 
     public void setGradingService(GradingService gradingService) {

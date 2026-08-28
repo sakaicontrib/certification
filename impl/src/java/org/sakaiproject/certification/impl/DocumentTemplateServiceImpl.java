@@ -17,6 +17,7 @@
 package org.sakaiproject.certification.impl;
 
 import java.io.InputStream;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.sakaiproject.certification.api.CertificateAward;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.DocumentTemplate;
 import org.sakaiproject.certification.api.DocumentTemplateRenderEngine;
@@ -93,6 +95,17 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
 
     public InputStream render(DocumentTemplate template, CertificateDefinition certDef, String userId)
             throws TemplateReadException, VariableResolutionException {
+        return render(template, certDef, userId, null);
+    }
+
+    @Override
+    public InputStream render(DocumentTemplate template, CertificateAward award)
+            throws TemplateReadException, VariableResolutionException {
+        return render(template, award.getCertificateDefinition(), award.getUserId(), award.getAwardedAt());
+    }
+
+    private InputStream render(DocumentTemplate template, CertificateDefinition certDef, String userId, Date awardedAt)
+            throws TemplateReadException, VariableResolutionException {
         // Maps key values to display messages (ie. expiry.offset -> "Expiration Date")
         Map<String, String> bindings = certDef.getFieldValues();
 
@@ -109,7 +122,7 @@ public class DocumentTemplateServiceImpl implements DocumentTemplateService {
                 VariableResolver resolver = variableResolvers.get(varName);
 
                 if (resolver != null) {
-                    resolvedBindings.put (key, resolver.getValue(certDef, varName, userId, false));
+                    resolvedBindings.put (key, resolver.getValue(certDef, varName, userId, false, awardedAt));
                     continue;
                 }
             }

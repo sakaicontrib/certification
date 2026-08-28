@@ -45,3 +45,14 @@ The tool id has been changed for consistency:
 UPDATE sakai_site_tool SET registration = 'sakai.certification' WHERE registration = 'com.rsmart.certification';
 ```
 
+## Certificate award persistence
+
+Certificate awards are stored in `certificate_award`. Hibernate creates the table and its per-certificate/per-user
+unique key when automatic DDL is enabled. Sites that manage their schema manually should use one of these scripts:
+
+- For a site without the table, run `conversion/create-certificate-award.sql`.
+- For a site retaining the historical table from Certification 11 or earlier, preserve those award rows and run
+  `conversion/add-certificate-award-unique-constraint.sql`.
+
+Before adding the unique key to a historical table, check for duplicate certificate/user rows and retain the earliest
+`award_timestamp` for each pair. The application also selects the earliest historical row until the data is cleaned.

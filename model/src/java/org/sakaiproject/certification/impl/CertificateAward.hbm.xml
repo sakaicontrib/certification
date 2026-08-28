@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE hibernate-mapping PUBLIC
+    "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+    "http://hibernate.org/dtd/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+
+    <class name="org.sakaiproject.certification.api.CertificateAward"
+           table="certificate_award"
+           lazy="false">
+
+        <id name="id" access="field" length="36" type="java.lang.String" column="id">
+            <generator class="uuid.hex" />
+        </id>
+
+        <property name="userId" access="field" type="java.lang.String" column="userId"
+                  length="36" not-null="true" unique-key="certificate_award_user_uk"/>
+        <many-to-one name="certificateDefinition" access="field"
+                     class="org.sakaiproject.certification.api.CertificateDefinition"
+                     column="certificate_definition_id" not-null="true"
+                     unique-key="certificate_award_user_uk"/>
+
+        <property name="awardedAt" access="field" column="award_timestamp" type="timestamp" not-null="true"/>
+    </class>
+
+    <query name="getCertificateAwardForUser">
+        from CertificateAward ca
+            where ca.certificateDefinition.id = :certificateDefinitionId
+              and ca.userId = :userId
+            order by ca.awardedAt asc
+    </query>
+
+    <query name="getCertificateAwardsForDefinitionAndUsers">
+        from CertificateAward ca
+            where ca.certificateDefinition.id = :certificateDefinitionId
+              and ca.userId in (:userIds)
+    </query>
+
+    <query name="deleteCertificateAwardsForDefinition">
+        delete from CertificateAward ca
+            where ca.certificateDefinition.id = :certificateDefinitionId
+    </query>
+</hibernate-mapping>

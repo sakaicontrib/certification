@@ -49,12 +49,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
+import org.sakaiproject.certification.api.CertificateAward;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
 import org.sakaiproject.certification.api.DocumentTemplate;
 import org.sakaiproject.certification.api.DocumentTemplateException;
 import org.sakaiproject.certification.api.ReportRow;
 import org.sakaiproject.certification.api.TemplateReadException;
+import org.sakaiproject.certification.api.UnmetCriteriaException;
 import org.sakaiproject.certification.api.VariableResolutionException;
 import org.sakaiproject.certification.api.criteria.Criterion;
 import org.sakaiproject.certification.api.criteria.CriterionProgress;
@@ -320,10 +322,14 @@ public class CertificateListController extends BaseCertificateController {
                 certRequirementList.put (cfl.getId(), requirementList);
             }
 
+            boolean currentUserIsAwardable = isAwardable();
+            String currentUserId = userId();
             for (CertificateDefinition cd : certDefs) {
                 boolean awarded = false;
-                if (isAwardable() && cd.isAwarded(userId(), false)) {
-                    awarded = true;
+                if (currentUserIsAwardable) {
+                    CertificateAward persistedAward =
+                        certificateService.getCertificateAwardForUser(cd.getId(), currentUserId);
+                    awarded = persistedAward != null || cd.isAwarded(currentUserId, false);
                 }
 
                 certificateIsAwarded.put(cd.getId(), awarded);
@@ -457,18 +463,22 @@ public class CertificateListController extends BaseCertificateController {
             }
         }
 
-        Date issueDate = definition.getIssueDate(userId(), false);
-        boolean awarded = false;
-        try {
-            awarded = definition.isAwarded(userId(), false);
-        } catch (Exception e) {}
+        CertificateAward award = null;
+        if (isAwardable()) {
+            try {
+                award = certificateService.awardCertificate(certId, userId());
+            } catch (IdUnusedException | UnmetCriteriaException e) {
+                log.debug("Certificate {} is not awardable to user {}", certId, userId());
+            }
+        }
 
-        if (awarded && isAwardable()) {
+        if (award != null) {
+            Date issueDate = award.getAwardedAt();
             DocumentTemplate template = definition.getDocumentTemplate();
 
             try {
                 //get an input stream for the PDF
-                InputStream in = documentTemplateService.render(template, definition, userId());
+                InputStream in = documentTemplateService.render(template, award);
 
                 //Creating the pdf was a success
                 //proceed to create the http response

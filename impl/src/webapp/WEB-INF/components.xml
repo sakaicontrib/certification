@@ -13,6 +13,7 @@
           class="org.sakaiproject.springframework.orm.hibernate.impl.AdditionalHibernateMappingsImpl">
         <property name="mappingResources">
             <list>
+                <value>org/sakaiproject/certification/impl/CertificateAward.hbm.xml</value>
                 <value>org/sakaiproject/certification/impl/CertificateDefinition.hbm.xml</value>
                 <value>org/sakaiproject/certification/impl/DocumentTemplate.hbm.xml</value>
                 <value>org/sakaiproject/certification/impl/criteria/AbstractCriterion.hbm.xml</value>

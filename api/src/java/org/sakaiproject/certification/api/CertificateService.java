@@ -82,7 +82,7 @@ public interface CertificateService {
     public Locale getLocale();
 
     /**
-     * Deletes the certificate definition as well as their associated document templates
+     * Deletes the certificate definition as well as its associated awards and document template.
      * TODO: make this also delete the criteria and the field values
      *
      * @param certificateDefinitionId
@@ -245,6 +245,28 @@ public interface CertificateService {
      */
     public Set<Criterion> getUnmetAwardConditionsForUser(String certificateDefinitionId, String userId, boolean useCaching)
         throws IdUnusedException, UnknownCriterionTypeException;
+
+    /**
+     * Returns the existing award for a user without evaluating criteria or creating a new award.
+     *
+     * @param certificateDefinitionId certificate definition identifier
+     * @param userId Sakai user identifier
+     * @return the persisted award, or {@code null} when the certificate has not been issued to this user
+     */
+    public CertificateAward getCertificateAwardForUser(String certificateDefinitionId, String userId);
+
+    /**
+     * Issues a certificate to an eligible user. The first calculated issue date is persisted and returned on every
+     * later call; an existing award is never recalculated or overwritten.
+     *
+     * @param certificateDefinitionId certificate definition identifier
+     * @param userId Sakai user identifier
+     * @return the existing or newly persisted award
+     * @throws IdUnusedException when the certificate definition does not exist
+     * @throws UnmetCriteriaException when the user is not currently eligible or an issue date cannot be calculated
+     */
+    public CertificateAward awardCertificate(String certificateDefinitionId, String userId)
+        throws IdUnusedException, UnmetCriteriaException;
 
     /**
      * Returns a Map whose key values are variable names that can be used to fill in template fields. The values in the

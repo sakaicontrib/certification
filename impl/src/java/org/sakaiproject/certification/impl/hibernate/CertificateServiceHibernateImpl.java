@@ -38,6 +38,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.Tika;
 
 import org.hibernate.HibernateException;
+import org.hibernate.LockMode;
+import org.hibernate.LockOptions;
 import org.hibernate.ObjectNotFoundException;
 import org.hibernate.Query;
 import org.hibernate.Session;
@@ -52,6 +54,7 @@ import org.sakaiproject.authz.api.AuthzGroupService;
 import org.sakaiproject.authz.api.Role;
 import org.sakaiproject.authz.api.SecurityAdvisor;
 import org.sakaiproject.authz.api.SecurityService;
+import org.sakaiproject.certification.api.CertificateAward;
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.CertificateDefinitionStatus;
 import org.sakaiproject.certification.api.CertificateService;
@@ -62,6 +65,7 @@ import org.sakaiproject.certification.api.IncompleteCertificateDefinitionExcepti
 import org.sakaiproject.certification.api.ReportRow;
 import org.sakaiproject.certification.api.TemplateReadException;
 import org.sakaiproject.certification.api.UnsupportedTemplateTypeException;
+import org.sakaiproject.certification.api.UnmetCriteriaException;
 import org.sakaiproject.certification.api.VariableResolver;
 import org.sakaiproject.certification.api.criteria.AbstractCriterion;
 import org.sakaiproject.certification.api.criteria.CriteriaFactory;
@@ -145,6 +149,9 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private static final String QUERY_CERTIFICATE_DEFINITION_BY_NAME = "getCertificateDefinitionByName";
     private static final String QUERY_CERTIFICATE_DEFINITIONS_BY_SITE = "getCertificateDefinitionsBySite";
     private static final String QUERY_CERTIFICATE_DEFINITIONS_BY_SITE_AND_STATUS = "getCertificateDefinitionsBySiteAndStatus";
+    private static final String QUERY_CERTIFICATE_AWARD_FOR_USER = "getCertificateAwardForUser";
+    private static final String QUERY_CERTIFICATE_AWARDS_FOR_DEFINITION_AND_USERS = "getCertificateAwardsForDefinitionAndUsers";
+    private static final String QUERY_DELETE_CERTIFICATE_AWARDS_FOR_DEFINITION = "deleteCertificateAwardsForDefinition";
 
     //Hibernate named query parameters
     private static final String PARAM_SITE_ID = "siteId";
@@ -154,8 +161,12 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
     private static final String PARAM_STUDENT_ID = "studentId";
     private static final String PARAM_ID = "id";
     private static final String PARAM_NAME = "name";
+    private static final String PARAM_CERTIFICATE_DEFINITION_ID = "certificateDefinitionId";
+    private static final String PARAM_USER_ID = "userId";
+    private static final String PARAM_USER_IDS = "userIds";
 
     private static final String PERMISSION_VIEW_STUDENT_NUMS = "certificate.extraprops.view";
+    private static final int MAX_AWARD_QUERY_USER_IDS = 500;
 
     public String getString(String key) {
         return messages.getString(key);
@@ -210,6 +221,9 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             public Object doInHibernate(Session session) throws HibernateException {
                 CertificateDefinition cd = (CertificateDefinition) session.load(CertificateDefinition.class, certificateDefinitionId);
 
+                session.getNamedQuery(QUERY_DELETE_CERTIFICATE_AWARDS_FOR_DEFINITION)
+                    .setString(PARAM_CERTIFICATE_DEFINITION_ID, certificateDefinitionId)
+                    .executeUpdate();
                 session.delete(cd);
                 session.flush();
 
@@ -760,6 +774,92 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         return unmetCriteria;
     }
 
+    @Override
+    public CertificateAward getCertificateAwardForUser(final String certificateDefinitionId, final String userId) {
+        if (StringUtils.isBlank(certificateDefinitionId) || StringUtils.isBlank(userId)) {
+            return null;
+        }
+
+        CertificateAward award = (CertificateAward) getHibernateTemplate().execute(session ->
+            findCertificateAward(session, certificateDefinitionId, userId));
+        if (award != null) {
+            CertificateDefinition definition = award.getCertificateDefinition();
+            setCriteriaFactoryOnCriteria(definition);
+            setCertificateServiceOnCriteria(definition);
+        }
+        return award;
+    }
+
+    @Override
+    public CertificateAward awardCertificate(final String certificateDefinitionId, final String userId)
+            throws IdUnusedException, UnmetCriteriaException {
+        if (StringUtils.isBlank(certificateDefinitionId)) {
+            throw new IdUnusedException(String.valueOf(certificateDefinitionId));
+        }
+        if (StringUtils.isBlank(userId)) {
+            throw new IllegalArgumentException("userId cannot be blank");
+        }
+
+        CertificateAward existingAward = getCertificateAwardForUser(certificateDefinitionId, userId);
+        if (existingAward != null) {
+            return existingAward;
+        }
+
+        final CertificateDefinition definition = getCertificateDefinition(certificateDefinitionId);
+        final Date awardedAt = definition.getIssueDate(userId, false);
+        if (awardedAt == null) {
+            throw new UnmetCriteriaException("Certificate criteria have not been met or an award date could not be calculated");
+        }
+
+        return (CertificateAward) getHibernateTemplate().execute(session -> {
+            // Serialize the short read-and-insert section. The database unique key remains the final invariant.
+            session.buildLockRequest(new LockOptions(LockMode.PESSIMISTIC_WRITE)).lock(definition);
+
+            CertificateAward award = findCertificateAward(session, certificateDefinitionId, userId);
+            if (award == null) {
+                award = new CertificateAward(userId, definition, awardedAt);
+                session.save(award);
+                session.flush();
+            }
+            return award;
+        });
+    }
+
+    private CertificateAward findCertificateAward(Session session, String certificateDefinitionId, String userId) {
+        List<CertificateAward> awards = session.getNamedQuery(QUERY_CERTIFICATE_AWARD_FOR_USER)
+            .setString(PARAM_CERTIFICATE_DEFINITION_ID, certificateDefinitionId)
+            .setString(PARAM_USER_ID, userId)
+            .setMaxResults(1)
+            .list();
+        return awards.isEmpty() ? null : awards.get(0);
+    }
+
+    private Map<String, CertificateAward> getCertificateAwardsForUsers(String certificateDefinitionId,
+                                                                        List<String> userIds) {
+        Map<String, CertificateAward> awardsByUser = new HashMap<>();
+        if (userIds == null || userIds.isEmpty()) {
+            return awardsByUser;
+        }
+
+        List<String> distinctUserIds = new ArrayList<>(new HashSet<>(userIds));
+        for (int start = 0; start < distinctUserIds.size(); start += MAX_AWARD_QUERY_USER_IDS) {
+            int end = Math.min(start + MAX_AWARD_QUERY_USER_IDS, distinctUserIds.size());
+            List<String> userIdBatch = distinctUserIds.subList(start, end);
+            List<CertificateAward> awards = (List<CertificateAward>) getHibernateTemplate().execute(session ->
+                session.getNamedQuery(QUERY_CERTIFICATE_AWARDS_FOR_DEFINITION_AND_USERS)
+                    .setString(PARAM_CERTIFICATE_DEFINITION_ID, certificateDefinitionId)
+                    .setParameterList(PARAM_USER_IDS, userIdBatch)
+                    .list());
+            for (CertificateAward award : awards) {
+                CertificateAward current = awardsByUser.get(award.getUserId());
+                if (current == null || award.getAwardedAt().before(current.getAwardedAt())) {
+                    awardsByUser.put(award.getUserId(), award);
+                }
+            }
+        }
+        return awardsByUser;
+    }
+
     public Map<String, String> getPredefinedTemplateVariables() {
         HashMap<String, String> predefined = new HashMap<>();
 
@@ -1026,6 +1126,8 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
         // If we have all criteria, here are the headers:
         // Name (sorts by lname; default sort), userId, Role, Employee Number, Issue Date, Expires, Gb Item, Final Course Grade, Due Date for Gb Item2, Awarded
         List<User> users = getUserDirectoryService().getUsers(userIds);
+        Map<String, CertificateAward> persistedAwards =
+            getCertificateAwardsForUsers(definition.getId(), userIds);
 
         /*
          * Iterate over criteria; grab any that are of the same type
@@ -1136,17 +1238,19 @@ public class CertificateServiceHibernateImpl extends HibernateDaoSupport impleme
             // Determine the awarded status and the issue date using the UserProgress objects we previously retrieved
             Map<Criterion, UserProgress> critProgressMap = allUserProgress.get(userId);
 
-            // assume this user is awarded until we find a criterion on which the user has failed
-            boolean awarded = true;
-            Date dateAwarded = null;
-            if (criteria.isEmpty()) {
+            CertificateAward persistedAward = persistedAwards.get(userId);
+            boolean awarded = persistedAward != null;
+            Date dateAwarded = persistedAward == null ? null : persistedAward.getAwardedAt();
+            if (persistedAward == null && criteria.isEmpty()) {
                 //TODO: ??? they're awarded, but when?
-            } else if (critProgressMap == null) {
+                awarded = true;
+            } else if (persistedAward == null && critProgressMap == null) {
                 // There are criteria, but this user doesn't have any mappings of Criterion -> UserProgress.
                 // This means they have not made progress toward any criteria, hence they have failed.
                 awarded = false;
 
-            } else {
+            } else if (persistedAward == null) {
+                awarded = true;
                 for (Criterion criterion : criteria) {
                     UserProgress progress = critProgressMap.get(criterion);
                     if (progress == null || !progress.isPassed()) {
