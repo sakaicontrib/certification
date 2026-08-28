@@ -551,7 +551,12 @@ public class CertificateEditController extends BaseCertificateController {
                 } else {
                     model.put(STATUS_MESSAGE_KEY, FORM_ERR);
                     model.put(MOD_ATTR, certificateToolState);
-                    model.put(ERROR_MESSAGE, PREDEFINED_VAR_EXCEPTION);
+                    if (result.hasFieldErrors("certificateDefinition.courseEndDate")) {
+                        model.put(ERROR_MESSAGE,
+                                result.getFieldError("certificateDefinition.courseEndDate").getCode());
+                    } else {
+                        model.put(ERROR_MESSAGE, PREDEFINED_VAR_EXCEPTION);
+                    }
                     return new ModelAndView(VIEW_CREATE_CERTIFICATE_THREE, model);
                 }
 
@@ -633,11 +638,6 @@ public class CertificateEditController extends BaseCertificateController {
                     }
 
                     certificateService.setAwardCriteria(certDef.getId(), awardCriteria);
-
-                    certDef = certificateService.getCertificateDefinition(certDef.getId());
-                    certificateService.setFieldValues(certDef.getId(), certificateToolState.getTemplateFields());
-
-                    certDef = certificateService.getCertificateDefinition(certDef.getId());
                     certificateService.activateCertificateDefinition(certDef.getId(), true);
                 }
 

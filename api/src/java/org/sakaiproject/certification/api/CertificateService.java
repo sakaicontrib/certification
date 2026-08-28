@@ -52,8 +52,11 @@ public interface CertificateService {
      * @param cd
      * @return
      * @throws IdUnusedException
+     * @throws IncompleteCertificateDefinitionException if the course end date variable is mapped without a course
+     * end date
      */
-    public CertificateDefinition updateCertificateDefinition (CertificateDefinition cd) throws IdUnusedException;
+    public CertificateDefinition updateCertificateDefinition(CertificateDefinition cd)
+        throws IdUnusedException, IncompleteCertificateDefinitionException;
 
     public void setDocumentTemplateService (DocumentTemplateService dts);
 
@@ -180,9 +183,11 @@ public interface CertificateService {
      * @param certificateDefinitionId
      * @param fieldValues
      * @throws IdUnusedException
+     * @throws IncompleteCertificateDefinitionException if the course end date variable is mapped without a course
+     * end date
      */
     public void setFieldValues(String certificateDefinitionId, Map<String, String> fieldValues)
-        throws IdUnusedException;
+        throws IdUnusedException, IncompleteCertificateDefinitionException;
 
     /**
      * This sets the CertificateDefinitionStatus to ACTIVE or INACTIVE depending on the value of the boolean 'active'

@@ -38,26 +38,8 @@ public class CertificateDefinitionValidatorTest {
     private final CertificateDefinitionValidator validator = new CertificateDefinitionValidator();
 
     @Test
-    public void missingCourseEndDateIsRejectedWhenCertificateUsesVariable() {
+    public void courseEndDateCanBeClearedBeforeExistingMappingIsChanged() {
         CertificateToolState state = stateWithCourseEndDate(null);
-        state.getCertificateDefinition().getFieldValues().put("date", COURSE_END_DATE_VARIABLE);
-        BeanPropertyBindingResult errors = validateFirst(state);
-
-        assertTrue(errors.hasFieldErrors("certificateDefinition.courseEndDate"));
-    }
-
-    @Test
-    public void missingCourseEndDateIsRejectedWhenEscapedVariableIsPosted() {
-        CertificateToolState state = stateWithCourseEndDate(null);
-        state.getCertificateDefinition().getFieldValues().put("date", COURSE_END_DATE_VARIABLE.substring(1));
-        BeanPropertyBindingResult errors = validateFirst(state);
-
-        assertTrue(errors.hasFieldErrors("certificateDefinition.courseEndDate"));
-    }
-
-    @Test
-    public void configuredCourseEndDateAllowsVariable() {
-        CertificateToolState state = stateWithCourseEndDate(LocalDate.of(2026, 8, 27));
         state.getCertificateDefinition().getFieldValues().put("date", COURSE_END_DATE_VARIABLE);
         BeanPropertyBindingResult errors = validateFirst(state);
 
@@ -65,13 +47,25 @@ public class CertificateDefinitionValidatorTest {
     }
 
     @Test
-    public void missingCourseEndDateIsRejectedWhenInProgressMappingUsesVariable() {
+    public void missingCourseEndDateIsRejectedWhenFinalMappingUsesVariable() {
         CertificateToolState state = stateWithCourseEndDate(null);
         state.setTemplateFields(new LinkedHashMap<>());
         state.getTemplateFields().put("date", COURSE_END_DATE_VARIABLE.substring(1));
-        BeanPropertyBindingResult errors = validateFirst(state);
+        state.setPredifinedFields(predefinedFields());
+        BeanPropertyBindingResult errors = validateThird(state);
 
         assertTrue(errors.hasFieldErrors("certificateDefinition.courseEndDate"));
+    }
+
+    @Test
+    public void configuredCourseEndDateAllowsVariable() {
+        CertificateToolState state = stateWithCourseEndDate(LocalDate.of(2026, 8, 27));
+        state.setTemplateFields(new LinkedHashMap<>());
+        state.getTemplateFields().put("date", COURSE_END_DATE_VARIABLE.substring(1));
+        state.setPredifinedFields(predefinedFields());
+        BeanPropertyBindingResult errors = validateThird(state);
+
+        assertFalse(errors.hasFieldErrors("certificateDefinition.courseEndDate"));
     }
 
     @Test
@@ -100,6 +94,12 @@ public class CertificateDefinitionValidatorTest {
     private BeanPropertyBindingResult validateFirst(CertificateToolState state) {
         BeanPropertyBindingResult errors = new BeanPropertyBindingResult(state, "certificateToolState");
         validator.validateFirst(state, errors, null);
+        return errors;
+    }
+
+    private BeanPropertyBindingResult validateThird(CertificateToolState state) {
+        BeanPropertyBindingResult errors = new BeanPropertyBindingResult(state, "certificateToolState");
+        validator.validateThird(state, errors);
         return errors;
     }
 
