@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import org.springframework.validation.Errors;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
+import org.sakaiproject.certification.api.CertificateDefinitionConstraints;
 import org.sakaiproject.certification.api.CertificateService;
 import org.sakaiproject.certification.api.DocumentTemplateException;
 import org.sakaiproject.certification.tool.util.CertificateToolState;
@@ -78,6 +79,11 @@ public class CertificateDefinitionValidator {
         }
 
         certificateToolState.setTemplateFields(currentFields);
+        if (!CertificateDefinitionConstraints.isCourseEndDateConfigurationValid(
+                certificateToolState.getCertificateDefinition().getCourseEndDate(), currentFields)) {
+            errors.rejectValue("certificateDefinition.courseEndDate", "form.error.courseEndDate.required");
+        }
+
         Map<String, String> preDefFields = certificateToolState.getPredifinedFields();
         Set<String> keySet = preDefFields.keySet();
         for(String val : currentFields.values()) {

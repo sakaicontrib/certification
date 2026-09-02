@@ -16,6 +16,7 @@
         <property name="createDate" type="timestamp" column="create_date" not-null="true"/>
         <property name="creatorUserId" type="java.lang.String" column="creator_id" length="99" not-null="true"/>
         <property name="siteId" type="java.lang.String" column="site_id" length="99" not-null="true" index="cert_site_idx"/>
+        <property name="courseEndDate" type="java.time.LocalDate" column="course_end_date"/>
         <property name="status" type="org.sakaiproject.certification.impl.CertificateDefinitionStatusEnumUserType"
                   not-null="true"/>
         <property name="progressHidden" type="java.lang.Boolean" column="progress_hidden"/>

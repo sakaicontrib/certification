@@ -16,24 +16,46 @@
 
 package org.sakaiproject.certification.impl;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.FormatStyle;
+
 import org.sakaiproject.certification.api.CertificateDefinition;
 import org.sakaiproject.certification.api.VariableResolutionException;
+import org.sakaiproject.util.ResourceLoader;
 
 public class AwardVariableResolver extends AbstractVariableResolver {
 
     private static final String MESSAGE_NAMEOFCERT = "variable.nameOfCert";
+    private static final String MESSAGE_COURSE_END_DATE = "variable.courseEndDate";
     private static final String MESSAGE_UNASSIGNED = "variable.unassigned";
 
     public AwardVariableResolver() {
+        this(new ResourceLoader("org.sakaiproject.certification.Messages"));
+    }
+
+    AwardVariableResolver(ResourceLoader messages) {
+        super(messages);
         String name = getMessages().getString(MESSAGE_NAMEOFCERT);
+        String courseEndDate = getMessages().getString(MESSAGE_COURSE_END_DATE);
         String unassigned = getMessages().getString(MESSAGE_UNASSIGNED);
         addVariable(CERT_NAME, name);
+        addVariable(CERT_ENDDATE, courseEndDate);
         addVariable (UNASSIGNED, unassigned);
     }
 
     public String getValue(CertificateDefinition certDef, String varLabel, String userId, boolean useCaching) throws VariableResolutionException {
         if (CERT_NAME.equals(varLabel)) {
             return certDef.getName();
+        } else if (CERT_ENDDATE.equals(varLabel)) {
+            LocalDate courseEndDate = certDef.getCourseEndDate();
+            if (courseEndDate == null) {
+                return "";
+            }
+
+            DateTimeFormatter dateFormatter = DateTimeFormatter.ofLocalizedDate(FormatStyle.LONG)
+                    .withLocale(getMessages().getLocale());
+            return dateFormatter.format(courseEndDate);
         } else if (UNASSIGNED.equals(varLabel)) {
             return "";
         }

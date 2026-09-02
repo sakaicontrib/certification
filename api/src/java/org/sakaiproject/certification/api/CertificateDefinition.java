@@ -16,6 +16,7 @@
 
 package org.sakaiproject.certification.api;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -51,6 +52,7 @@ public class CertificateDefinition {
     protected String description;
     protected String siteId;
     protected String expiryOffset;
+    protected LocalDate courseEndDate;
     protected Date createDate;
     /**
      * The status of a CertificateDefinition is one of:

@@ -19,6 +19,12 @@ This is a boolean value, whose default is false, which controls whether or not s
 
 `certification.extraUserProperties.enable = true`
 
+# Conversion (Course end date)
+
+When upgrading an existing installation to a version that supports the fixed course end date certificate variable,
+apply [`conversion/add-course-end-date.sql`](conversion/add-course-end-date.sql) before starting Sakai if automatic
+database updates are disabled.
+
 # Conversion (Users of versions older than 12.0)
 Due to the tool refactor, some tables were renamed and some classes were refactored, a conversion script is required to make it work in the 12.x version and newer.
 
@@ -44,4 +50,3 @@ The tool id has been changed for consistency:
 ```
 UPDATE sakai_site_tool SET registration = 'sakai.certification' WHERE registration = 'com.rsmart.certification';
 ```
-

@@ -44,6 +44,22 @@
             <form:textarea id="description" path="certificateDefinition.description" type="text" rows="7" class="form-control" />
         </div>
     </div>
+    <div class="form-group row">
+        <form:label path="certificateDefinition.courseEndDate" for="courseEndDate" class="col-sm-12 form-control-label block">
+            <b><spring:message code="form.label.courseEndDate" /></b>
+        </form:label>
+        <div class="col-sm-6">
+            <form:input path="certificateDefinition.courseEndDate"
+                        id="courseEndDate"
+                        type="date"
+                        class="form-control"
+                        aria-describedby="courseEndDateHelp courseEndDateErrors" />
+            <div id="courseEndDateHelp" class="instruction">
+                <spring:message code="form.text.courseEndDate.description" />
+            </div>
+            <form:errors path="certificateDefinition.courseEndDate" id="courseEndDateErrors" cssClass="alertMessage" element="div" />
+        </div>
+    </div>
 
     <table>
         <tbody>

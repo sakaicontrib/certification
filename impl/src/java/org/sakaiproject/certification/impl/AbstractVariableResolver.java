@@ -24,8 +24,16 @@ import org.sakaiproject.util.ResourceLoader;
 
 public abstract class AbstractVariableResolver implements VariableResolver {
 
-    private final ResourceLoader messages = new ResourceLoader("org.sakaiproject.certification.Messages");
+    private final ResourceLoader messages;
     private final HashMap<String, String> descriptions = new HashMap<>();
+
+    protected AbstractVariableResolver() {
+        this(new ResourceLoader("org.sakaiproject.certification.Messages"));
+    }
+
+    protected AbstractVariableResolver(ResourceLoader messages) {
+        this.messages = messages;
+    }
 
     public void addVariable (String variable, String description) {
         descriptions.put(variable, description);
